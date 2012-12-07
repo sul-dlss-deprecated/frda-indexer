@@ -4,6 +4,10 @@ FRDA:  French Revolution Digital Archive
 
 frda-indexer:  Code to harvest FRDA metadata from DOR and index it into Solr for the FRDA web application
 
+FRDA is comprised of two collections:
+  AP:  Archives Parlementaires - a collection of volumes from the parliamentary sessions 
+  Image:  Images de la Révolution française - a collection of images 
+
 == Usage
 
 Check out code from git

@@ -18,4 +18,5 @@ group :test do
 #	gem 'ruby-debug19'
 	gem 'simplecov', :require => false
 	gem 'simplecov-rcov', :require => false
+#  gem 'jettywrapper'
 end
