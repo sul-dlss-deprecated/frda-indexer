@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config>
+  <!-- NOTE: various comments and unused configuration possibilities have been purged
+     from this file.  Please refer to http://wiki.apache.org/solr/SolrConfigXml,
+     as well as the default solrconfig file included with Solr -->
+
+  <abortOnConfigurationError>${solr.abortOnConfigurationError:true}</abortOnConfigurationError>
+
+  <luceneMatchVersion>LUCENE_40</luceneMatchVersion>
+
+  <lib dir="/usr/lib/solr/4.0.0/" />
+  
+  <dataDir>${solr.core1.data.dir:}:/data/frda/data</dataDir>
+
+  <indexConfig>
+<!-- from sw-solr   
+    <maxFieldLength>2147483647</maxFieldLength>
+    <writeLockTimeout>1000</writeLockTimeout>
+    <useCompoundFile>false</useCompoundFile>
+    <ramBufferSizeMB>128</ramBufferSizeMB>
+    <mergeFactor>10</mergeFactor>
+    <lockType>simple</lockType>
+    <unlockOnStartup>false</unlockOnStartup>
+    <reopenReaders>true</reopenReaders>
+    <deletionPolicy class="solr.SolrDeletionPolicy">
+      <str name="maxCommitsToKeep">1</str>
+      <str name="maxOptimizedCommitsToKeep">0</str>
+    </deletionPolicy>
+-->    
+  </indexConfig>
+
+  <!-- See docs re: autoCommit -->
+  <updateHandler class="solr.DirectUpdateHandler2" />
+
+  <query>
+    <maxBooleanClauses>1024</maxBooleanClauses>
+    <filterCache class="solr.FastLRUCache" size="512" initialSize="512" autowarmCount="0"/>
+    <queryResultCache class="solr.LRUCache" size="512" initialSize="512" autowarmCount="0"/>
+    <documentCache class="solr.LRUCache" size="512" initialSize="512" autowarmCount="0"/>
+    <enableLazyFieldLoading>true</enableLazyFieldLoading>
+    <queryResultWindowSize>80</queryResultWindowSize>
+    <queryResultMaxDocsCached>200</queryResultMaxDocsCached>
+    <useColdSearcher>true</useColdSearcher>
+    <maxWarmingSearchers>1</maxWarmingSearchers>
+
+    <!-- a newSearcher event is fired whenever a new searcher is being prepared
+         and there is a current searcher handling requests (aka registered).
+         It should only have the most common facets -->
+    <listener event="newSearcher" class="solr.QuerySenderListener">
+      <arr name="queries">
+        <!-- default query for all objects, front page facets -->
+        <lst>
+          <int name="rows">0</int>
+          <str name="fl">score</str>
+          <bool name="facet">true</bool>
+          <int name="facet.mincount">1</int>
+          <str name="facet.field">druid</str>
+          <str name="facet.field">date_ssi</str>
+          <str name="facet.field">speaker_ssim</str>
+          <str name="facet.field">author_ssim</str>
+          <str name="facet.field">type_ssi</str>
+          <str name="facet.field">content_type_ssi</str>
+          <str name="facet.field">volume_ssi</str>
+          <str name="facet.field">session_ssi</str>
+        </lst>
+        <!-- single object query to populate filter and fieldValue cache -->
+        <lst>
+          <str name="q">id:ns351vc7243_volume</str>
+          <str name="qt">standard</str>
+          <int name="rows">0</int>
+          <str name="fl">score</str>
+          <bool name="facet">true</bool>
+          <int name="facet.mincount">1</int>
+          <int name="facet.limit">30</int>
+          <str name="facet.field">druid</str>
+          <str name="facet.field">date_ssi</str>
+          <str name="facet.field">speaker_ssim</str>
+          <str name="facet.field">author_ssim</str>
+          <str name="facet.field">type_ssi</str>
+          <str name="facet.field">content_type_ssi</str>
+          <str name="facet.field">volume_ssi</str>
+          <str name="facet.field">session_ssi</str>
+        </lst>
+      </arr>
+    </listener>
+
+    <!-- a firstSearcher event is fired whenever a new searcher is being
+         prepared but there is no current registered searcher to handle
+         requests or to gain autowarming data from. ("fast warmup") -->
+    <listener event="firstSearcher" class="solr.QuerySenderListener">
+      <arr name="queries">
+        <!-- default query for all objects, front page facets -->
+        <lst>
+          <int name="rows">0</int>
+          <str name="fl">score</str>
+          <bool name="facet">true</bool>
+          <int name="facet.mincount">1</int>
+          <int name="facet.limit">30</int>
+          <str name="facet.field">druid</str>
+          <str name="facet.field">date_ssi</str>
+          <str name="facet.field">speaker_ssim</str>
+          <str name="facet.field">author_ssim</str>
+          <str name="facet.field">type_ssi</str>
+          <str name="facet.field">content_type_ssi</str>
+          <str name="facet.field">volume_ssi</str>
+          <str name="facet.field">session_ssi</str>
+        </lst>
+        <!-- single object query to populate filter and fieldValue cache -->
+        <lst>
+          <str name="q">id:ns351vc7243_volume</str>
+          <str name="qt">standard</str>
+          <int name="rows">0</int>
+          <str name="fl">score</str>
+          <bool name="facet">true</bool>
+          <int name="facet.mincount">1</int>
+          <int name="facet.limit">30</int>
+          <str name="facet.field">druid</str>
+          <str name="facet.field">date_ssi</str>
+          <str name="facet.field">speaker_ssim</str>
+          <str name="facet.field">author_ssim</str>
+          <str name="facet.field">type_ssi</str>
+          <str name="facet.field">content_type_ssi</str>
+          <str name="facet.field">volume_ssi</str>
+          <str name="facet.field">session_ssi</str>
+        </lst>
+      </arr>
+    </listener>
+  </query>
+
+  <!-- Let the dispatch filter handler /select?qt=XXX -->
+  <requestDispatcher handleSelect="true" >
+    <!--Make sure your system has some authentication before enabling remote streaming!  -->
+    <requestParsers enableRemoteStreaming="true" multipartUploadLimitInKB="2048000" />
+    <httpCaching lastModifiedFrom="openTime" etagSeed="Solr" />
+  </requestDispatcher>
+
+  <!-- for most searches, including Blacklight's pulldown menu for the single search box
+       Usage:   q=terms anywhere
+                q={!qf=$qf_title pf=$pf_title}a book title
+                q={!qf=$qf_author pf=$pf_author}author name
+                q=yer_callnum&df=callnum_search&defType=lucene&q.op=AND
+       and so on -->
+  <requestHandler name="search" class="solr.SearchHandler" default="true">
+    <lst name="defaults">
+      <str name="defType">edismax</str>
+      <str name="echoParams">explicit</str>
+      <str name="sort">score desc</str>
+      <int name="rows">20</int>
+      <str name="q.alt">*:*</str>
+      <str name="mm">6&lt;-1 6&lt;90%</str>
+      <int name="qs">1</int>
+      <int name="ps">0</int>
+      <float name="tie">0.01</float>
+      <str name="qf">
+        id
+        druid
+        page_num_ssi
+        type_ssi
+        date_ssi
+        volume_ssi
+        session_ssi
+        title_ftsim
+        title_main_ftsi
+        title_sub_ftsi
+        vol_title_main_ftsi
+        vol_author_tsim
+        author_tsim
+        speaker_tsim
+        vol_date_ssi
+        pub_place_ssi
+        content_ftsimv        
+        p_content_ftsimv
+        sp_content_ftsimv
+      </str>
+      <str name="pf">
+        title_ftsim^20
+        title_main_ftsi^20
+        title_sub_ftsi^20
+        vol_title_main_ftsi^20
+        content_ftsimv^20   
+        p_content_ftsimv^20
+        sp_content_ftsimv^20
+      </str>
+
+      <str name="qf_title">
+        title_ftsim
+        title_main_ftsi
+        title_sub_ftsi
+        vol_title_mai_ftsi
+      </str>
+      <str name="pf_title">
+        title_ftsim^20
+        title_main_ftsi^20
+        title_sub_ftsi^20
+        vol_title_main_ftsi^20
+      </str>
+
+      <str name="qf_author">
+        vol_author_ftsim
+        author_tsim
+        speaker_tsim
+      </str>
+      <str name="pf_author">
+        vol_author_ftsim^20
+        author_tsim^20
+        speaker_tsim^20
+      </str>
+
+      <str name="fl">score, *</str>
+      
+      <bool name="facet">true</bool>
+      <int name="facet.mincount">1</int>
+      <int name="facet.limit">21</int>
+      <str name="facet.field">druid</str>
+      <str name="facet.field">date_ssi</str>
+      <str name="facet.field">speaker_ssim</str>
+      <str name="facet.field">author_ssim</str>
+      <str name="facet.field">type_ssi</str>
+      <str name="facet.field">content_type_ssi</str>
+      <str name="facet.field">volume_ssi</str>
+      <str name="facet.field">session_ssi</str>
+      
+      <str name="hl">false</str>
+      <str name="hl.fl">        
+        content_ftsimv
+        p_content_ftsimv
+        sp_content_ftsimv
+      </str>
+      <str name="hl.encoder">html</str>
+      <str name="hl.simple.pre">&lt;b&gt;</str>
+      <str name="hl.simple.post">&lt;/b&gt;</str>
+      <str name="f.sp_content_ftsimv.hl.fragsize">0</str>
+      <str name="f.sp_content_ftsimv.hl.alternateField">p_content_ftsimv</str>
+      <str name="f.content_ftsimv.hl.fragsize">0</str>
+      <str name="f.content_ftsimv.hl.alternateField">sp_content_ftsimv</str>
+      <str name="f.p_content_ftsimv.hl.snippets">3</str>
+      <str name="f.p_content_ftsimv.hl.fragsize">200</str>
+      <str name="f.p_content_ftsimv.hl.alternateField">sp_content_ftsimv</str>
+      <str name="f.p_content_ftsimv.hl.maxAlternateFieldLength">750</str>
+      
+      <str name="spellcheck">false</str>
+      <str name="spellcheck.extendedResults">false</str>       
+      <str name="spellcheck.count">5</str>
+      <str name="spellcheck.alternativeTermCount">2</str>
+      <str name="spellcheck.maxResultsForSuggest">5</str>       
+      <str name="spellcheck.collate">true</str>
+      <str name="spellcheck.collateExtendedResults">true</str>  
+      <str name="spellcheck.maxCollationTries">5</str>
+      <str name="spellcheck.maxCollations">3</str>           
+      
+      <str name="tv">false</str>
+      <str name="tv.tf">true</str>
+      <str name="tv.df">false</str>
+      <str name="tv.positions">true</str>
+      <str name="tv.offsets">true</str>
+      <str name="tv.tf_idf">false</str>
+      <str name="tv.fl">
+        all_text_timv
+        content_ftsimv
+        p_content_ftsimv
+        sp_content_ftsimv
+      </str>
+    </lst>
+    
+    <arr name="last-components">
+      <str>spellcheck</str>
+      <str>tvComponent</str>
+    </arr>    
+  </requestHandler>
+
+  <!-- single document requests; use id=666 instead of q=id:666 -->
+  <requestHandler name="document" class="solr.SearchHandler" >
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <str name="fl">*</str>
+      <int name="rows">1</int>
+      <str name="q">{!raw f=id v=$id}</str> <!-- use id=666 instead of q=id:666 -->
+    </lst>
+  </requestHandler>
+
+  <!-- used to get consecutive terms for browsing -->
+  <searchComponent name="termsComp" class="solr.TermsComponent"/>
+  <requestHandler name="/alphaTerms" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <bool name="terms">true</bool>
+      <bool name="terms.lower.incl">true</bool>
+    </lst>
+    <arr name="components">
+      <str>termsComp</str>
+    </arr>
+  </requestHandler>
+
+  <!-- basic defType=lucene request handler -->
+  <requestHandler name="standard" class="solr.SearchHandler" >
+    <lst name="defaults">
+      <str name="defType">lucene</str>
+      <str name="echoParams">explicit</str>
+      <str name="df">all_text_timv</str>
+      <str name="q.op">AND</str>
+      <str name="sort">score desc</str>
+      <int name="facet.mincount">1</int>
+    </lst>
+  </requestHandler>
+
+  <searchComponent name="tvComponent" class="org.apache.solr.handler.component.TermVectorComponent"/>
+  <requestHandler name="/tvrh" class="solr.SearchHandler" startup="lazy">
+    <lst name="defaults">
+      <str name="df">all_text_timv</str>
+      <bool name="tv.all">true</bool>
+      <str name="defType">edismax</str>
+      <str name="q.alt">*:*</str>
+    </lst>
+    <arr name="last-components">
+      <str>tvComponent</str>
+    </arr>
+  </requestHandler>
+  
+  <!-- Spell Check  http://wiki.apache.org/solr/SpellCheckComponent -->
+  <searchComponent name="spellcheck" class="solr.SpellCheckComponent">
+    <str name="queryAnalyzerFieldType">textSpell</str>
+    <lst name="spellchecker">
+      <str name="name">default</str>
+      <str name="field">all_text_timv</str>
+      <str name="classname">solr.DirectSolrSpellChecker</str>
+      <str name="distanceMeasure">internal</str>
+      <float name="accuracy">0.5</float>
+      <int name="maxEdits">2</int>
+      <int name="minPrefix">1</int>
+      <int name="maxInspections">5</int>
+      <int name="minQueryLength">4</int>
+      <float name="maxQueryFrequency">0.01</float>
+    </lst>    
+  </searchComponent>
+  
+  <!-- Highlighting Component  http://wiki.apache.org/solr/HighlightingParameters -->
+  <searchComponent class="solr.HighlightComponent" name="highlight">
+    <highlighting>
+      <fragmenter name="gap" default="true" class="solr.highlight.GapFragmenter">
+        <lst name="defaults">
+          <int name="hl.fragsize">100</int>
+        </lst>
+      </fragmenter>
+      <fragmenter name="regex" class="solr.highlight.RegexFragmenter">
+        <lst name="defaults">
+          <int name="hl.fragsize">70</int>
+          <float name="hl.regex.slop">0.5</float>
+          <str name="hl.regex.pattern">[-\w ,/\n\&quot;&apos;]{20,200}</str>
+        </lst>
+      </fragmenter>
+      
+      <formatter name="html" default="true" class="solr.highlight.HtmlFormatter">
+        <lst name="defaults">
+          <str name="hl.simple.pre"><![CDATA[<em>]]></str>
+          <str name="hl.simple.post"><![CDATA[</em>]]></str>
+        </lst>
+      </formatter>
+      
+      <encoder name="html" class="solr.highlight.HtmlEncoder" />
+      
+      <fragListBuilder name="simple" class="solr.highlight.SimpleFragListBuilder"/>
+      <fragListBuilder name="single" class="solr.highlight.SingleFragListBuilder"/>
+      <fragListBuilder name="weighted" default="true" class="solr.highlight.WeightedFragListBuilder"/>
+
+      <fragmentsBuilder name="default" default="true" class="solr.highlight.ScoreOrderFragmentsBuilder" />
+      <fragmentsBuilder name="colored" class="solr.highlight.ScoreOrderFragmentsBuilder">
+        <lst name="defaults">
+          <str name="hl.tag.pre"><![CDATA[
+               <b style="background:yellow">,<b style="background:lawgreen">,
+               <b style="background:aquamarine">,<b style="background:magenta">,
+               <b style="background:palegreen">,<b style="background:coral">,
+               <b style="background:wheat">,<b style="background:khaki">,
+               <b style="background:lime">,<b style="background:deepskyblue">]]></str>
+          <str name="hl.tag.post"><![CDATA[</b>]]></str>
+        </lst>
+      </fragmentsBuilder>
+      
+      <boundaryScanner name="default" default="true" class="solr.highlight.SimpleBoundaryScanner">
+        <lst name="defaults">
+          <str name="hl.bs.maxScan">10</str>
+          <str name="hl.bs.chars">.,!? &#9;&#10;&#13;</str>
+        </lst>
+      </boundaryScanner>
+      <boundaryScanner name="breakIterator" class="solr.highlight.BreakIteratorBoundaryScanner">
+        <lst name="defaults">
+          <str name="hl.bs.type">WORD</str>
+          <str name="hl.bs.language">fr</str>
+          <str name="hl.bs.country">FR</str>
+        </lst>
+      </boundaryScanner>
+    </highlighting>
+  </searchComponent>
+  
+  <requestHandler name="/update" class="solr.XmlUpdateRequestHandler" startup="lazy"/>
+  <requestHandler name="/update/javabin" class="solr.BinaryUpdateRequestHandler" startup="lazy"/>
+  <requestHandler name="/admin/" class="org.apache.solr.handler.admin.AdminHandlers" />
+  <requestHandler name="/admin/ping" class="solr.PingRequestHandler">
+    <lst name="invariants">
+      <str name="q">ping test query</str>
+      <str name="qt">search</str>
+    </lst>
+  </requestHandler>
+
+  <admin>
+    <defaultQuery>admin test query</defaultQuery>
+  </admin>
+
+</config>

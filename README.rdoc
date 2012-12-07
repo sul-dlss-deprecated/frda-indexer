@@ -1,0 +1,12 @@
+= frda-indexer
+
+FRDA:  French Revolution Digital Archive
+
+frda-indexer:  Code to harvest FRDA metadata from DOR and index it into Solr for the FRDA web application
+
+== Usage
+
+Check out code from git
+
+Execute:
+    $ bundle install

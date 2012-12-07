@@ -1,0 +1,3 @@
+--title 'FRDA Indexing Documentation'
+lib/**/*.rb -
+README.rdoc LICENSE.txt 
