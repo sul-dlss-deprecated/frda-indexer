@@ -17,6 +17,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'frda_indexer'
+require 'ap_indexer'
 
 #RSpec.configure do |config|
 #end
