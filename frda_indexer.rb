@@ -1,5 +1,6 @@
 # external gems
 require 'confstruct'
+require 'harvestdor'
 # stdlib
 require 'logger'
 
@@ -7,6 +8,7 @@ require 'logger'
 class FrdaIndexer
 
   def initialize yml_path, options = {}
+    @yml_path = yml_path
     config.configure(YAML.load_file(yml_path)) if yml_path    
     config.configure options 
     yield(config) if block_given?
@@ -18,6 +20,16 @@ class FrdaIndexer
 
   def logger
     @logger ||= load_logger(config.log_dir, config.log_name)
+  end
+  
+  def harvestdor_client
+    @harvestdor_client ||= Harvestdor::Client.new({:config_yml_path => @yml_path})
+  end
+  
+  # return Array of druids contained in the OAI harvest indicated by OAI params in yml configuration file
+  # @return [Array<String>] or enumeration over it, if block is given
+  def druids
+    harvestdor_client.harvest_ids
   end
 
   protected #---------------------------------------------------------------------

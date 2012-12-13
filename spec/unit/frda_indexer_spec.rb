@@ -16,30 +16,10 @@ describe FrdaIndexer do
       File.exists?(File.join(@yaml['log_dir'], @yaml['log_name'])).should == true
     end
   end
-  
-  context "index_ap" do
-    it "should get a list of AP druids via OAI" do
-      pending "to be implemented"
-      harvestdor = double()
-      harvestdor.should_receive(:harvest_ids)
-      fi = FrdaIndexer.new
-      fi.harvestdor = harvestdor
-      fi.index_ap
-      pending "to be implemented"
-    end
-    
-    it "should get the right set" do
-      pending "to be implemented"
-    end
-    
-    it "should get the TEI for each AP druid" do
-      pending "to be implemented"
-    end
-    
-    it "should get the MODS for each AP druid" do
-      pending "to be implemented"
-    end
-    
+
+  it "should initialize the harvestdor_client from the config" do
+    @fi.harvestdor_client.should be_an_instance_of(Harvestdor::Client)
+    @fi.harvestdor_client.config.default_set.should == @yaml['default_set']
   end
-  
+    
 end
