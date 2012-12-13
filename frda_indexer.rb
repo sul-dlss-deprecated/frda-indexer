@@ -32,6 +32,12 @@ class FrdaIndexer
     harvestdor_client.druids_via_oai
   end
 
+  # return the mods for the druid as a Nokogiri::XML::Document object
+  # @return [Nokogiri::XML::Document]
+  def mods druid
+    harvestdor_client.mods(druid)
+  end
+
   protected #---------------------------------------------------------------------
 
   # Global, memoized, lazy initialized instance of a logger

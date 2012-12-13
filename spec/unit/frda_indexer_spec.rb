@@ -21,5 +21,15 @@ describe FrdaIndexer do
     @fi.harvestdor_client.should be_an_instance_of(Harvestdor::Client)
     @fi.harvestdor_client.config.default_set.should == @yaml['default_set']
   end
-    
+  
+  it "druids method should call druids_via_oai method on harvestdor_client" do
+    @fi.harvestdor_client.should_receive(:druids_via_oai)
+    @fi.druids
+  end
+  
+  it "mods method should call mods method on harvestdor_client" do
+    @fi.harvestdor_client.should_receive(:mods).with('oo000oo0000')
+    @fi.mods('oo000oo0000')
+  end
+  
 end
