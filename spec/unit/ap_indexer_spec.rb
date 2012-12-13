@@ -42,6 +42,19 @@ describe ApIndexer do
     end
   end
   
+  it "should create a solr doc from MODS and TEI for each volume" do
+    pending "to be implemented"
+  end
+  
+  it "should create a solr doc for each session within a volume" do
+    pending "to be implemented"
+  end
+  
+  it "should create a solr doc for each page" do
+    pending "to be implemented"
+    # with volume / session
+  end
+  
   it "should create a correct Solr doc" do
     pending "to be implemented"
   end
