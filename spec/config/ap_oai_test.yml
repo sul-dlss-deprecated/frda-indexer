@@ -14,7 +14,7 @@ purl: http://purl-test.stanford.edu
 # oai_client_debug:  true for OAI::Client debug mode  (default: false)
 
 # oai_repository_url:  URL of the OAI data provider
-oai_repository_url: https://dor-oaiprovider-prod.stanford.edu/oai
+oai_repository_url: https://dor-oaiprovider-test.stanford.edu/oai
 #oai_repository_url: https://dor-oaiprovider-test.stanford.edu/oai
 
 # default_metadata_prefix:  default metadata prefix to be used for harvesting  (default: mods)
