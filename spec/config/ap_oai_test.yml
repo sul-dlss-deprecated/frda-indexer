@@ -7,7 +7,7 @@ log_dir: spec/test_logs
 log_name: ap.log
 
 # purl: url for the DOR purl server (used to get ContentMetadata, etc.)
-purl: http://purl.stanford.edu
+purl: http://purl-test.stanford.edu
 
 # ---------- OAI harvesting parameters -----------
 
