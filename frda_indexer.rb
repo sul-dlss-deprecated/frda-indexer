@@ -29,7 +29,7 @@ class FrdaIndexer
   # return Array of druids contained in the OAI harvest indicated by OAI params in yml configuration file
   # @return [Array<String>] or enumeration over it, if block is given
   def druids
-    harvestdor_client.harvest_ids
+    harvestdor_client.druids_via_oai
   end
 
   protected #---------------------------------------------------------------------
