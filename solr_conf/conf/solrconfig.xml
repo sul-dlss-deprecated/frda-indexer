@@ -186,7 +186,7 @@
         title_ftsim
         title_main_ftsi
         title_sub_ftsi
-        vol_title_mai_ftsi
+        vol_title_main_ftsi
       </str>
       <str name="pf_title">
         title_ftsim^20
