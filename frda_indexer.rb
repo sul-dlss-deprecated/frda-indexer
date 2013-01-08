@@ -22,17 +22,14 @@ class FrdaIndexer
     @logger ||= load_logger(config.log_dir, config.log_name)
   end
   
-  def harvestdor_client
-    @harvestdor_client ||= Harvestdor::Client.new({:config_yml_path => @yml_path})
-  end
-  
   # return Array of druids contained in the OAI harvest indicated by OAI params in yml configuration file
-  # @return [Array<String>] or enumeration over it, if block is given
+  # @return [Array<String>] or enumeration over it, if block is given. (strings are druids, e.g. ab123cd1234)
   def druids
     harvestdor_client.druids_via_oai
   end
 
   # return the mods for the druid as a Nokogiri::XML::Document object
+  # @param [String] druid, e.g. ab123cd4567
   # @return [Nokogiri::XML::Document]
   def mods druid
     harvestdor_client.mods(druid)
@@ -40,6 +37,10 @@ class FrdaIndexer
 
   protected #---------------------------------------------------------------------
 
+  def harvestdor_client
+    @harvestdor_client ||= Harvestdor::Client.new({:config_yml_path => @yml_path})
+  end
+  
   # Global, memoized, lazy initialized instance of a logger
   # @param String directory for to get log file
   # @param String name of log file

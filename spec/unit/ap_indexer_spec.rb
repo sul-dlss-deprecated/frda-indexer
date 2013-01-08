@@ -7,7 +7,8 @@ describe ApIndexer do
     config_yml_path = File.join(File.dirname(__FILE__), "..", "config", "ap_oai_test.yml")
     @indexer = ApIndexer.new(config_yml_path)
     @ap_druids = @indexer.druids
-    @druid1 = @ap_druids.first    
+    @druid1 = @ap_druids.first
+    @hdor_client = @indexer.send(:harvestdor_client)
   end
   
   it "should get a list of AP druids via OAI" do
@@ -17,11 +18,11 @@ describe ApIndexer do
   end
   
   it "should get the right set (per identityMetadata)" do
-    @indexer.harvestdor_client.identity_metadata(@druid1).to_s.should =~ /Archives Parlementaires/
+    @hdor_client.identity_metadata(@druid1).to_s.should =~ /Archives Parlementaires/
   end
   
   it "should get the right set (per collection id)" do
-    @indexer.harvestdor_client.rdf(@druid1).remove_namespaces!.root.xpath('//isMemberOfCollection/@resource').text.should == 'info:fedora/druid:jh957jy1101'
+    @hdor_client.rdf(@druid1).remove_namespaces!.root.xpath('//isMemberOfCollection/@resource').text.should == 'info:fedora/druid:jh957jy1101'
   end
 
   it "should get the MODS for each AP druid" do
@@ -58,5 +59,12 @@ describe ApIndexer do
   it "should create a correct Solr doc" do
     pending "to be implemented"
   end
+  
+  it "should add the solr doc to the index" do
+    pending "to be implemented"
+  end
 
+  it "should only do a commit at end" do
+    pending "to be implemented"
+  end
 end
