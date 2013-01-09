@@ -54,7 +54,7 @@
           <str name="fl">score</str>
           <bool name="facet">true</bool>
           <int name="facet.mincount">1</int>
-          <str name="facet.field">druid</str>
+          <str name="facet.field">collection_si</str>
           <str name="facet.field">date_ssi</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">author_ssim</str>
@@ -72,7 +72,7 @@
           <bool name="facet">true</bool>
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
-          <str name="facet.field">druid</str>
+          <str name="facet.field">collection_si</str>
           <str name="facet.field">date_ssi</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">author_ssim</str>
@@ -96,7 +96,7 @@
           <bool name="facet">true</bool>
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
-          <str name="facet.field">druid</str>
+          <str name="facet.field">collection_si</str>
           <str name="facet.field">date_ssi</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">author_ssim</str>
@@ -114,7 +114,7 @@
           <bool name="facet">true</bool>
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
-          <str name="facet.field">druid</str>
+          <str name="facet.field">collection_si</str>
           <str name="facet.field">date_ssi</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">author_ssim</str>
@@ -211,7 +211,7 @@
       <bool name="facet">true</bool>
       <int name="facet.mincount">1</int>
       <int name="facet.limit">21</int>
-      <str name="facet.field">druid</str>
+      <str name="facet.field">collection_si</str>
       <str name="facet.field">date_ssi</str>
       <str name="facet.field">speaker_ssim</str>
       <str name="facet.field">author_ssim</str>
@@ -391,8 +391,23 @@
     </highlighting>
   </searchComponent>
   
-  <requestHandler name="/update" class="solr.XmlUpdateRequestHandler" startup="lazy"/>
-  <requestHandler name="/update/javabin" class="solr.BinaryUpdateRequestHandler" startup="lazy"/>
+  <requestHandler name="/update" class="solr.XmlUpdateRequestHandler" startup="lazy">
+    <!-- Enables a transaction log, currently used for real-time get.
+         "dir" - the target directory for transaction logs, defaults to the
+         solr data directory.  -->
+    <updateLog>
+      <str name="dir">${solr.core1.data.dir:}:/data/frda/data</str>
+    </updateLog>
+  </requestHandler>
+  <requestHandler name="/update/javabin" class="solr.BinaryUpdateRequestHandler" startup="lazy">
+    <!-- Enables a transaction log, currently used for real-time get.
+         "dir" - the target directory for transaction logs, defaults to the
+         solr data directory.  -->
+    <updateLog>
+      <str name="dir">${solr.core1.data.dir:}:/data/frda/data</str>
+    </updateLog>
+  </requestHandler>
+  <requestHandler name="/replication" class="solr.ReplicationHandler" startup="lazy" />  
   <requestHandler name="/admin/" class="org.apache.solr.handler.admin.AdminHandlers" />
   <requestHandler name="/admin/ping" class="solr.PingRequestHandler">
     <lst name="invariants">
@@ -400,7 +415,11 @@
       <str name="qt">search</str>
     </lst>
   </requestHandler>
-
+  <requestHandler name="/get" class="solr.RealTimeGetHandler">
+    <lst name="defaults">
+      <str name="omitHeader">true</str>
+    </lst>
+  </requestHandler>
   <admin>
     <defaultQuery>admin test query</defaultQuery>
   </admin>
