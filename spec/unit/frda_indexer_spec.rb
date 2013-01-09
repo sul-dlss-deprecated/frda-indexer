@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'rsolr'
 
 describe FrdaIndexer do
   
@@ -25,6 +26,12 @@ describe FrdaIndexer do
   it "druids method should call druids_via_oai method on harvestdor_client" do
     @hdor_client.should_receive(:druids_via_oai)
     @fi.druids
+  end
+  
+  it "solr_client should initialize the rsolr client using the options from the config" do
+    indexer = FrdaIndexer.new(nil, Confstruct::Configuration.new(:solr => { :url => 'http://localhost:2345', :a => 1 }) )
+    RSolr.should_receive(:connect).with(hash_including(:a => 1, :url => 'http://localhost:2345')).and_return('foo')
+    indexer.solr_client
   end
   
   it "mods method should call mods method on harvestdor_client" do

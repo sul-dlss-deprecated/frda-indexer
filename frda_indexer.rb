@@ -4,7 +4,7 @@ require 'harvestdor'
 # stdlib
 require 'logger'
 
-# NAOMI_MUST_COMMENT_THIS_CLASS
+# Base class to harvest from DOR via harvestdor gem
 class FrdaIndexer
 
   def initialize yml_path, options = {}
@@ -25,9 +25,13 @@ class FrdaIndexer
   # return Array of druids contained in the OAI harvest indicated by OAI params in yml configuration file
   # @return [Array<String>] or enumeration over it, if block is given. (strings are druids, e.g. ab123cd1234)
   def druids
-    harvestdor_client.druids_via_oai
+    @druids ||= harvestdor_client.druids_via_oai
   end
 
+  def solr_client
+    @solr_client ||= RSolr.connect(config.solr.to_hash)
+  end
+  
   # return the mods for the druid as a Nokogiri::XML::Document object
   # @param [String] druid, e.g. ab123cd4567
   # @return [Nokogiri::XML::Document]
