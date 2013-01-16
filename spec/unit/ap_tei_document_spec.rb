@@ -6,12 +6,10 @@ describe ApTeiDocument do
     @atd = ApTeiDocument.new
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
   end
-  it "should have COLL_VAL constant" do
-    ApTeiDocument::COLL_VAL.should == 'Archives parlementaires'
-  end
   context "<teiHeader>" do
     before(:all) do
       @druid = "wb029sv4796"
+      @volume
       x = "<TEI.2>
        <teiHeader type=\"text\" id=\"#{@druid}\">
         <fileDesc>
@@ -42,14 +40,30 @@ describe ApTeiDocument do
        </TEI.2>"
        @parser.parse(x)
     end
-    it "should set druid to teiHeader/@id" do
-      @atd.druid.should == @druid
+    it "should set collection_si to COLL_VAL constant" do
+      @atd.collection_si.should == ApTeiDocument::COLL_VAL
+    end
+    context "volume value" do
+      it "should set volume to TEI.2/body/div1[@type='volume']/@n" do
+        pending
+        vol = '666'
+        x = "<TEI.2><body><div1 type=\"volume\" n=\"#{vol}\"/></body></TEI.2>"
+        @parser.parse(x)
+        @atd.volume.should == vol
+      end
     end
     it "should populate the volume context solr fields" do
-      @atd.druid.should == @druid
       pending
+      @atd.druid.should == @druid
       @atd.volume_ssi.should == '36'
       ApTeiDocument::VOL_CONTEXT_FIELDS.each { |fld| @atd.send(fld.to_sym).should_not == nil}
+    end
+    it "should set druid to TEI.2/teiHeader/@id" do
+      @atd.druid.should == @druid
+      druid = 'ae123io4567'
+      x = "<TEI.2><teiHeader type=\"text\" id=\"#{druid}\"></TEI.2>"
+      @parser.parse(x)
+      @atd.druid.should == druid
     end
     context "volume solr doc" do
       

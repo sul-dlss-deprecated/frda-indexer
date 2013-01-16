@@ -10,9 +10,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     attr_reader f.to_sym
   }
 
-  @collection_si = COLL_VAL
+  def initialize
+    @collection_si = COLL_VAL
+  end
   
-  # Called at the beginning of an element
   # @param [String] name the element tag
   # @param [Array<String>] attributes an assoc list of namespaces and attributes, e.g.:
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
@@ -21,6 +22,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'teiHeader'
       @druid ||= attributes.select { |a| a[0] == 'id'}.first.last
     end
+  end
+  
+  def start_document
+    @druid = nil
+    @volume_ssi = nil
   end
   
 end # ApTeiDocument class
