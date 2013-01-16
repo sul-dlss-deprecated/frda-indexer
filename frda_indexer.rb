@@ -1,6 +1,7 @@
 # external gems
 require 'confstruct'
 require 'harvestdor'
+require 'rsolr'
 # stdlib
 require 'logger'
 
@@ -22,16 +23,38 @@ class FrdaIndexer
     @logger ||= load_logger(config.log_dir, config.log_name)
   end
   
+  # per this Indexer's config options 
+  #  harvest the druids via OAI
+  #   create a Solr document for each druid suitable for SearchWorks
+  #   write the result to the SearchWorks Solr index
+  def harvest_and_index
+    druids.each { |druid|
+      solr_client.add(solr_doc(druid))
+      # update DOR object's workflow datastream??   for harvest?  for indexing?
+    }
+    solr_client.commit
+  end
+  
+  # Create a Solr doc, as a Hash, to be added to the SearchWorks Solr index.  
+  # Solr doc contents are based on the mods, contentMetadata, etc. for the druid
+  # @param [String] id a druid, e.g. ab123cd4567
+  # @param [Stanford::Mods::Record] MODS metadata as a Stanford::Mods::Record object
+  # @param [Hash] Hash representing the Solr document
+  def solr_doc id
+# FIXME!!!!!
+    sdb = BnfSolrDocBuilder.new(id, harvestdor_client, logger)
+    doc_hash = sdb.doc_hash
+
+    # add things from Indexer level class (info kept here for caching purposes)
+    doc_hash
+  end
+    
   # return Array of druids contained in the OAI harvest indicated by OAI params in yml configuration file
   # @return [Array<String>] or enumeration over it, if block is given. (strings are druids, e.g. ab123cd1234)
   def druids
     @druids ||= harvestdor_client.druids_via_oai
   end
 
-  def solr_client
-    @solr_client ||= RSolr.connect(config.solr.to_hash)
-  end
-  
   # return the mods for the druid as a Nokogiri::XML::Document object
   # @param [String] druid, e.g. ab123cd4567
   # @return [Nokogiri::XML::Document]
@@ -39,6 +62,10 @@ class FrdaIndexer
     harvestdor_client.mods(druid)
   end
 
+  def solr_client
+    @solr_client ||= RSolr.connect(config.solr.to_hash)
+  end
+  
   protected #---------------------------------------------------------------------
 
   def harvestdor_client

@@ -4,6 +4,7 @@ require 'bundler'
 require 'rspec/core/rake_task'
 require 'yard'
 require 'yard/rake/yardoc_task'
+require 'jettywrapper'
 
 begin
   Bundler.setup(:default, :development)
@@ -31,6 +32,33 @@ task :spec => :rspec
 RSpec::Core::RakeTask.new(:rspec) do |spec|
   spec.rspec_opts = ["-c", "-f progress", "--tty", "-r ./spec/spec_helper.rb"]
 end
+
+# FIXME:  need rake task to copy over Solr config files
+
+desc "Start test Solr"
+task :start_solr do
+  jetty_params = Jettywrapper.load_config.merge({
+    :jetty_home => File.expand_path(File.dirname(__FILE__) + '/spec/jetty'),
+    :jetty_port => 8983,
+    :solr_home => File.expand_path(File.dirname(__FILE__) + '/spec/solr'), 
+    :startup_wait => 5
+  })
+  Jettywrapper.start(jetty_params)
+#  `sh ./spec/scripts/curl_delete_solr_test.sh`
+#  `sh ./spec/scripts/curl_to_solr_test.sh`
+end
+
+desc "Stop test Solr"
+task :stop_test_solr do
+  jetty_params = Jettywrapper.load_config.merge({
+    :jetty_home => File.expand_path(File.dirname(__FILE__) + '/spec/jetty'),
+    :jetty_port => 8983,
+    :solr_home => File.expand_path(File.dirname(__FILE__) + '/spec/solr'), 
+    :startup_wait => 5
+  })
+  Jettywrapper.stop(jetty_params)
+end
+
 
 # Use yard to build docs
 begin
