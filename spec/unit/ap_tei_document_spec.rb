@@ -6,10 +6,11 @@ describe ApTeiDocument do
     @atd = ApTeiDocument.new
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
   end
+# FIXME:  are we doing this by vol context, diff front matter context, pages?  or by element?  
   context "<teiHeader>" do
     before(:all) do
-      @druid = "wb029sv4796"
-      @volume
+      @druid = 'wb029sv4796'
+      @volume = '36'
       x = "<TEI.2>
        <teiHeader type=\"text\" id=\"#{@druid}\">
         <fileDesc>
@@ -23,20 +24,20 @@ describe ApTeiDocument do
           <distributor>
            <address>
             <addrLine>SOCIÉTÉ D'IMPRIMERIE ET LIBRAIRIE ADMINISTRATIVES ET DES CHEMINS DE FER PAUL DUPONT</addrLine>
-            <addrLine>4, RUEJEAN -JACQUES-ROUSSEAU , 4</addrLine>
           </address>
           </distributor>
           <date>1891</date>
           <pubPlace>PARIS</pubPlace>
          </publicationStmt>
-         <notesStmt>
-          <note type=\"markup\">Additional markup added by Digital Divide Data, 20120701</note>
-         </notesStmt>
          <sourceDesc>
           <p>Compiled from ARCHIVES PARLEMENTAIRES documents.</p>
          </sourceDesc>
         </fileDesc>
        </teiHeader>
+       <body>
+        <div1 type=\"volume\" n=\"36\">
+        </div1>
+       </body>
        </TEI.2>"
        @parser.parse(x)
     end
@@ -45,25 +46,33 @@ describe ApTeiDocument do
     end
     context "volume value" do
       it "should set volume to TEI.2/body/div1[@type='volume']/@n" do
-        pending
+        @atd.volume_ssi.should == @volume
         vol = '666'
         x = "<TEI.2><body><div1 type=\"volume\" n=\"#{vol}\"/></body></TEI.2>"
+        atd = ApTeiDocument.new
+        @parser.document = atd
         @parser.parse(x)
-        @atd.volume.should == vol
+        atd.volume_ssi.should == vol
+      end
+      it "should not set volume if div1 has wrong type" do
+        x = "<TEI.2><body><div1 type='foo' n='5'/></body></TEI.2>"
+        atd = ApTeiDocument.new
+        @parser.document = atd
+        @parser.parse(x)
+        atd.volume_ssi.should == nil
       end
     end
     it "should populate the volume context solr fields" do
-      pending
-      @atd.druid.should == @druid
-      @atd.volume_ssi.should == '36'
       ApTeiDocument::VOL_CONTEXT_FIELDS.each { |fld| @atd.send(fld.to_sym).should_not == nil}
     end
     it "should set druid to TEI.2/teiHeader/@id" do
       @atd.druid.should == @druid
       druid = 'ae123io4567'
       x = "<TEI.2><teiHeader type=\"text\" id=\"#{druid}\"></TEI.2>"
+      atd = ApTeiDocument.new
+      @parser.document = atd
       @parser.parse(x)
-      @atd.druid.should == druid
+      atd.druid.should == druid
     end
     context "volume solr doc" do
       

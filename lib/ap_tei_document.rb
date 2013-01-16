@@ -21,6 +21,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     case name
     when 'teiHeader'
       @druid ||= attributes.select { |a| a[0] == 'id'}.first.last
+    when 'div1'
+      if attributes.include? ['type', 'volume']
+        @volume_ssi ||= attributes.select { |a| a[0] == 'n'}.first.last
+      end
     end
   end
   
