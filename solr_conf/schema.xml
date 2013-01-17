@@ -105,21 +105,18 @@
 
 <!-- FIXME:  schemaBroswer problem seems unrelated -->
     <!-- you must define copyField source fields or schemaBrowser doesn't work -->
-    <field name="vol_author_ssim" type="string" stored="true" indexed="true" multiValued="true"/>
     <field name="author_ssim" type="string" stored="true" indexed="true" multiValued="true"/>
     <field name="speaker_ssim" type="string" stored="true" indexed="true" multiValued="true"/>
     <field name="content_ftsimv" type="text_fr" stored="true" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
     <field name="p_content_ftsimv" type="text_fr" stored="true" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
     <field name="sp_content_ftsimv" type="text_fr" stored="true" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
     <!-- you must define copyField destination fields or schemaBrowser doesn't work -->
-    <field name="vol_author_tsim" type="text" stored="true" indexed="true" multiValued="true"/>
     <field name="author_tsim" type="text" stored="true" indexed="true" multiValued="true"/>
     <field name="speaker_tsim" type="text" stored="true" indexed="true" multiValued="true"/>
     
   </fields>
 
   <!-- copy fields -->
-  <copyField source="vol_author_ssim" dest="vol_author_tsim" />
   <copyField source="author_ssim" dest="author_tsim" />
   <copyField source="speaker_ssim" dest="speaker_tsim" />
   <copyField source="content_ftsimv" dest="all_text_timv" />
@@ -144,7 +141,7 @@
     <fieldType name="tlong" class="solr.TrieLongField" precisionStep="8" positionIncrementGap="0"/>
     <fieldType name="tdouble" class="solr.TrieDoubleField" precisionStep="8" positionIncrementGap="0"/>
     
-    <!-- The format for this date field is of the form 1995-12-31T23:59:59Z
+    <!-- The format for this date field is 1995-12-31T23:59:59Z
          Optional fractional seconds are allowed: 1995-12-31T23:59:59.999Z
       -->
     <fieldType name="date" class="solr.TrieDateField" precisionStep="0" positionIncrementGap="0"/>
