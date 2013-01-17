@@ -1,17 +1,24 @@
 require 'nokogiri'
 
+require 'ap_vol_dates'
+
 # Subclass of Nokogiri::XML::SAX::Document for parsing
 #  TEI xml corresponding to volumes of the Archives Parlementaires
 class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   COLL_VAL = "Archives parlementaires"  
-  VOL_CONTEXT_FIELDS = [:collection_si, :volume_ssi, :druid]
-  VOL_CONTEXT_FIELDS.each { |f| 
-    attr_reader f.to_sym
-  }
 
-  def initialize
-    @collection_si = COLL_VAL
+  attr_reader :volume, :druid, :doc_hash
+
+  # @param [String] druid the druid for the DOR object that contains this TEI doc
+  # @param [String] volume the volume number (it might not be a strict number string, e.g. '71B')
+  def initialize (druid, volume)
+    @druid = druid
+    @volume = volume
+  end
+  
+  def start_document
+    init_doc_hash
   end
   
   # @param [String] name the element tag
@@ -20,17 +27,20 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def start_element name, attributes
     case name
     when 'teiHeader'
-      @druid ||= attributes.select { |a| a[0] == 'id'}.first.last
-    when 'div1'
-      if attributes.include? ['type', 'volume']
-        @volume_ssi ||= attributes.select { |a| a[0] == 'n'}.first.last
-      end
+      ;
     end
   end
   
-  def start_document
-    @druid = nil
-    @volume_ssi = nil
+  # --------- Not part of the Nokogiri::XML::SAX::Document events -----------------
+    
+  # initialize instance variable @doc_hash with values appropriate for the volume level
+  def init_doc_hash
+    @doc_hash = {}
+    @doc_hash[:collection_si] = COLL_VAL
+    @doc_hash[:druid] = @druid
+    @doc_hash[:volume_ssi] = @volume
+    # The format for a Solr date field is 1995-12-31T23:59:59Z
+    @doc_hash[:date_start_dti] = VOL_DATES[@volume].first
+    @doc_hash[:date_end_dti] = VOL_DATES[@volume].last
   end
-  
 end # ApTeiDocument class

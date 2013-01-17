@@ -1,123 +1,58 @@
 # encoding: UTF-8
 require 'spec_helper'
 
+require 'time'
+
 describe ApTeiDocument do
   before(:all) do
-    @atd = ApTeiDocument.new
+    @volume = '36'
+    @druid = 'aa222bb4444'
+    @atd = ApTeiDocument.new(@druid, @volume)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
   end
-# FIXME:  are we doing this by vol context, diff front matter context, pages?  or by element?  
-  context "<teiHeader>" do
-    before(:all) do
-      @druid = 'wb029sv4796'
-      @volume = '36'
-      x = "<TEI.2>
-       <teiHeader type=\"text\" id=\"#{@druid}\">
-        <fileDesc>
-         <titleStmt>
-          <title type=\"main\">ARCHIVES PARLEMENTAIRES</title>
-          <author>M. J. MAVIDAL </author>
-          <author> M. E. LAURENT</author>
-          <author>MM. E. TONNIER</author>
-         </titleStmt>
-         <publicationStmt>
-          <distributor>
-           <address>
-            <addrLine>SOCIÉTÉ D'IMPRIMERIE ET LIBRAIRIE ADMINISTRATIVES ET DES CHEMINS DE FER PAUL DUPONT</addrLine>
-          </address>
-          </distributor>
-          <date>1891</date>
-          <pubPlace>PARIS</pubPlace>
-         </publicationStmt>
-         <sourceDesc>
-          <p>Compiled from ARCHIVES PARLEMENTAIRES documents.</p>
-         </sourceDesc>
-        </fileDesc>
-       </teiHeader>
-       <body>
-        <div1 type=\"volume\" n=\"36\">
-        </div1>
-       </body>
-       </TEI.2>"
-       @parser.parse(x)
-    end
-    it "should set collection_si to COLL_VAL constant" do
-      @atd.collection_si.should == ApTeiDocument::COLL_VAL
-    end
-    context "volume value" do
-      it "should set volume to TEI.2/body/div1[@type='volume']/@n" do
-        @atd.volume_ssi.should == @volume
-        vol = '666'
-        x = "<TEI.2><body><div1 type=\"volume\" n=\"#{vol}\"/></body></TEI.2>"
-        atd = ApTeiDocument.new
-        @parser.document = atd
-        @parser.parse(x)
-        atd.volume_ssi.should == vol
-      end
-      it "should not set volume if div1 has wrong type" do
-        x = "<TEI.2><body><div1 type='foo' n='5'/></body></TEI.2>"
-        atd = ApTeiDocument.new
-        @parser.document = atd
-        @parser.parse(x)
-        atd.volume_ssi.should == nil
-      end
-    end
-    it "should populate the volume context solr fields" do
-      ApTeiDocument::VOL_CONTEXT_FIELDS.each { |fld| @atd.send(fld.to_sym).should_not == nil}
-    end
-    it "should set druid to TEI.2/teiHeader/@id" do
+  
+  context "initialize" do
+    it "should set druid attribute" do
       @atd.druid.should == @druid
-      druid = 'ae123io4567'
-      x = "<TEI.2><teiHeader type=\"text\" id=\"#{druid}\"></TEI.2>"
-      atd = ApTeiDocument.new
-      @parser.document = atd
+    end
+    it "should set volume attribute" do
+      @atd.volume.should == @volume
+    end
+  end 
+   
+  context "start_document" do
+    it "should call init_doc_hash" do
+      @atd.should_receive(:init_doc_hash).and_call_original
+      x = "<TEI.2><teiHeader id='666'></TEI.2>"
       @parser.parse(x)
-      atd.druid.should == druid
-    end
-    context "volume solr doc" do
-      
-      solr_doc = "<doc><!-- volume document -->
-          <field name=\"id\">wb029sv4796_volume</field> <!--/TEI.2/body/div1/@type -->
-          <field name=\"collection_si\">Archives parlementaires</field>      
-          <field name=\"content_type_ssi\">volume</field> <!--/TEI.2/body/div1/@type -->
-          <field name=\"type_ssi\">volume</field> <!--/TEI.2/body/div1/@type -->
-          <field name=\"volume_ssi\">36</field> <!-- /TEI.2/body/div1[@type=\"volume\"]/@n   or   /@number??  -->
-          <!-- /TEI.2/teiHeader -->
-          <field name=\"druid\">wb029sv4796</field>  <!-- @id -->
-          <!-- /TEI.2/teiHeader/fileDesc/titleStmt -->
-          <field name=\"vol_title_main_ftsi\">ARCHIVES PARLEMENTAIRES</field>  <!-- title[@type=main] -->
-          <field name=\"vol_author_ssim\">M. J. MAVIDAL </field> <!-- author -->
-          <field name=\"vol_author_ssim\"> M E. LAURENT </field>
-          <field name=\"vol_author_ssim\">MM. E. TONNIER</field>
-          <field name=\"vol_author_ssim\">C. PIONNIER</field>
-          <!-- /TEI.2/teiHeader/fileDesc/publicationStmt -->
-          <field name=\"distributor_addr_fts\">SOCIÉTÉ D'IMPRIMERIE ET LIBRAIRIE ADMINISTRATIVES ET DES CHEMINS DE FER PAUL DUPONT 4, RUEJEAN -JACQUES-ROUSSEAU , 4</field> <!-- distributor/address/addrLine(s) -->
-          <field name=\"vol_date_ssi\">1891</field> <!-- date -->
-          <field name=\"pub_place_ssi\">PARIS</field> <!-- pubPlace -->
-          <!-- /TEI.2/teiHeader/fileDesc/notesStmt -->
-          <field name=\"markup_note_etsim\">Additional markup added by Digital Divide Data, 20120701</field>  <!-- note[@type=markup] -->
-          <field name=\"markup_date_ssi\">20120701</field> <!-- parsed from end of markup note -->
-          <!-- /TEI.2/teiHeader/fileDesc/sourceDesc -->
-          <field name=\"source_desc_tsim\">Compiled from ARCHIVES PARLEMENTAIRES documents.</field>  <!-- sourceDesc/p -->
-          <!-- /TEI.1/body/div1[@type=volume] -->
-          <field name=\"title_ftsim\">ARCHIVES PARLEMENTAIRES </field>  <!-- /TEI.2/body/div1/head -->
-          <field name=\"title_ftsim\">RÈGNE DE LOUIS XVI </field>  
-      </doc>"
-      it "should have a druid field" do
-        pending "to be implemented"
-      end
-      it "id field should be (druid)_volume" do
-        pending "to be implemented"
-      end
     end
   end
-  it "solr doc should always include volume context fields" do
-    pending "to be implemented"
-  end
+  
+  context "init_doc_hash" do
+    before(:all) do
+      x = "<TEI.2><teiHeader id='666'></TEI.2>"
+      @parser.parse(x)
+    end
+    it "should populate druid field" do
+      @atd.doc_hash[:druid].should == @druid
+    end
+    it "should populate collection_si field" do
+      @atd.doc_hash[:collection_si].should == ApTeiDocument::COLL_VAL
+    end
+    it "should populate volume_ssi field" do
+      @atd.doc_hash[:volume_ssi].should == @volume
+    end
+    it "should get date fields in UTC form (1995-12-31T23:59:59Z)" do
+      val = @atd.doc_hash[:date_start_dti]
+      val.should end_with 'Z'
+      Time.xmlschema(val).xmlschema.should == val # also ensures it doesn't throw parsing error
+      val = @atd.doc_hash[:date_end_dti]
+      val.should end_with 'Z'
+      Time.xmlschema(val).xmlschema.should == val
+    end
+  end # init_doc_hash
+  
   context "<text>" do
-    context "<front>" do
-
-    end
     context "<body>" do
       context '<div2 type="session">' do
         
@@ -135,11 +70,17 @@ describe ApTeiDocument do
           end
         end
       end
-
+    end # <body>
+  end # <text>
+  
+  context "add_doc_to_solr" do
+    it "should always have a druid" do
+      pending "to be implemented"
     end
-    context "<back>" do
-      
+    it "solr doc should always include volume context fields" do
+      pending "to be implemented"
     end
     
   end
+  
 end
