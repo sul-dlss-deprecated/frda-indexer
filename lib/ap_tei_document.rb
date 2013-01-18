@@ -2,22 +2,25 @@ require 'nokogiri'
 
 require 'ap_vol_dates'
 
-# Subclass of Nokogiri::XML::SAX::Document for parsing
+# Subclass of Nokogiri::XML::SAX::Document for streaming parsing
 #  TEI xml corresponding to volumes of the Archives Parlementaires
 class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   COLL_VAL = "Archives parlementaires"  
 
-  attr_reader :volume, :druid, :doc_hash
+  attr_reader :doc_hash
 
+  # @param [RSolr::Client] rsolr_client used to write the Solr documents as we build them
   # @param [String] druid the druid for the DOR object that contains this TEI doc
   # @param [String] volume the volume number (it might not be a strict number string, e.g. '71B')
-  def initialize (druid, volume)
+  def initialize (rsolr_client, druid, volume)
+    @rsolr_client = rsolr_client
     @druid = druid
     @volume = volume
   end
   
   def start_document
+    @page_has_content = false
     init_doc_hash
   end
   
@@ -26,8 +29,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
   def start_element name, attributes
     case name
-    when 'teiHeader'
-      ;
+    when 'body'
+      @in_body
+    when 'pb'
+      add_doc_to_solr
     end
   end
   
@@ -43,4 +48,14 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @doc_hash[:date_start_dti] = VOL_DATES[@volume].first
     @doc_hash[:date_end_dti] = VOL_DATES[@volume].last
   end
+  
+  # write @doc_hash to Solr and reinitialize @doc_hash, but only if the current page has content
+  def add_doc_to_solr
+    if @page_has_content
+      @rsolr_client.add(@doc_hash)
+      
+      init_doc_hash
+    end
+  end
+
 end # ApTeiDocument class

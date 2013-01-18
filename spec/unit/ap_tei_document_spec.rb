@@ -7,19 +7,10 @@ describe ApTeiDocument do
   before(:all) do
     @volume = '36'
     @druid = 'aa222bb4444'
-    @atd = ApTeiDocument.new(@druid, @volume)
+    @atd = ApTeiDocument.new(nil, @druid, @volume)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
   end
   
-  context "initialize" do
-    it "should set druid attribute" do
-      @atd.druid.should == @druid
-    end
-    it "should set volume attribute" do
-      @atd.volume.should == @volume
-    end
-  end 
-   
   context "start_document" do
     it "should call init_doc_hash" do
       @atd.should_receive(:init_doc_hash).and_call_original
@@ -52,6 +43,29 @@ describe ApTeiDocument do
     end
   end # init_doc_hash
   
+  context "add_doc_to_solr" do
+    # write @doc_hash to Solr and reinitialize @doc_hash, but only if the current page has content
+    it "solr doc should always include volume context fields" do
+      pending "to be implemented"
+    end
+    it "should not write a doc to solr if there was no indexed content in the page" do
+      x = '<TEI.2><text><body>
+                   <div1 type="volume" n="20">
+                    <pb n="" id="pz516hw4711_00_0004"/>
+                    <pb n="1" id="pz516hw4711_00_0005"/>
+                  </div1></body></text></TEI.2>'
+      RSolr::Client.any_instance.should_not_receive(:add)
+      @parser.parse(x)
+    end
+    it "should write a doc to solr if there was indexed content in the page" do
+      pending "to be implemented"
+      RSolr::Client.any_instance.should_receive(:add)
+    end
+    it "should call init_doc_hash if it writes to solr" do
+      pending "to be implemented"
+    end
+  end
+
   context "<text>" do
     context "<body>" do
       context '<div2 type="session">' do
@@ -73,14 +87,5 @@ describe ApTeiDocument do
     end # <body>
   end # <text>
   
-  context "add_doc_to_solr" do
-    it "should always have a druid" do
-      pending "to be implemented"
-    end
-    it "solr doc should always include volume context fields" do
-      pending "to be implemented"
-    end
-    
-  end
   
 end
