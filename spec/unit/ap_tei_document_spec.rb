@@ -49,17 +49,27 @@ describe ApTeiDocument do
       pending "to be implemented"
     end
     it "should not write a doc to solr if there was no indexed content in the page" do
-      x = '<TEI.2><text><body>
-                   <div1 type="volume" n="20">
-                    <pb n="" id="pz516hw4711_00_0004"/>
-                    <pb n="1" id="pz516hw4711_00_0005"/>
-                  </div1></body></text></TEI.2>'
-      RSolr::Client.any_instance.should_not_receive(:add)
+      id = "blank_page"
+      x = "<TEI.2><text><body>
+                   <div1 type=\"volume\" n=\"20\">
+                    <pb n=\"\" id=\"#{id}\"/>
+                    <pb n=\"1\" id=\"pz516hw4711_00_0005\"/>
+                  </div1></body></text></TEI.2>"
+      RSolr::Client.any_instance.should_not_receive(:add).with(hash_including(id))
       @parser.parse(x)
     end
     it "should write a doc to solr if there was indexed content in the page" do
       pending "to be implemented"
-      RSolr::Client.any_instance.should_receive(:add)
+      id = "non_blank_page"
+      x = "<TEI.2><text><body>
+                   <div1 type=\"volume\" n=\"20\">
+                    <pb n=\"1\" id=\"#{id}\"/>
+                    <div2 type=\"session\">
+                     <p>La séance est ouverte à neuf heures du matin. </p>
+                     <pb n=\"2\" id=\"next_page\"/>
+                    </div2></div1></body></text></TEI.2>"
+      RSolr::Client.any_instance.should_receive(:add).with(hash_including(id))
+      @parser.parse(x)
     end
     it "should call init_doc_hash if it writes to solr" do
       pending "to be implemented"
