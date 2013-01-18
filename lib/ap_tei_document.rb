@@ -24,20 +24,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @in_body = false
     init_doc_hash
   end
-  
-  def end_document
-    if @page_has_content && @body_is_last
-      add_doc_to_solr
-    end
-  end
-  
+    
   # @param [String] name the element tag
   # @param [Array<String>] attributes an assoc list of namespaces and attributes, e.g.:
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
   def start_element name, attributes
-    if @ended_body
-      @body_is_last = false
-    end
     case name
     when 'body'
       @in_body = true
@@ -56,7 +47,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def end_element name    
     case name
     when 'body'
-      @ended_body = true
+      if @page_has_content
+        add_doc_to_solr
+      end
       @in_body = false
     end
   end
