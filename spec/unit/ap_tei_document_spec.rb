@@ -7,7 +7,8 @@ describe ApTeiDocument do
   before(:all) do
     @volume = '36'
     @druid = 'aa222bb4444'
-    @atd = ApTeiDocument.new(nil, @druid, @volume)
+    @rsolr_client = RSolr::Client.new('http://somewhere.org')
+    @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
   end
   
@@ -44,29 +45,59 @@ describe ApTeiDocument do
   end # init_doc_hash
   
   context "add_doc_to_solr" do
-    it "page before <body> section should not go to Solr" do
-      x = "<TEI.2><text><front>
-            <div type=\"frontpiece\">
-                <pb n=\"\" id=\"ns351vc7243_00_0001\"/> 
-                <p>ARCHIVES PARLEMENTAIRES </p>
-            </div>
-            <div type=\"abstract\">
-                <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
-            </div></front></text></TEI.2>"
-      RSolr::Client.any_instance.should_not_receive(:add).with(hash_including(:id => 'ns351vc7243_00_0001'))
-      @parser.parse(x)
-    end
-    it "should not write a doc to Solr if there was no indexed content in the page" do
-      id = "blank_page"
-      x = "<TEI.2><text><body>
-             <div1 type=\"volume\" n=\"20\">
-              <pb n=\"\" id=\"#{id}\"/>
-              <pb n=\"1\" id=\"pz516hw4711_00_0005\"/>
-            </div1></body></text></TEI.2>"
-      RSolr::Client.any_instance.should_not_receive(:add).with(hash_including(:id => id))
-      @parser.parse(x)
-    end
-    context "when page has indexed content" do
+    context "when page has no indexed content (<p>)" do
+      it "pages in <front> section should not go to Solr" do
+        x = "<TEI.2><text><front>
+              <div type=\"frontpiece\">
+                  <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
+                  <p>blah blah</p>
+              </div>
+              <div type=\"abstract\">
+                  <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
+              </div></front></text></TEI.2>"
+        @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'ns351vc7243_00_0001'))
+        @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'ns351vc7243_00_0002'))
+        @parser.parse(x)
+      end
+      it "blank page at beginning of body should not go to Solr" do
+        x = "<TEI.2><text><body>
+               <div1 type=\"volume\" n=\"20\">
+                <pb n=\"\" id=\"pz516hw4711_00_0004\"/>
+                <head>blah</head>
+                <pb n=\"1\" id=\"pz516hw4711_00_0005\"/>
+              </div1></body></text></TEI.2>"
+        @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'pz516hw4711_00_0004'))
+        @parser.parse(x)
+      end
+      it "blank page at end of body should not go to Solr" do
+        x = "<TEI.2><text><body>
+                <pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                <p>blah blah</p>
+                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>
+                <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>
+              </div1></body></text></TEI.2>"
+        @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0814'))
+        @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0815'))
+        @parser.parse(x)
+      end
+      it "pages in <back> section should not go to Solr" do
+        x = "<TEI.2><text><back>
+          <div1 type=\"volume\" n=\"14\">
+            <pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
+            <div2 type=\"contents\">
+              <head>TABLE CHRONOLOGIQUE</head>
+              <p>blah blah</p>
+            </div2>
+          </div1>
+          <div1 type=\"volume\" n=\"14\">
+              <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>
+          </div1></back></text></TEI.2>"
+        @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
+        @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0817'))
+        @parser.parse(x)
+      end
+    end # when no indexed content
+    context "when page has indexed content (<p>)" do
       before(:all) do
         @id = "non_blank_page"
         @x = "<TEI.2><text><body>
@@ -77,19 +108,17 @@ describe ApTeiDocument do
                  <pb n=\"2\" id=\"next_page\"/>
                 </div2></div1></body></text></TEI.2>"        
       end
-      it "should write a doc to Solr" do
-        pending "to be implemented"
-        exp_flds = [{:id => @id}, :druid, :collection_si, :volume_ssi, :date_start_dti, :date_end_dti]
-        RSolr::Client.any_instance.should_receive(:add).with(hash_including(exp_flds))
+      it "should write the doc to Solr" do
+        @rsolr_client.should_receive(:add).with(hash_including(:druid, :collection_si, :volume_ssi, :date_start_dti, :date_end_dti, :id => @id))
         @parser.parse(@x)
       end
       it "should call init_doc_hash" do
-        pending "to be implemented"
-        @atd.should_receive(:init_doc_hash)
+        @atd.should_receive(:init_doc_hash).twice.and_call_original
+        @rsolr_client.should_receive(:add)
         @parser.parse(@x)
       end
-    end
-  end
+    end # when indexed content
+  end # add_doc_to_solr
 
   context "<text>" do
     context "<body>" do

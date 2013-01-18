@@ -21,20 +21,43 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   def start_document
     @page_has_content = false
+    @in_body = false
     init_doc_hash
+  end
+  
+  def end_document
+    if @page_has_content && @body_is_last
+      add_doc_to_solr
+    end
   end
   
   # @param [String] name the element tag
   # @param [Array<String>] attributes an assoc list of namespaces and attributes, e.g.:
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
   def start_element name, attributes
+    if @ended_body
+      @body_is_last = false
+    end
     case name
     when 'body'
-      @in_body
+      @in_body = true
     when 'pb'
-      if @in_body
+      new_page_id = attributes.select { |a| a[0] == 'id'}.first.last
+      if @in_body && @page_has_content
         add_doc_to_solr
       end
+      @doc_hash[:id] = new_page_id
+    when 'p'
+      @page_has_content = true
+    end
+  end
+  
+  # @param [String] name the element tag
+  def end_element name    
+    case name
+    when 'body'
+      @ended_body = true
+      @in_body = false
     end
   end
   
@@ -56,6 +79,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     if @page_has_content
       @rsolr_client.add(@doc_hash)
       init_doc_hash
+      @page_has_content = false
     end
   end
 
