@@ -32,7 +32,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'body'
       @in_body
     when 'pb'
-      add_doc_to_solr
+      if @in_body
+        add_doc_to_solr
+      end
     end
   end
   
@@ -53,7 +55,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def add_doc_to_solr
     if @page_has_content
       @rsolr_client.add(@doc_hash)
-      
       init_doc_hash
     end
   end
