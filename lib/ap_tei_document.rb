@@ -1,6 +1,7 @@
 require 'nokogiri'
 
 require 'ap_vol_dates'
+require 'ap_vol_titles'
 
 # Subclass of Nokogiri::XML::SAX::Document for streaming parsing
 #  TEI xml corresponding to volumes of the Archives Parlementaires
@@ -62,6 +63,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @doc_hash[:collection_si] = COLL_VAL
     @doc_hash[:druid] = @druid
     @doc_hash[:volume_ssi] = @volume
+    @doc_hash[:volume_title_ssi] = VOL_TITLES[@volume]
     # The format for a Solr date field is 1995-12-31T23:59:59Z
     @doc_hash[:date_start_dti] = VOL_DATES[@volume].first
     @doc_hash[:date_end_dti] = VOL_DATES[@volume].last
