@@ -169,6 +169,40 @@ describe ApTeiDocument do
       end
     end # when indexed content
   end # add_doc_to_solr
+   
+  context "vol_page_ss" do
+    it "doc should have a vol_page_ss field when <pb> has non-empty n attribute" do
+      x = "<TEI.2><text><body>
+             <div1 type=\"volume\" n=\"20\">
+              <pb n=\"1\" id=\"something\"/>
+              <div2 type=\"session\">
+               <p>La séance est ouverte à neuf heures du matin. </p>
+               <pb n=\"2\" id=\"next_page\"/>
+              </div2></div1></body></text></TEI.2>"        
+      @rsolr_client.should_receive(:add).with(hash_including(:vol_page_ss => '1'))
+      @parser.parse(x)
+    end
+    it "doc should not have a vol_page_ss field when <pb> has empty n attribute" do
+      x = "<TEI.2><text><body>
+            <div type=\"session\">
+                <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
+                <p>blah blah</p>
+                <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
+            </div></front></text></TEI.2>"
+      @rsolr_client.should_receive(:add).with(hash_not_including(:vol_page_ss))
+      @parser.parse(x)
+    end
+    it "doc should not have a vol_page_ss field when <pb> has no n attribute" do
+      x = "<TEI.2><text><body>
+            <div type=\"session\">
+                <pb id=\"ns351vc7243_00_0001\"/>
+                <p>blah blah</p>
+                <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
+            </div></front></text></TEI.2>"
+      @rsolr_client.should_receive(:add).with(hash_not_including(:vol_page_ss))
+      @parser.parse(x)
+    end
+  end
 
   context "<text>" do
     context "<body>" do
