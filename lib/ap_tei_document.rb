@@ -23,6 +23,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def start_document
     @page_has_content = false
     @in_body = false
+    @in_back = false
     init_doc_hash
   end
     
@@ -33,11 +34,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     case name
     when 'body'
       @in_body = true
+    when 'back'
+      @in_back = true
     when 'pb'
-      new_page_id = attributes.select { |a| a[0] == 'id'}.first.last
-      if @in_body && @page_has_content
+      if @page_has_content && (@in_body || @in_back)
         add_doc_to_solr
       end
+      new_page_id = attributes.select { |a| a[0] == 'id'}.first.last
       @doc_hash[:id] = new_page_id
     when 'p'
       @page_has_content = true
@@ -52,6 +55,15 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         add_doc_to_solr
       end
       @in_body = false
+    when 'back'
+      if @page_has_content
+        add_doc_to_solr
+      end
+      @in_back = false
+#    when 'text' # write last page if it has content
+#      if @page_has_content
+#        add_doc_to_solr
+#      end
     end
   end
   
