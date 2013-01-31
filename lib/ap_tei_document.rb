@@ -60,10 +60,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         add_doc_to_solr
       end
       @in_back = false
-#    when 'text' # write last page if it has content
-#      if @page_has_content
-#        add_doc_to_solr
-#      end
     end
   end
   
@@ -77,8 +73,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @doc_hash[:volume_ssi] = @volume
     @doc_hash[:volume_title_ssi] = VOL_TITLES[@volume]
     # The format for a Solr date field is 1995-12-31T23:59:59Z
-    @doc_hash[:date_start_dti] = VOL_DATES[@volume].first
-    @doc_hash[:date_end_dti] = VOL_DATES[@volume].last
+    @doc_hash[:volume_date_start_dti] = VOL_DATES[@volume].first
+    @doc_hash[:volume_date_end_dti] = VOL_DATES[@volume].last
   end
   
   # write @doc_hash to Solr and reinitialize @doc_hash, but only if the current page has content

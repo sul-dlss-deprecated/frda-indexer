@@ -38,10 +38,10 @@ describe ApTeiDocument do
       @atd.doc_hash[:volume_title_ssi].should == 'Tome 36 : Du 11 décembre 1791 au 1er janvier 1792'
     end
     it "should get volume date fields in UTC form (1995-12-31T23:59:59Z)" do
-      val = @atd.doc_hash[:date_start_dti]
+      val = @atd.doc_hash[:volume_date_start_dti]
       val.should end_with 'Z'
       Time.xmlschema(val).xmlschema.should == val # also ensures it doesn't throw parsing error
-      val = @atd.doc_hash[:date_end_dti]
+      val = @atd.doc_hash[:volume_date_end_dti]
       val.should end_with 'Z'
       Time.xmlschema(val).xmlschema.should == val
     end
@@ -118,7 +118,7 @@ describe ApTeiDocument do
                   </div2></div1></body></text></TEI.2>"        
         end
         it "should write the doc to Solr" do
-          @rsolr_client.should_receive(:add).with(hash_including(:druid, :collection_si, :volume_ssi, :date_start_dti, :date_end_dti, :id => @id))
+          @rsolr_client.should_receive(:add).with(hash_including(:druid, :collection_si, :volume_ssi, :volume_date_start_dti, :volume_date_end_dti, :id => @id))
           @parser.parse(@x)
         end
         it "should call init_doc_hash" do
