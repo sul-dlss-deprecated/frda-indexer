@@ -8,8 +8,6 @@
     
     <field name="id" type="string" stored="true" indexed="true" multiValued="false" required="true"/>
     <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
-    <field name="druid" type="string" stored="true" indexed="true" multiValued="false" required="true"/>
-    <field name="all_text_timv" type="text" stored="false" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
     
     <field name="lat" type="tdouble" stored="true" indexed="true" multiValued="false"/>
     <field name="lng" type="tdouble" stored="true" indexed="true" multiValued="false"/>
@@ -103,26 +101,17 @@
     <dynamicField name="*_llsi" type="location" stored="true" indexed="true" multiValued="false"/>
     <dynamicField name="*_llsim" type="location" stored="true" indexed="true" multiValued="true"/>
 
-<!-- FIXME:  schemaBroswer problem seems unrelated -->
     <!-- you must define copyField source fields or schemaBrowser doesn't work -->
-    <field name="author_ssim" type="string" stored="true" indexed="true" multiValued="true"/>
-    <field name="speaker_ssim" type="string" stored="true" indexed="true" multiValued="true"/>
-    <field name="content_ftsimv" type="text_fr" stored="true" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
-    <field name="p_content_ftsimv" type="text_fr" stored="true" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
-    <field name="sp_content_ftsimv" type="text_fr" stored="true" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
+    <field name="text_ftsimv" type="text_fr" stored="true" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
+    <field name="spoken_text_ftsimv" type="text_fr" stored="true" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
     <!-- you must define copyField destination fields or schemaBrowser doesn't work -->
-    <field name="author_tsim" type="text" stored="true" indexed="true" multiValued="true"/>
-    <field name="speaker_tsim" type="text" stored="true" indexed="true" multiValued="true"/>
+    <field name="all_text_timv" type="text" stored="false" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
     
   </fields>
 
   <!-- copy fields -->
-  <copyField source="author_ssim" dest="author_tsim" />
-  <copyField source="speaker_ssim" dest="speaker_tsim" />
-  <copyField source="content_ftsimv" dest="all_text_timv" />
-  <copyField source="p_content_ftsimv" dest="all_text_timv" />
-  <copyField source="sp_content_ftsimv" dest="all_text_timv" />
-  
+  <copyField source="text_ftsimv" dest="all_text_timv" />
+  <copyField source="spoken_text_ftsimv" dest="all_text_timv" />
 
   <types>
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" />

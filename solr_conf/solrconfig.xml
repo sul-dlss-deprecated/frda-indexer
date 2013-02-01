@@ -10,7 +10,7 @@
 
   <lib dir="/usr/lib/solr/4.0.0/" />
   
-  <dataDir>${solr.core1.data.dir:/data/frda/data}</dataDir>
+  <dataDir>${solr.data.dir:}</dataDir>
 
   <indexConfig>
 <!-- from sw-solr   
@@ -35,7 +35,7 @@
          "dir" - the target directory for transaction logs, defaults to the
          solr data directory.  -->
     <updateLog>
-      <str name="dir">${solr.core1.data.dir:/data/bnf/data}</str>
+      <str name="dir">${solr.data.dir:}</str>
     </updateLog>
   </updateHandler>
 
@@ -62,9 +62,8 @@
           <bool name="facet">true</bool>
           <int name="facet.mincount">1</int>
           <str name="facet.field">collection_si</str>
-          <str name="facet.field">date_ssi</str>
+          <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
-          <str name="facet.field">author_ssim</str>
           <str name="facet.field">type_ssi</str>
           <str name="facet.field">content_type_ssi</str>
           <str name="facet.field">volume_ssi</str>
@@ -80,9 +79,8 @@
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
           <str name="facet.field">collection_si</str>
-          <str name="facet.field">date_ssi</str>
+          <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
-          <str name="facet.field">author_ssim</str>
           <str name="facet.field">type_ssi</str>
           <str name="facet.field">content_type_ssi</str>
           <str name="facet.field">volume_ssi</str>
@@ -104,9 +102,8 @@
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
           <str name="facet.field">collection_si</str>
-          <str name="facet.field">date_ssi</str>
+          <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
-          <str name="facet.field">author_ssim</str>
           <str name="facet.field">type_ssi</str>
           <str name="facet.field">content_type_ssi</str>
           <str name="facet.field">volume_ssi</str>
@@ -122,9 +119,8 @@
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
           <str name="facet.field">collection_si</str>
-          <str name="facet.field">date_ssi</str>
+          <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
-          <str name="facet.field">author_ssim</str>
           <str name="facet.field">type_ssi</str>
           <str name="facet.field">content_type_ssi</str>
           <str name="facet.field">volume_ssi</str>
@@ -137,7 +133,7 @@
   <!-- Let the dispatch filter handler /select?qt=XXX -->
   <requestDispatcher handleSelect="true" >
     <!--Make sure your system has some authentication before enabling remote streaming!  -->
-    <requestParsers enableRemoteStreaming="true" multipartUploadLimitInKB="2048000" />
+    <requestParsers enableRemoteStreaming="false" multipartUploadLimitInKB="2048000" />
     <httpCaching lastModifiedFrom="openTime" etagSeed="Solr" />
   </requestDispatcher>
 
@@ -160,57 +156,33 @@
       <float name="tie">0.01</float>
       <str name="qf">
         id
-        druid
+        druid_ssi
         page_num_ssi
         type_ssi
-        date_ssi
+        date_ssim
         volume_ssi
         session_ssi
-        title_ftsim
-        title_main_ftsi
-        title_sub_ftsi
-        vol_title_main_ftsi
-        vol_author_tsim
-        author_tsim
-        speaker_tsim
-        vol_date_ssi
-        pub_place_ssi
-        content_ftsimv        
-        p_content_ftsimv
-        sp_content_ftsimv
+        speaker_ssim
+        text_ftsimv
+        spoken_text_ftsimv
       </str>
       <str name="pf">
-        title_ftsim^20
-        title_main_ftsi^20
-        title_sub_ftsi^20
-        vol_title_main_ftsi^20
-        content_ftsimv^20   
-        p_content_ftsimv^20
-        sp_content_ftsimv^20
+        text_ftsimv^20
+        spoken_text_ftsimv^20
       </str>
 
       <str name="qf_title">
         title_ftsim
-        title_main_ftsi
-        title_sub_ftsi
-        vol_title_main_ftsi
       </str>
       <str name="pf_title">
         title_ftsim^20
-        title_main_ftsi^20
-        title_sub_ftsi^20
-        vol_title_main_ftsi^20
       </str>
 
       <str name="qf_author">
-        vol_author_ftsim
-        author_tsim
-        speaker_tsim
+        speaker_ssim
       </str>
       <str name="pf_author">
-        vol_author_ftsim^20
-        author_tsim^20
-        speaker_tsim^20
+        speaker_ssim^20
       </str>
 
       <str name="fl">score, *</str>
@@ -219,60 +191,13 @@
       <int name="facet.mincount">1</int>
       <int name="facet.limit">21</int>
       <str name="facet.field">collection_si</str>
-      <str name="facet.field">date_ssi</str>
+      <str name="facet.field">date_ssim</str>
       <str name="facet.field">speaker_ssim</str>
-      <str name="facet.field">author_ssim</str>
       <str name="facet.field">type_ssi</str>
       <str name="facet.field">content_type_ssi</str>
       <str name="facet.field">volume_ssi</str>
-      <str name="facet.field">session_ssi</str>
-      
-      <str name="hl">false</str>
-      <str name="hl.fl">        
-        content_ftsimv
-        p_content_ftsimv
-        sp_content_ftsimv
-      </str>
-      <str name="hl.encoder">html</str>
-      <str name="hl.simple.pre">&lt;b&gt;</str>
-      <str name="hl.simple.post">&lt;/b&gt;</str>
-      <str name="f.sp_content_ftsimv.hl.fragsize">0</str>
-      <str name="f.sp_content_ftsimv.hl.alternateField">p_content_ftsimv</str>
-      <str name="f.content_ftsimv.hl.fragsize">0</str>
-      <str name="f.content_ftsimv.hl.alternateField">sp_content_ftsimv</str>
-      <str name="f.p_content_ftsimv.hl.snippets">3</str>
-      <str name="f.p_content_ftsimv.hl.fragsize">200</str>
-      <str name="f.p_content_ftsimv.hl.alternateField">sp_content_ftsimv</str>
-      <str name="f.p_content_ftsimv.hl.maxAlternateFieldLength">750</str>
-      
-      <str name="spellcheck">false</str>
-      <str name="spellcheck.extendedResults">false</str>       
-      <str name="spellcheck.count">5</str>
-      <str name="spellcheck.alternativeTermCount">2</str>
-      <str name="spellcheck.maxResultsForSuggest">5</str>       
-      <str name="spellcheck.collate">true</str>
-      <str name="spellcheck.collateExtendedResults">true</str>  
-      <str name="spellcheck.maxCollationTries">5</str>
-      <str name="spellcheck.maxCollations">3</str>           
-      
-      <str name="tv">false</str>
-      <str name="tv.tf">true</str>
-      <str name="tv.df">false</str>
-      <str name="tv.positions">true</str>
-      <str name="tv.offsets">true</str>
-      <str name="tv.tf_idf">false</str>
-      <str name="tv.fl">
-        all_text_timv
-        content_ftsimv
-        p_content_ftsimv
-        sp_content_ftsimv
-      </str>
-    </lst>
-    
-    <arr name="last-components">
-      <str>spellcheck</str>
-      <str>tvComponent</str>
-    </arr>    
+      <str name="facet.field">session_ssi</str>      
+    </lst>    
   </requestHandler>
 
   <!-- single document requests; use id=666 instead of q=id:666 -->
