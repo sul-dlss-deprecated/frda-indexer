@@ -7,17 +7,19 @@ require 'ap_vol_titles'
 #  TEI xml corresponding to volumes of the Archives Parlementaires
 class ApTeiDocument < Nokogiri::XML::SAX::Document
   
-  COLL_VAL = "Archives parlementaires"  
+  COLL_VAL = "ap-collection"  
 
   attr_reader :doc_hash
 
   # @param [RSolr::Client] rsolr_client used to write the Solr documents as we build them
   # @param [String] druid the druid for the DOR object that contains this TEI doc
   # @param [String] volume the volume number (it might not be a strict number string, e.g. '71B')
-  def initialize (rsolr_client, druid, volume)
+  # @param [Logger] logger to receive output
+  def initialize (rsolr_client, druid, volume, logger)
     @rsolr_client = rsolr_client
     @druid = druid
     @volume = volume
+    @logger = logger
   end
   
   def start_document
@@ -65,13 +67,14 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
   end
   
+  
   # --------- Not part of the Nokogiri::XML::SAX::Document events -----------------
     
   # initialize instance variable @doc_hash with values appropriate for the volume level
   def init_doc_hash
     @doc_hash = {}
-    @doc_hash[:collection_si] = COLL_VAL
-    @doc_hash[:druid] = @druid
+    @doc_hash[:collection_ssi] = COLL_VAL
+    @doc_hash[:druid_ssi] = @druid
     @doc_hash[:volume_ssi] = @volume
     @doc_hash[:volume_title_ssi] = VOL_TITLES[@volume]
     # The format for a Solr date field is 1995-12-31T23:59:59Z

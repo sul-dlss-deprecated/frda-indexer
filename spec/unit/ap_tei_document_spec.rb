@@ -8,7 +8,8 @@ describe ApTeiDocument do
     @volume = '36'
     @druid = 'aa222bb4444'
     @rsolr_client = RSolr::Client.new('http://somewhere.org')
-    @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume)
+    @logger = Logger.new(STDOUT)
+    @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, @logger)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
   end
   
@@ -22,14 +23,14 @@ describe ApTeiDocument do
   
   context "init_doc_hash" do
     before(:all) do
-      x = "<TEI.2><teiHeader id='666'></TEI.2>"
+      x = "<TEI.2><teiHeader id='666'></teiHeader></TEI.2>"
       @parser.parse(x)
     end
-    it "should populate druid field" do
-      @atd.doc_hash[:druid].should == @druid
+    it "should populate druid_ssi field" do
+      @atd.doc_hash[:druid_ssi].should == @druid
     end
-    it "should populate collection_si field" do
-      @atd.doc_hash[:collection_si].should == ApTeiDocument::COLL_VAL
+    it "should populate collection_ssi field" do
+      @atd.doc_hash[:collection_ssi].should == ApTeiDocument::COLL_VAL
     end
     it "should populate volume_ssi field" do
       @atd.doc_hash[:volume_ssi].should == @volume
@@ -118,7 +119,7 @@ describe ApTeiDocument do
                   </div2></div1></body></text></TEI.2>"        
         end
         it "should write the doc to Solr" do
-          @rsolr_client.should_receive(:add).with(hash_including(:druid, :collection_si, :volume_ssi, :vol_date_start_dti, :vol_date_end_dti, :id => @id))
+          @rsolr_client.should_receive(:add).with(hash_including(:druid_ssi, :collection_ssi, :volume_ssi, :vol_date_start_dti, :vol_date_end_dti, :id => @id))
           @parser.parse(@x)
         end
         it "should call init_doc_hash" do
@@ -158,9 +159,9 @@ describe ApTeiDocument do
                 <head>TABLE CHRONOLOGIQUE</head>
                 <p>blah blah</p>
               </div2>
-            </div1></back></text></TEI.2>"            
-            @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
-           @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0817'))
+            </div1></back></text></TEI.2>"
+          @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0817'))
           @parser.parse(x)
         end        
       end # in <back>
@@ -169,9 +170,9 @@ describe ApTeiDocument do
       end
     end # when indexed content
   end # add_doc_to_solr
-   
+  
   context "vol_page_ss" do
-    it "doc should have a vol_page_ss field when <pb> has non-empty n attribute" do
+    it "should be present when <pb> has non-empty n attribute" do
       x = "<TEI.2><text><body>
              <div1 type=\"volume\" n=\"20\">
               <pb n=\"1\" id=\"something\"/>
@@ -182,32 +183,50 @@ describe ApTeiDocument do
       @rsolr_client.should_receive(:add).with(hash_including(:vol_page_ss => '1'))
       @parser.parse(x)
     end
-    it "doc should not have a vol_page_ss field when <pb> has empty n attribute" do
+    it "should not be present when <pb> has empty n attribute" do
       x = "<TEI.2><text><body>
-            <div type=\"session\">
+            <div1 type=\"volume\" n=\"20\">
+            <div2 type=\"session\">
                 <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>
                 <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
-            </div></front></text></TEI.2>"
+            </div2></div1></body></text></TEI.2>"
       @rsolr_client.should_receive(:add).with(hash_not_including(:vol_page_ss))
       @parser.parse(x)
     end
-    it "doc should not have a vol_page_ss field when <pb> has no n attribute" do
+    it "should not be present when <pb> has no n attribute" do
       x = "<TEI.2><text><body>
-            <div type=\"session\">
+            <div1 type=\"volume\" n=\"20\">
+            <div2 type=\"session\">
                 <pb id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>
                 <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
-            </div></front></text></TEI.2>"
+            </div2></div1></body></text></TEI.2>"
       @rsolr_client.should_receive(:add).with(hash_not_including(:vol_page_ss))
       @parser.parse(x)
     end
   end
-
+  
   context "<text>" do
     context "<body>" do
       context '<div2 type="session">' do
-        
+        x = "<TEI.2><text><body>
+              <div1 type=\"volume\" n=\"36\">
+                <pb n=\"\" id=\"wb029sv4796_00_0004\"/>
+                <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
+                <head>ARCHIVES PARLEMENTAIRES </head>
+                <head>RÈGNE DE LOUIS XVI </head>
+                <div2 type=\"session\">
+                 <head>ASSEMBLÉE NATIONALE LÉGISLATIVE. </head>
+                 <head>Séance du<date value=\"1791-12-11\">dimanche 11 décembre 1791</date>.</head>
+                 <head> PRÉSIDENCE DE M. LEMONTEY.</head>
+                 <p>La séance est ouverte à neuf heures du matin. </p>
+                 <sp>
+                  <speaker>M. Guadet</speaker>
+                  <p>,secrétaire, donne lecture du procès-verbal de la séance du samedi 10 décembre 1791, au
+                   matin. </p>
+                   <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
+                </div></body></text></TEI.2>"        
       end
       context "<pb> (page break) element" do
         it "should write the previous page doc_hash to Solr" do
