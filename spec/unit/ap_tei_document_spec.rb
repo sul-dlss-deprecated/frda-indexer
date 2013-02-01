@@ -171,6 +171,68 @@ describe ApTeiDocument do
     end # when indexed content
   end # add_doc_to_solr
   
+  context "add_value_to_doc_hash" do
+    before(:all) do
+      @start_doc = "<TEI.2><text><body>
+            <div1 type=\"volume\" n=\"36\">
+              <div2 type=\"session\">
+                <pb n=\"\" id=\"wb029sv4796_00_0005\"/>"
+      @end_doc = "<pb n=\"\" id=\"wb029sv4796_00_0005\"/>
+              </div></body></text></TEI.2>"
+    end 
+    context "field doesn't exist in doc_hash yet" do
+      before(:all) do
+        @x = @start_doc + "<sp>
+              <speaker>M. Guadet</speaker>
+              <p>blah blah</p>
+            </sp>" + @end_doc
+      end
+      it "should create field with Array [value] for a multivalued field - ending in m" do
+        @atd.should_receive(:add_value_to_doc_hash).with(:speaker_ssim, 'M. Guadet').and_call_original
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet']))
+        @parser.parse(@x)
+      end
+      it "should create field with Array [value] for a multivalued field - ending in mv" do
+        pending "spoken_text_ftimv not yet implemented"
+        @atd.should_receive(:add_value_to_doc_hash).with(:spoken_text_ftimv, anything).and_call_original
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_ftimv => ['M. Guadet blah blah']))
+        @parser.parse(@x)
+      end
+      it "should create field with String value for a single valued field" do
+        pending "need single valued field for test to be implemented"
+      end
+    end # field doesn't exist yet
+    context "field already exists in doc_hash" do
+      before(:all) do
+        @x = @start_doc + 
+            "<sp>
+              <speaker>M. Guadet</speaker>
+              <p>blah blah</p>
+            </sp>
+            <sp>
+              <speaker>M. McRae</speaker>
+              <p>bleah bleah</p>
+            </sp>" + @end_doc
+      end
+      it "should add the value to the doc_hash Array for the field for multivalued field - ending in m" do
+        @atd.should_receive(:add_value_to_doc_hash).with(:speaker_ssim, 'M. Guadet').and_call_original
+        @atd.should_receive(:add_value_to_doc_hash).with(:speaker_ssim, 'M. McRae').and_call_original
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet', 'M. McRae']))
+        @parser.parse(@x)
+      end
+      it "should add the value to the doc_hash Array for the field for multivalued field - ending in mv" do
+        pending "spoken_text_ftimv not yet implemented"
+        @atd.should_receive(:add_value_to_doc_hash).with(:spoken_text_ftimv, 'M. Guadet blah blah').and_call_original
+        @atd.should_receive(:add_value_to_doc_hash).with(:spoken_text_ftimv, 'M. McRae bleah bleah').and_call_original
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_ftimv => ['M. Guadet blah blah', 'M. McRae bleah bleah']))
+        @parser.parse(@x)
+      end
+      it "should log a warning if the field isn't multivalued" do
+        pending "need single valued field for test to be implemented"
+      end
+    end # field already exists
+  end # add_value_to_doc_hash
+
   context "vol_page_ss" do
     it "should be present when <pb> has non-empty n attribute" do
       x = "<TEI.2><text><body>
@@ -207,6 +269,51 @@ describe ApTeiDocument do
     end
   end
   
+  context "speaker_ssim" do
+    it "should be present if there is a non-empty <speaker> element" do
+      x = "<TEI.2><text><body>
+            <div1 type=\"volume\" n=\"36\">
+              <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
+              <div2 type=\"session\">
+               <sp>
+                <speaker>M. Guadet</speaker>
+                <p>,secrétaire, donne lecture du procès-verbal de la séance du samedi 10 décembre 1791, au
+                 matin. </p>
+               </sp>
+               <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
+              </div></body></text></TEI.2>"
+      @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet']))
+      @parser.parse(x)
+    end
+    it "should not be present if there is an empty <speaker> element" do
+      x = "<TEI.2><text><body>
+            <div1 type=\"volume\" n=\"36\">
+              <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
+              <div2 type=\"session\">
+               <sp>
+                <speaker></speaker>
+                <speaker/>
+                <p>,secrétaire, donne lecture du procès-verbal de la séance du samedi 10 décembre 1791, au
+                 matin. </p>
+               </sp>
+               <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
+              </div></body></text></TEI.2>"
+      @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
+      @parser.parse(x)
+    end
+    it "should not be present if there is no <speaker> element" do
+      x = "<TEI.2><text><body>
+            <div1 type=\"volume\" n=\"36\">
+              <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
+              <div2 type=\"session\">
+                <p>La séance est ouverte à neuf heures du matin. </p>
+                 <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
+              </div></body></text></TEI.2>"
+      @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
+      @parser.parse(x)
+    end
+  end
+
   context "<text>" do
     context "<body>" do
       context '<div2 type="session">' do

@@ -47,7 +47,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       vol_page_array = attributes.select { |a| a[0] == 'n'}
       @doc_hash[:vol_page_ss] = vol_page_array.first.last if vol_page_array && !vol_page_array.empty? && !vol_page_array.first.last.empty?
     when 'p'
+      @in_p = true
       @page_has_content = true
+    when 'sp'
+      @in_sp = true
+    when 'speaker'
+      @in_speaker = true
     end
   end
   
@@ -64,12 +69,40 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         add_doc_to_solr
       end
       @in_back = false
+    when 'p'
+      @text_buffer = NO_BUFFER
+      @in_p = false
+    when 'sp'
+      @text_buffer = NO_BUFFER
+      @in_sp = false
+    when 'speaker'
+      @speaker = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
+      add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker && !@speaker.empty?
+      @text_buffer = NO_BUFFER
+      @speaker = nil
+      @in_speaker = false
     end
   end
   
+  # Characters within element tags.  This method might be called multiple
+  # times given one contiguous string of characters.
+  #
+  # @param [String] data contains the character data
+  def characters(data)
+    chars = data.gsub(/\s+/, ' ')
+    if @text_buffer == NO_BUFFER
+      @text_buffer = chars.dup
+    else
+      @text_buffer << ' ' + chars.dup
+    end
+    @text_buffer.gsub!(/\s+/, ' ') if @text_buffer && @text_buffer != NO_BUFFER
+  end
+  alias cdata_block characters
   
   # --------- Not part of the Nokogiri::XML::SAX::Document events -----------------
     
+  NO_BUFFER = :no_buffer
+
   # initialize instance variable @doc_hash with values appropriate for the volume level
   def init_doc_hash
     @doc_hash = {}
@@ -80,8 +113,30 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     # The format for a Solr date field is 1995-12-31T23:59:59Z
     @doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
     @doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
+    @text_buffer = NO_BUFFER
   end
   
+  # add the value to the doc_hash for the Solr field.
+  # @param [String] key the Solr field name 
+  # @param [String] value the value to add to the doc_hash for the key
+  def add_value_to_doc_hash(key, value)
+    fname = key.to_s
+    val = value.strip.gsub(/\s+/, ' ')
+    if @doc_hash[key]
+      if fname.end_with?('m') || fname.end_with?('mv')
+        @doc_hash[key] << val
+      else
+        logger.warn("Solr field #{key} is single-valued (first value: #{@doc_hash[key]}), but got an IGNORED additional value: #{val}")
+      end
+    else
+      if fname.end_with?('m') || fname.end_with?('mv')
+        @doc_hash[key] = [val] 
+      else
+        @doc_hash[key] = val
+      end
+    end
+  end
+
   # write @doc_hash to Solr and reinitialize @doc_hash, but only if the current page has content
   def add_doc_to_solr
     if @page_has_content
