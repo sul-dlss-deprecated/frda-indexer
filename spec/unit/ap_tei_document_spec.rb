@@ -11,6 +11,12 @@ describe ApTeiDocument do
     @logger = Logger.new(STDOUT)
     @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, @logger)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
+    @start_doc = "<TEI.2><text><body>
+          <div1 type=\"volume\" n=\"36\">
+            <div2 type=\"session\">
+              <pb n=\"\" id=\"wb029sv4796_00_0005\"/>"
+    @end_doc = "<pb n=\"\" id=\"wb029sv4796_00_0008\"/>
+            </div></body></text></TEI.2>"
   end
   
   context "start_document" do
@@ -172,14 +178,6 @@ describe ApTeiDocument do
   end # add_doc_to_solr
   
   context "add_value_to_doc_hash" do
-    before(:all) do
-      @start_doc = "<TEI.2><text><body>
-            <div1 type=\"volume\" n=\"36\">
-              <div2 type=\"session\">
-                <pb n=\"\" id=\"wb029sv4796_00_0005\"/>"
-      @end_doc = "<pb n=\"\" id=\"wb029sv4796_00_0005\"/>
-              </div></body></text></TEI.2>"
-    end 
     context "field doesn't exist in doc_hash yet" do
       before(:all) do
         @x = @start_doc + "<sp>
@@ -283,6 +281,20 @@ describe ApTeiDocument do
                <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
               </div></body></text></TEI.2>"
       @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet']))
+      @parser.parse(x)
+    end
+    it "should have multiple values for multiple speakers" do
+      x = @start_doc + 
+          "<sp>
+            <speaker>M. Guadet</speaker>
+            <p>blah blah</p>
+          </sp>
+          <p>hoo hah</p>
+          <sp>
+            <speaker>M. McRae</speaker>
+            <p>bleah bleah</p>
+          </sp>" + @end_doc
+      @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet', 'M. McRae']))
       @parser.parse(x)
     end
     it "should not be present if there is an empty <speaker> element" do
