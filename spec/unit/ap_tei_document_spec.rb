@@ -171,9 +171,6 @@ describe ApTeiDocument do
           @parser.parse(x)
         end        
       end # in <back>
-      it "should have a vol_page_ss" do
-        pending "to be implemented"
-      end
     end # when indexed content
   end # add_doc_to_solr
   
@@ -326,6 +323,24 @@ describe ApTeiDocument do
     end
   end
 
+  context "spoken_text_ftsimv" do
+    it "should be present if there is a non-empty <p> within an <sp> with a non-empty <speaker>" do
+      pending "to be implemented"
+    end
+    it "should have the speaker at the beginning of the field value for a single <p>" do
+      pending "to be implemented"
+    end
+    it "should have a separate value for each <p> inside (?)" do
+      pending "to be implemented"
+    end
+    it "should not include <p> text before the <sp>" do
+      pending "to be implemented"
+    end
+    it "should not include <p> text after the <sp>" do
+      pending "to be implemented"
+    end
+  end
+
   context "<text>" do
     context "<body>" do
       context '<div2 type="session">' do
@@ -346,19 +361,6 @@ describe ApTeiDocument do
                    matin. </p>
                    <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
                 </div></body></text></TEI.2>"        
-      end
-      context "<pb> (page break) element" do
-        it "should write the previous page doc_hash to Solr" do
-          pending "to be implemented"
-        end
-        context "reset doc_hash" do
-          it "should zero out the page content fields" do
-            pending "to be implemented"
-          end
-          it "should keep the current context fields" do
-            pending "to be implemented"
-          end
-        end
       end
     end # <body>
     context "<back>" do
