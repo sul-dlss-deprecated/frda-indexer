@@ -70,16 +70,26 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
       @in_back = false
     when 'p'
+      @text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
+      if @in_sp && @speaker
+        add_value_to_doc_hash(:spoken_text_ftsimv, "#{@speaker} #{@text}")
+      else
+        add_value_to_doc_hash(:text_ftsimv, @text)
+      end
       @text_buffer = NO_BUFFER
       @in_p = false
     when 'sp'
-      @text_buffer = NO_BUFFER
+      @speaker = nil
+      if @text_buffer != NO_BUFFER
+        @logger.warn("Found <sp> tag with direct text content: '#{@text_buffer.strip}' in page #{@doc_hash[:id]}") if !@text_buffer.strip!.empty?
+        @text_buffer = NO_BUFFER
+      end
       @in_sp = false
     when 'speaker'
       @speaker = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
-      add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker && !@speaker.empty?
+      @speaker = nil if @speaker.empty?
+      add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
       @text_buffer = NO_BUFFER
-      @speaker = nil
       @in_speaker = false
     end
   end
