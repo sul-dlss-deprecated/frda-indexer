@@ -11,12 +11,12 @@ describe ApTeiDocument do
     @logger = Logger.new(STDOUT)
     @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, @logger)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
-    @start_doc = "<TEI.2><text><body>
+    @start_tei_body_div2_session = "<TEI.2><text><body>
           <div1 type=\"volume\" n=\"36\">
             <div2 type=\"session\">
               <pb n=\"\" id=\"wb029sv4796_00_0005\"/>"
-    @end_doc = "<pb n=\"\" id=\"wb029sv4796_00_0008\"/>
-            </div></body></text></TEI.2>"
+    @end_div2_body_tei = "<pb n=\"\" id=\"wb029sv4796_00_0008\"/>
+            </div2></div1></body></text></TEI.2>"
   end
   
   context "start_document" do
@@ -71,7 +71,7 @@ describe ApTeiDocument do
       end
       it "blank page at beginning of <body> should not go to Solr" do
         x = "<TEI.2><text><body>
-               <div1 type=\"volume\" n=\"20\">
+              <div1 type=\"volume\" n=\"20\">
                 <pb n=\"\" id=\"pz516hw4711_00_0004\"/>
                 <head>blah</head>
                 <pb n=\"1\" id=\"pz516hw4711_00_0005\"/>
@@ -81,6 +81,7 @@ describe ApTeiDocument do
       end
       it "blank pages at end of <body> should not go to Solr" do
         x = "<TEI.2><text><body>
+              <div1 type=\"volume\" n=\"20\">
                 <pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>
@@ -92,7 +93,7 @@ describe ApTeiDocument do
       end
       it "blank page at beginning of <back> should not go to Solr" do
         x = "<TEI.2><text><back>
-               <div1 type=\"volume\" n=\"20\">
+              <div1 type=\"volume\" n=\"20\">
                 <pb n=\"\" id=\"pz516hw4711_00_0004\"/>
                 <head>blah</head>
                 <pb n=\"1\" id=\"pz516hw4711_00_0005\"/>
@@ -102,6 +103,7 @@ describe ApTeiDocument do
       end
       it "blank pages at end of <back> should not go to Solr" do
         x = "<TEI.2><text><back>
+              <div1 type=\"volume\" n=\"20\">
                 <pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>
@@ -118,10 +120,10 @@ describe ApTeiDocument do
           @id = "non_blank_page"
           @x = "<TEI.2><text><body>
                  <div1 type=\"volume\" n=\"20\">
-                  <pb n=\"1\" id=\"#{@id}\"/>
-                  <div2 type=\"session\">
-                   <p>La séance est ouverte à neuf heures du matin. </p>
-                   <pb n=\"2\" id=\"next_page\"/>
+                   <pb n=\"1\" id=\"#{@id}\"/>
+                   <div2 type=\"session\">
+                     <p>La séance est ouverte à neuf heures du matin. </p>
+                     <pb n=\"2\" id=\"next_page\"/>
                   </div2></div1></body></text></TEI.2>"        
         end
         it "should write the doc to Solr" do
@@ -177,10 +179,11 @@ describe ApTeiDocument do
   context "add_value_to_doc_hash" do
     context "field doesn't exist in doc_hash yet" do
       before(:all) do
-        @x = @start_doc + "<sp>
+        @x = @start_tei_body_div2_session + 
+            "<sp>
               <speaker>M. Guadet</speaker>
               <p>blah blah</p>
-            </sp>" + @end_doc
+            </sp>" + @end_div2_body_tei
       end
       it "should create field with Array [value] for a multivalued field - ending in m" do
         @atd.should_receive(:add_value_to_doc_hash).with(:speaker_ssim, 'M. Guadet').and_call_original
@@ -199,7 +202,7 @@ describe ApTeiDocument do
     end # field doesn't exist yet
     context "field already exists in doc_hash" do
       before(:all) do
-        @x = @start_doc + 
+        @x = @start_tei_body_div2_session + 
             "<sp>
               <speaker>M. Guadet</speaker>
               <p>blah blah</p>
@@ -207,7 +210,7 @@ describe ApTeiDocument do
             <sp>
               <speaker>M. McRae</speaker>
               <p>bleah bleah</p>
-            </sp>" + @end_doc
+            </sp>" + @end_div2_body_tei
       end
       it "should add the value to the doc_hash Array for the field for multivalued field - ending in m" do
         @atd.should_receive(:add_value_to_doc_hash).with(:speaker_ssim, 'M. Guadet').and_call_original
@@ -230,13 +233,11 @@ describe ApTeiDocument do
 
   context "vol_page_ss" do
     it "should be present when <pb> has non-empty n attribute" do
-      x = "<TEI.2><text><body>
-             <div1 type=\"volume\" n=\"20\">
-              <pb n=\"1\" id=\"something\"/>
-              <div2 type=\"session\">
-               <p>La séance est ouverte à neuf heures du matin. </p>
-               <pb n=\"2\" id=\"next_page\"/>
-              </div2></div1></body></text></TEI.2>"        
+      x = @start_tei_body_div2_session + 
+            "<pb n=\"1\" id=\"something\"/>
+             <p>La séance est ouverte à neuf heures du matin. </p>
+             <pb n=\"2\" id=\"next_page\"/>
+          </div2></div1></body></text></TEI.2>"        
       @rsolr_client.should_receive(:add).with(hash_including(:vol_page_ss => '1'))
       @parser.parse(x)
     end
@@ -263,25 +264,19 @@ describe ApTeiDocument do
       @parser.parse(x)
     end
   end
-  
+    
   context "speaker_ssim" do
     it "should be present if there is a non-empty <speaker> element" do
-      x = "<TEI.2><text><body>
-            <div1 type=\"volume\" n=\"36\">
-              <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
-              <div2 type=\"session\">
-               <sp>
-                <speaker>M. Guadet</speaker>
-                <p>,secrétaire, donne lecture du procès-verbal de la séance du samedi 10 décembre 1791, au
-                 matin. </p>
-               </sp>
-               <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
-              </div></body></text></TEI.2>"
+      x = @start_tei_body_div2_session +
+          "<sp>
+             <speaker>M. Guadet</speaker>
+             <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
+          </sp>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet']))
       @parser.parse(x)
     end
     it "should have multiple values for multiple speakers" do
-      x = @start_doc + 
+      x = @start_tei_body_div2_session + 
           "<sp>
             <speaker>M. Guadet</speaker>
             <p>blah blah</p>
@@ -290,54 +285,62 @@ describe ApTeiDocument do
           <sp>
             <speaker>M. McRae</speaker>
             <p>bleah bleah</p>
-          </sp>" + @end_doc
+          </sp>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet', 'M. McRae']))
       @parser.parse(x)
     end
     it "should not be present if there is an empty <speaker> element" do
-      x = "<TEI.2><text><body>
-            <div1 type=\"volume\" n=\"36\">
-              <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
-              <div2 type=\"session\">
-               <sp>
-                <speaker></speaker>
-                <speaker/>
-                <p>,secrétaire, donne lecture du procès-verbal de la séance du samedi 10 décembre 1791, au
-                 matin. </p>
-               </sp>
-               <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
-              </div></body></text></TEI.2>"
+      x = @start_tei_body_div2_session + 
+          "<sp>
+             <speaker></speaker>
+             <speaker/>
+             <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
+           </sp>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
       @parser.parse(x)
     end
     it "should not be present if there is no <speaker> element" do
-      x = "<TEI.2><text><body>
-            <div1 type=\"volume\" n=\"36\">
-              <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
-              <div2 type=\"session\">
-                <p>La séance est ouverte à neuf heures du matin. </p>
-                 <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
-              </div></body></text></TEI.2>"
+      x = @start_tei_body_div2_session + 
+          "<p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
       @parser.parse(x)
     end
   end
 
   context "spoken_text_ftsimv" do
-    it "should be present if there is a non-empty <p> within an <sp> with a non-empty <speaker>" do
-      pending "to be implemented"
+    before(:each) do
+      @x = @start_tei_body_div2_session +
+          "<p>before</p>
+          <sp>
+             <speaker>M. Guadet</speaker>
+             <p>blah blah ... </p>
+             <p>bleah bleah ... </p>
+          </sp>
+          <p>middle</p>
+          <sp>
+            <p>no speaker</p>
+          </sp>
+          <sp>
+            <speaker/>
+            <p>also no speaker</p>
+          </sp>
+          <p>after</p>"
+           + @end_div2_body_tei
     end
-    it "should have the speaker at the beginning of the field value for a single <p>" do
-      pending "to be implemented"
+    it "should have a separate value, starting with the speaker, for each <p> inside a single <sp>" do
+      @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_ftsimv => ['M. Guadet blah blah ...', 'M. Guadet bleah bleah ...']))
+      @parser.parse(@x)
     end
-    it "should have a separate value for each <p> inside (?)" do
-      pending "to be implemented"
+    it "should not include <p> text outside an <sp>" do
+      @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['before']))
+      @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['middle']))
+      @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['after']))
+      @parser.parse(@x)
     end
-    it "should not include <p> text before the <sp>" do
-      pending "to be implemented"
-    end
-    it "should not include <p> text after the <sp>" do
-      pending "to be implemented"
+    it "should not include <p> text when there is no speaker " do
+      @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['no speaker']))
+      @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['also no speaker']))
+      @parser.parse(@x)
     end
   end
 
