@@ -40,7 +40,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'back'
       @in_back = true
     when 'pb'
-      if @page_has_content && (@in_body || @in_back)
+#      if @page_has_content && (@in_body || @in_back)
+      if @page_has_content && @in_body
         add_doc_to_solr
       end
       new_page_id = attributes.select { |a| a[0] == 'id'}.first.last
@@ -68,9 +69,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
       @in_body = false
     when 'back'
-      if @page_has_content
-        add_doc_to_solr
-      end
+#      if @page_has_content
+#        add_doc_to_solr
+#      end
       @in_back = false
     when 'p'
       @text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER

@@ -141,7 +141,7 @@ describe ApTeiDocument do
         end
       end # in <body>
       context "in <back>" do
-        it "pages in <back> section should write the doc to Solr" do
+        it "pages in <back> section should NOT write the doc to Solr" do
           x = "<TEI.2><text><back>
             <div1 type=\"volume\" n=\"14\">
               <pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
@@ -153,10 +153,10 @@ describe ApTeiDocument do
             <div1 type=\"volume\" n=\"14\">
               <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>
             </div1></back></text></TEI.2>"
-          @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
+          @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
           @parser.parse(x)
         end
-        it "last page in <back> section should write the doc to Solr" do
+        it "last page in <back> section should NOT write the doc to Solr" do
           x = "<TEI.2><text><back>
             <div1 type=\"volume\" n=\"14\">
               <pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
@@ -172,8 +172,8 @@ describe ApTeiDocument do
                 <p>blah blah</p>
               </div2>
             </div1></back></text></TEI.2>"
-          @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
-          @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0817'))
+          @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
+          @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0817'))
           @parser.parse(x)
         end        
       end # in <back>
@@ -366,95 +366,5 @@ describe ApTeiDocument do
       @parser.parse(x)
     end
   end # <sp> element
-  
-
-  context "<text>" do
-    context "<body>" do
-      context '<div2 type="session">' do
-        x = "<TEI.2><text><body>
-              <div1 type=\"volume\" n=\"36\">
-                <pb n=\"\" id=\"wb029sv4796_00_0004\"/>
-                <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
-                <head>ARCHIVES PARLEMENTAIRES </head>
-                <head>RÈGNE DE LOUIS XVI </head>
-                <div2 type=\"session\">
-                 <head>ASSEMBLÉE NATIONALE LÉGISLATIVE. </head>
-                 <head>Séance du<date value=\"1791-12-11\">dimanche 11 décembre 1791</date>.</head>
-                 <head> PRÉSIDENCE DE M. LEMONTEY.</head>
-                 <p>La séance est ouverte à neuf heures du matin. </p>
-                 <sp>
-                  <speaker>M. Guadet</speaker>
-                  <p>,secrétaire, donne lecture du procès-verbal de la séance du samedi 10 décembre 1791, au
-                   matin. </p>
-                   <pb n=\"\" id=\"wb029sv4796_00_0005\"/>
-                </div></body></text></TEI.2>"        
-      end
-    end # <body>
-    context "<back>" do
-      before(:all) do
-           x = "<TEI.2><text><back>
-           <back>
-            <div1 type=\"volume\" n=\"36\">
-             <pb n=\"\" id=\"wb029sv4796_00_0751\"/>
-
-             <head>ARCHIVES PARLEMENTAIRES </head>
-             <head>PREMIÈRE SÉRIE </head>
-             <div2 type=\"contents\">
-              <head>TABLE CHRONOLOGIQUE DU TOME XXXVI </head>
-              <head>TOME TRENTE-SIXIÈME (DU 11 DÉCEMBRE 1191 AU lor JANVIER 1792). </head>
-              <p>Pages. </p>
-              <list>
-               <head>11 DÉCEMBRE 1791. </head>
-
-               <item>Assemblée nationale législative. — Lecture de pé- titions, lettres et adresses
-                diverses............ 1</item>
-             </list>
-             <list>
-              <head>13 DÉCEMBRE 1791</head>
-              <item>Séance du matin.</item>
-              <item>Assemblée nationale législative. — Motions d'or-
-               dre................................................... 42 </item>
-             </list>
-             <list>
-              <head>Séance du soir. </head>
-              <item>Assemblée nationale législative. — Lecture des lettres, pétitions et adresses
-               diverses.......... 75 </item>
-             </list>
-             </div2>
-           </div1>
-           <div1 type=\"volume\" n=\"36\">
-            <pb n=\"\" id=\"wb029sv4796_00_0760\"/>
-
-            <head>ARCHIVES PARLEMENTAIRES </head>
-            <head>PREMIÈRE SÉRIE </head>
-            <head>TABLE ALPHABÉTIQUE ET ANALYTIQUE DU TOME TRENTE-SIXIÈME. (DO 11 DÉCEMBRE 1791 AD 1<hi
-              rend=\"superscript\">er</hi> JANVIER 1792) </head>
-           <div2 type=\"alpha\">
-            <head>W </head>
-            <p><term>Wimpfen</term> (Général de). — Voir Princes français. </p>
-            <p><term>Worms</term> (Ville). Le magistrat annonce à la municipalité de Strasbourg qu'il a
-             requis M. de Condé de quitter la ville (30 décembre 1791, t. XXXVI, p. 666). </p>
-            <p><term>Wurtemberg</term>. Réponse du duc à la notification de l'acceptation de 1 acte
-             constitutionnel par Louis XVI (24 décembre 1791, t. XXXVI, p. 350). </p>
-            <pb n=\"793\" id=\"wb029sv4796_00_0797\"/>
-           </div2>
-               <div2 type=\"alpha\">
-                <head>Y </head>
-                <p><term>Yonne</term> (Département de 1'). </p>
-                <p>Administrateurs. — Demandent à être entendus à la barre (20 décembre 1791, t. XXXVI, p.
-                 222).— Sont admis, présentent une adresse de dévouement et une demande de dégrèvement (ibid.
-                 p. 278 et suiv.) ; — réponse du Président (ibid. p. 279). </p>
-                <p>Volontaires. — Plaintes sur la lenteur de l'équipement (18 décembre 1791, t. XXXVI, p. 231);
-                 — renvoi au comité militaire (ibid.). </p>
-                <p>fin de la table alphabétique èt analytiquê du tome xxxvi.</p>
-               </div2>
-              </div1>
-             </back>
-            </text>
-           </TEI.2>"
-      end
-    end # <back>
-  end # <text>
-  
-  
+    
 end
