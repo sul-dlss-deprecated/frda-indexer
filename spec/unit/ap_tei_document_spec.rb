@@ -11,12 +11,15 @@ describe ApTeiDocument do
     @logger = Logger.new(STDOUT)
     @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, @logger)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
-    @start_tei_body_div2_session = "<TEI.2><text><body>
-          <div1 type=\"volume\" n=\"36\">
-            <div2 type=\"session\">
+    @start_tei_body_div1 = "<TEI.2><text><body><div1 type=\"volume\" n=\"36\">"
+    @start_tei_body_div2_session = @start_tei_body_div1 + 
+            "<div2 type=\"session\">
               <pb n=\"\" id=\"wb029sv4796_00_0005\"/>"
-    @end_div2_body_tei = "<pb n=\"\" id=\"wb029sv4796_00_0008\"/>
-            </div2></div1></body></text></TEI.2>"
+    @end_div1_body_tei = "</div1></body></text></TEI.2>"
+    @end_div2_body_tei = "</div2>#{@end_div1_body_tei}"
+    @start_tei_back_div1 = "<TEI.2><text><back><div1 type=\"volume\" n=\"44\">"
+    @end_div1_back_tei = "</div1></back></text></TEI.2>"
+    @end_div2_back_tei = "</div2>#{@end_div1_back_tei}"
   end
   
   context "start_document" do
@@ -74,45 +77,37 @@ describe ApTeiDocument do
         @parser.parse(x)
       end
       it "blank page at beginning of <body> should not go to Solr" do
-        x = "<TEI.2><text><body>
-              <div1 type=\"volume\" n=\"20\">
-                <pb n=\"\" id=\"pz516hw4711_00_0004\"/>
+        x = @start_tei_body_div1 +
+               "<pb n=\"\" id=\"pz516hw4711_00_0004\"/>
                 <head>blah</head>
-                <pb n=\"1\" id=\"pz516hw4711_00_0005\"/>
-              </div1></body></text></TEI.2>"
+                <pb n=\"1\" id=\"pz516hw4711_00_0005\"/>" + @end_div1_body_tei
         @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'pz516hw4711_00_0004'))
         @parser.parse(x)
       end
       it "blank pages at end of <body> should not go to Solr" do
-        x = "<TEI.2><text><body>
-              <div1 type=\"volume\" n=\"20\">
-                <pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+        x = @start_tei_body_div1 +
+                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>
-                <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>
-              </div1></body></text></TEI.2>"
+                <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>" + @end_div1_body_tei
         @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0814'))
         @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0815'))
         @parser.parse(x)
       end
       it "blank page at beginning of <back> should not go to Solr" do
-        x = "<TEI.2><text><back>
-              <div1 type=\"volume\" n=\"20\">
-                <pb n=\"\" id=\"pz516hw4711_00_0004\"/>
+        x = @start_tei_back_div1 +
+                "<pb n=\"\" id=\"pz516hw4711_00_0004\"/>
                 <head>blah</head>
-                <pb n=\"1\" id=\"pz516hw4711_00_0005\"/>
-              </div1></back></text></TEI.2>"
+                <pb n=\"1\" id=\"pz516hw4711_00_0005\"/>" + @end_div1_back_tei
         @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'pz516hw4711_00_0004'))
         @parser.parse(x)
       end
       it "blank pages at end of <back> should not go to Solr" do
-        x = "<TEI.2><text><back>
-              <div1 type=\"volume\" n=\"20\">
-                <pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+        x = @start_tei_back_div1 +
+                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>
-                <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>
-              </div1></back></text></TEI.2>"
+                <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>" + @end_div1_back_tei
         @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0814'))
         @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0815'))
         @parser.parse(x)
@@ -122,13 +117,11 @@ describe ApTeiDocument do
       context "in <body>" do
         before(:all) do
           @id = "non_blank_page"
-          @x = "<TEI.2><text><body>
-                 <div1 type=\"volume\" n=\"20\">
-                   <pb n=\"1\" id=\"#{@id}\"/>
+          @x = @start_tei_body_div1 +
+                   "<pb n=\"1\" id=\"#{@id}\"/>
                    <div2 type=\"session\">
                      <p>La séance est ouverte à neuf heures du matin. </p>
-                     <pb n=\"2\" id=\"next_page\"/>
-                  </div2></div1></body></text></TEI.2>"        
+                     <pb n=\"2\" id=\"next_page\"/>" + @end_div2_body_tei
         end
         it "should write the doc to Solr" do
           @rsolr_client.should_receive(:add).with(hash_including(:druid_ssi, :collection_ssi, :vol_num_ssi, :id => @id))
@@ -142,24 +135,21 @@ describe ApTeiDocument do
       end # in <body>
       context "in <back>" do
         it "pages in <back> section should NOT write the doc to Solr" do
-          x = "<TEI.2><text><back>
-            <div1 type=\"volume\" n=\"14\">
-              <pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
+          x = @start_tei_back_div1 +
+              "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
               <div2 type=\"contents\">
                 <head>TABLE CHRONOLOGIQUE</head>
                 <p>blah blah</p>
               </div2>
             </div1>
             <div1 type=\"volume\" n=\"14\">
-              <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>
-            </div1></back></text></TEI.2>"
+              <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>" + @end_div1_back_tei
           @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
           @parser.parse(x)
         end
         it "last page in <back> section should NOT write the doc to Solr" do
-          x = "<TEI.2><text><back>
-            <div1 type=\"volume\" n=\"14\">
-              <pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
+          x = @start_tei_back_div1 +
+            "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
               <div2 type=\"contents\">
                 <head>TABLE CHRONOLOGIQUE</head>
                 <p>blah blah</p>
@@ -170,8 +160,7 @@ describe ApTeiDocument do
               <div2 type=\"contents\">
                 <head>TABLE CHRONOLOGIQUE</head>
                 <p>blah blah</p>
-              </div2>
-            </div1></back></text></TEI.2>"
+              </div2>" + @end_div1_back_tei
           @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
           @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0817'))
           @parser.parse(x)
@@ -243,18 +232,16 @@ describe ApTeiDocument do
         @parser.parse(x)
       end
       it "should not be present when <pb> has empty n attribute" do
-        x = "<TEI.2><text><body>
-              <div1 type=\"volume\" n=\"20\">
-              <div2 type=\"session\">
+        x = @start_tei_body_div1 +
+              "<div2 type=\"session\">
                   <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
                   <p>blah blah</p>" + @end_div2_body_tei 
         @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ss))
         @parser.parse(x)
       end
       it "should not be present when <pb> has no n attribute" do
-        x = "<TEI.2><text><body>
-              <div1 type=\"volume\" n=\"20\">
-              <div2 type=\"session\">
+        x = @start_tei_body_div1 +
+              "<div2 type=\"session\">
                   <pb id=\"ns351vc7243_00_0001\"/>
                   <p>blah blah</p>" + @end_div2_body_tei 
         @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ss))
