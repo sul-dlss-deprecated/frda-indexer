@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'nokogiri'
 
 require 'ap_vol_dates'
@@ -7,9 +8,6 @@ require 'ap_vol_titles'
 #  TEI xml corresponding to volumes of the Archives Parlementaires
 class ApTeiDocument < Nokogiri::XML::SAX::Document
   
-  COLL_VAL = "ap-collection" 
-  PAGE_TYPE = "page" 
-
   attr_reader :doc_hash
 
   # @param [RSolr::Client] rsolr_client used to write the Solr documents as we build them
@@ -39,8 +37,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_body = true
     when 'back'
       @in_back = true
+    when 'div2'
+      @in_div2 = true
+      if @in_body
+        div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
+        @doc_hash[:doc_type_si] = DIV2_TYPE[div2_type]
+      end
     when 'pb'
-#      if @page_has_content && (@in_body || @in_back)
       if @page_has_content && @in_body
         add_doc_to_solr
       end
@@ -69,9 +72,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
       @in_body = false
     when 'back'
-#      if @page_has_content
-#        add_doc_to_solr
-#      end
       @in_back = false
     when 'p'
       @text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
@@ -115,7 +115,15 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   # --------- Not part of the Nokogiri::XML::SAX::Document events -----------------
     
+  COLL_VAL = "ap-collection"
+  PAGE_TYPE = "page"
   NO_BUFFER = :no_buffer
+  DIV2_TYPE = {'session' => 'séance',
+                'contents' => 'table des matières',
+                'other' => 'errata, rapport, cahier, etc.',
+                'table_alpha' => 'liste',
+                'alpha' => 'liste',
+                'introduction' => 'introduction'}
 
   # initialize instance variable @doc_hash with mappings appropriate for all docs in the volume
   def init_doc_hash
