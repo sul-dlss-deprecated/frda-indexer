@@ -39,8 +39,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_back = true
     when 'div2'
       @in_div2 = true
+      div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
+      if div2_type == 'session'
+        @in_session = true
+      end
       if @in_body
-        div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
         @doc_hash[:doc_type_si] = DIV2_TYPE[div2_type]
       end
     when 'pb'
@@ -73,6 +76,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_body = false
     when 'back'
       @in_back = false
+    when 'div2'
+      @in_div2 = false
     when 'p'
       @text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
       if @in_sp && @speaker
