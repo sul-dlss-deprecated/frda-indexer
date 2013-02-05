@@ -19,7 +19,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def initialize (rsolr_client, druid, volume, logger)
     @rsolr_client = rsolr_client
     @druid = druid
-    @volume = volume
+    @volume = volume.sub(/^Volume /i, '')
     @logger = logger
   end
   

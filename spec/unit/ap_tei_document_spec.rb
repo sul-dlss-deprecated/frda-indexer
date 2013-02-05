@@ -5,7 +5,7 @@ require 'time'
 
 describe ApTeiDocument do
   before(:all) do
-    @volume = '36'
+    @volume = 'Volume 36'
     @druid = 'aa222bb4444'
     @rsolr_client = RSolr::Client.new('http://somewhere.org')
     @logger = Logger.new(STDOUT)
@@ -39,10 +39,11 @@ describe ApTeiDocument do
       @atd.doc_hash[:collection_ssi].should == ApTeiDocument::COLL_VAL
     end
     it "should populate vol_num_ssi field" do
-      @atd.doc_hash[:vol_num_ssi].should == @volume
+      @atd.doc_hash[:vol_num_ssi].should == @volume.sub(/^Volume /i, '')
+      @atd.doc_hash[:vol_num_ssi].should == '36'
     end
     it "should populate vol_title_ssi" do
-      @atd.doc_hash[:vol_title_ssi].should == VOL_TITLES[@volume]
+      @atd.doc_hash[:vol_title_ssi].should == VOL_TITLES[@volume.sub(/^Volume /i, '')]
     end
     it "should get volume date fields in UTC form (1995-12-31T23:59:59Z)" do
       val = @atd.doc_hash[:vol_date_start_dti]
