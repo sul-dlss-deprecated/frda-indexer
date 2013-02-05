@@ -227,40 +227,50 @@ describe ApTeiDocument do
     end # field already exists
   end # add_value_to_doc_hash
 
-  context "page_num_ss" do
-    it "should be present when <pb> has non-empty n attribute" do
-      x = @start_tei_body_div2_session + 
-            "<pb n=\"1\" id=\"something\"/>
-             <p>La séance est ouverte à neuf heures du matin. </p>
-             <pb n=\"2\" id=\"next_page\"/>
-          </div2></div1></body></text></TEI.2>"        
-      @rsolr_client.should_receive(:add).with(hash_including(:page_num_ss => '1'))
-      @parser.parse(x)
+  context "<pb> element" do
+    before(:all) do
+      @page_id = 'tq360bc6948_00_0813'
+      @x = @start_tei_body_div2_session + 
+            "<pb n=\"1\" id=\"#{@page_id}\"/>
+             <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei        
     end
-    it "should not be present when <pb> has empty n attribute" do
-      x = "<TEI.2><text><body>
-            <div1 type=\"volume\" n=\"20\">
-            <div2 type=\"session\">
-                <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>
-                <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
-            </div2></div1></body></text></TEI.2>"
-      @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ss))
-      @parser.parse(x)
+    context "page_num_ss" do
+      it "should be present when <pb> has non-empty n attribute" do
+        x = @start_tei_body_div2_session + 
+              "<pb n=\"1\" id=\"something\"/>
+               <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:page_num_ss => '1'))
+        @parser.parse(x)
+      end
+      it "should not be present when <pb> has empty n attribute" do
+        x = "<TEI.2><text><body>
+              <div1 type=\"volume\" n=\"20\">
+              <div2 type=\"session\">
+                  <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
+                  <p>blah blah</p>" + @end_div2_body_tei 
+        @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ss))
+        @parser.parse(x)
+      end
+      it "should not be present when <pb> has no n attribute" do
+        x = "<TEI.2><text><body>
+              <div1 type=\"volume\" n=\"20\">
+              <div2 type=\"session\">
+                  <pb id=\"ns351vc7243_00_0001\"/>
+                  <p>blah blah</p>" + @end_div2_body_tei 
+        @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ss))
+        @parser.parse(x)
+      end
+    end # page_num_ss
+    it "image_id_ss should be same as <pb> id attrib with .jp2 extension" do
+      @rsolr_client.should_receive(:add).with(hash_including(:image_id_ss => "#{@page_id}.jp2"))
+      @parser.parse(@x)
     end
-    it "should not be present when <pb> has no n attribute" do
-      x = "<TEI.2><text><body>
-            <div1 type=\"volume\" n=\"20\">
-            <div2 type=\"session\">
-                <pb id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>
-                <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
-            </div2></div1></body></text></TEI.2>"
-      @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ss))
-      @parser.parse(x)
+    it "ocr_id_ss should be same as <pb> id attrib with _99_ replacing middle _00_ and .txt extension" do
+      @rsolr_client.should_receive(:add).with(hash_including(:ocr_id_ss => "tq360bc6948_99_0813.txt"))
+      @parser.parse(@x)
     end
-  end
-  
+  end # <pb> element
+
   context "<sp> element" do
     context "speaker_ssim" do
       it "should be present if there is a non-empty <speaker> element" do

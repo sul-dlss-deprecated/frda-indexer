@@ -47,6 +47,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @doc_hash[:id] = new_page_id
       vol_page_array = attributes.select { |a| a[0] == 'n'}
       @doc_hash[:page_num_ss] = vol_page_array.first.last if vol_page_array && !vol_page_array.empty? && !vol_page_array.first.last.empty?
+      @doc_hash[:image_id_ss] = new_page_id + ".jp2"
+      @doc_hash[:ocr_id_ss] = new_page_id.sub(/_00_/, '_99_') + ".txt"
     when 'p'
       @in_p = true
       @page_has_content = true
