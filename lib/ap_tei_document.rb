@@ -8,6 +8,7 @@ require 'ap_vol_titles'
 class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   COLL_VAL = "ap-collection" 
+  PAGE_TYPE = "page" 
 
   attr_reader :doc_hash
 
@@ -113,7 +114,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     
   NO_BUFFER = :no_buffer
 
-  # initialize instance variable @doc_hash with values appropriate for the volume level
+  # initialize instance variable @doc_hash with mappings appropriate for all docs in the volume
   def init_doc_hash
     @doc_hash = {}
     @doc_hash[:collection_ssi] = COLL_VAL
@@ -123,6 +124,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     # The format for a Solr date field is 1995-12-31T23:59:59Z
     @doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
     @doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
+    @doc_hash[:type_ssi] = PAGE_TYPE
     @text_buffer = NO_BUFFER
   end
   

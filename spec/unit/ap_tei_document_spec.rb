@@ -52,6 +52,9 @@ describe ApTeiDocument do
       val.should end_with 'Z'
       Time.xmlschema(val).xmlschema.should == val
     end
+    it "should populate type_ssi field" do
+      @atd.doc_hash[:type_ssi].should == ApTeiDocument::PAGE_TYPE
+    end
   end # init_doc_hash
   
   context "add_doc_to_solr" do
