@@ -119,8 +119,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @doc_hash = {}
     @doc_hash[:collection_ssi] = COLL_VAL
     @doc_hash[:druid_ssi] = @druid
-    @doc_hash[:volume_ssi] = @volume
-    @doc_hash[:volume_title_ssi] = VOL_TITLES[@volume]
+    @doc_hash[:vol_num_ssi] = @volume
+    @doc_hash[:vol_title_ssi] = VOL_TITLES[@volume]
     # The format for a Solr date field is 1995-12-31T23:59:59Z
     @doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
     @doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last

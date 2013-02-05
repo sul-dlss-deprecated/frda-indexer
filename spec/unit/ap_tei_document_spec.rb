@@ -38,11 +38,11 @@ describe ApTeiDocument do
     it "should populate collection_ssi field" do
       @atd.doc_hash[:collection_ssi].should == ApTeiDocument::COLL_VAL
     end
-    it "should populate volume_ssi field" do
-      @atd.doc_hash[:volume_ssi].should == @volume
+    it "should populate vol_num_ssi field" do
+      @atd.doc_hash[:vol_num_ssi].should == @volume
     end
-    it "should populate volume_title_ssi" do
-      @atd.doc_hash[:volume_title_ssi].should == 'Tome 36 : Du 11 décembre 1791 au 1er janvier 1792'
+    it "should populate vol_title_ssi" do
+      @atd.doc_hash[:vol_title_ssi].should == VOL_TITLES[@volume]
     end
     it "should get volume date fields in UTC form (1995-12-31T23:59:59Z)" do
       val = @atd.doc_hash[:vol_date_start_dti]
@@ -130,7 +130,7 @@ describe ApTeiDocument do
                   </div2></div1></body></text></TEI.2>"        
         end
         it "should write the doc to Solr" do
-          @rsolr_client.should_receive(:add).with(hash_including(:druid_ssi, :collection_ssi, :volume_ssi, :vol_date_start_dti, :vol_date_end_dti, :id => @id))
+          @rsolr_client.should_receive(:add).with(hash_including(:druid_ssi, :collection_ssi, :vol_num_ssi, :id => @id))
           @parser.parse(@x)
         end
         it "should call init_doc_hash" do
