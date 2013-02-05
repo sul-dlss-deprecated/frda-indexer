@@ -7,7 +7,7 @@ require 'ap_vol_titles'
 #  TEI xml corresponding to volumes of the Archives Parlementaires
 class ApTeiDocument < Nokogiri::XML::SAX::Document
   
-  COLL_VAL = "ap-collection"  
+  COLL_VAL = "ap-collection" 
 
   attr_reader :doc_hash
 

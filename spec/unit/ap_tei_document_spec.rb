@@ -256,100 +256,103 @@ describe ApTeiDocument do
       @parser.parse(x)
     end
   end
-    
-  context "speaker_ssim" do
-    it "should be present if there is a non-empty <speaker> element" do
-      x = @start_tei_body_div2_session +
-          "<sp>
-             <speaker>M. Guadet</speaker>
-             <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
-          </sp>" + @end_div2_body_tei
-      @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet']))
-      @parser.parse(x)
-    end
-    it "should have multiple values for multiple speakers" do
-      x = @start_tei_body_div2_session + 
-          "<sp>
-            <speaker>M. Guadet</speaker>
-            <p>blah blah</p>
-          </sp>
-          <p>hoo hah</p>
-          <sp>
-            <speaker>M. McRae</speaker>
-            <p>bleah bleah</p>
-          </sp>" + @end_div2_body_tei
-      @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet', 'M. McRae']))
-      @parser.parse(x)
-    end
-    it "should not be present if there is an empty <speaker> element" do
-      x = @start_tei_body_div2_session + 
-          "<sp>
-             <speaker></speaker>
-             <speaker/>
-             <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
-           </sp>" + @end_div2_body_tei
-      @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
-      @parser.parse(x)
-    end
-    it "should not be present if there is no <speaker> element" do
-      x = @start_tei_body_div2_session + 
-          "<p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
-      @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
-      @parser.parse(x)
-    end
-  end
+  
+  context "<sp> element" do
+    context "speaker_ssim" do
+      it "should be present if there is a non-empty <speaker> element" do
+        x = @start_tei_body_div2_session +
+            "<sp>
+               <speaker>M. Guadet</speaker>
+               <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
+            </sp>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet']))
+        @parser.parse(x)
+      end
+      it "should have multiple values for multiple speakers" do
+        x = @start_tei_body_div2_session + 
+            "<sp>
+              <speaker>M. Guadet</speaker>
+              <p>blah blah</p>
+            </sp>
+            <p>hoo hah</p>
+            <sp>
+              <speaker>M. McRae</speaker>
+              <p>bleah bleah</p>
+            </sp>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet', 'M. McRae']))
+        @parser.parse(x)
+      end
+      it "should not be present if there is an empty <speaker> element" do
+        x = @start_tei_body_div2_session + 
+            "<sp>
+               <speaker></speaker>
+               <speaker/>
+               <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
+             </sp>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
+        @parser.parse(x)
+      end
+      it "should not be present if there is no <speaker> element" do
+        x = @start_tei_body_div2_session + 
+            "<p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
+        @parser.parse(x)
+      end
+    end # speaker_ssim
 
-  context "spoken_text_ftsimv" do
-    before(:each) do
-      @x = @start_tei_body_div2_session +
-          "<p>before</p>
+    context "spoken_text_ftsimv" do
+      before(:each) do
+        @x = @start_tei_body_div2_session +
+            "<p>before</p>
+            <sp>
+               <speaker>M. Guadet</speaker>
+               <p>blah blah ... </p>
+               <p>bleah bleah ... </p>
+            </sp>
+            <p>middle</p>
+            <sp>
+              <p>no speaker</p>
+            </sp>
+            <sp>
+              <speaker/>
+              <p>also no speaker</p>
+            </sp>
+            <p>after</p>" + @end_div2_body_tei
+      end
+      it "should have a separate value, starting with the speaker, for each <p> inside a single <sp>" do
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_ftsimv => ['M. Guadet blah blah ...', 'M. Guadet bleah bleah ...']))
+        @parser.parse(@x)
+      end
+      it "should not include <p> text outside an <sp>" do
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['before']))
+        @parser.parse(@x)
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['middle']))
+        @parser.parse(@x)
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['after']))
+        @parser.parse(@x)
+      end
+      it "should not include <p> text when there is no speaker " do
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['no speaker']))
+        @parser.parse(@x)
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['also no speaker']))
+        @parser.parse(@x)
+      end
+    end # spoken_text_ftsimv
+
+    it "should log a warning when it finds direct non-whitespace text content in <sp> tag" do
+      x = @start_tei_body_div2_session +
+          "<pb n=\"2\" id=\"ns351vc7243_00_0001\"/>
           <sp>
              <speaker>M. Guadet</speaker>
              <p>blah blah ... </p>
-             <p>bleah bleah ... </p>
-          </sp>
-          <p>middle</p>
-          <sp>
-            <p>no speaker</p>
-          </sp>
-          <sp>
-            <speaker/>
-            <p>also no speaker</p>
-          </sp>
-          <p>after</p>" + @end_div2_body_tei
+             mistake
+          </sp>" + @end_div2_body_tei
+      @logger.should_receive(:warn).with("Found <sp> tag with direct text content: 'mistake' in page ns351vc7243_00_0001")
+      @rsolr_client.should_receive(:add)
+      @parser.parse(x)
     end
-    it "should have a separate value, starting with the speaker, for each <p> inside a single <sp>" do
-      @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_ftsimv => ['M. Guadet blah blah ...', 'M. Guadet bleah bleah ...']))
-      @parser.parse(@x)
-    end
-    it "should not include <p> text outside an <sp>" do
-      @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['before']))
-      @parser.parse(@x)
-      @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['middle']))
-      @parser.parse(@x)
-      @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['after']))
-      @parser.parse(@x)
-    end
-    it "should not include <p> text when there is no speaker " do
-      @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['no speaker']))
-      @parser.parse(@x)
-      @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['also no speaker']))
-      @parser.parse(@x)
-    end
-  end
-
-  it "should log a warning when it finds direct non-whitespace text content in <sp> tag" do
-    x = @start_tei_body_div2_session +
-        "<pb n=\"2\" id=\"ns351vc7243_00_0001\"/>
-        <sp>
-           <speaker>M. Guadet</speaker>
-           <p>blah blah ... </p>
-           mistake
-        </sp>" + @end_div2_body_tei
-    @logger.should_receive(:warn).with("Found <sp> tag with direct text content: 'mistake' in page ns351vc7243_00_0001")
-    @rsolr_client.should_receive(:add)
-    @parser.parse(x)
-  end
+  end # <sp> element
+  
 
   context "<text>" do
     context "<body>" do
