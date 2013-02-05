@@ -227,14 +227,14 @@ describe ApTeiDocument do
     end # field already exists
   end # add_value_to_doc_hash
 
-  context "vol_page_ss" do
+  context "page_num_ss" do
     it "should be present when <pb> has non-empty n attribute" do
       x = @start_tei_body_div2_session + 
             "<pb n=\"1\" id=\"something\"/>
              <p>La séance est ouverte à neuf heures du matin. </p>
              <pb n=\"2\" id=\"next_page\"/>
           </div2></div1></body></text></TEI.2>"        
-      @rsolr_client.should_receive(:add).with(hash_including(:vol_page_ss => '1'))
+      @rsolr_client.should_receive(:add).with(hash_including(:page_num_ss => '1'))
       @parser.parse(x)
     end
     it "should not be present when <pb> has empty n attribute" do
@@ -245,7 +245,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
             </div2></div1></body></text></TEI.2>"
-      @rsolr_client.should_receive(:add).with(hash_not_including(:vol_page_ss))
+      @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ss))
       @parser.parse(x)
     end
     it "should not be present when <pb> has no n attribute" do
@@ -256,7 +256,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
             </div2></div1></body></text></TEI.2>"
-      @rsolr_client.should_receive(:add).with(hash_not_including(:vol_page_ss))
+      @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ss))
       @parser.parse(x)
     end
   end

@@ -46,7 +46,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       new_page_id = attributes.select { |a| a[0] == 'id'}.first.last
       @doc_hash[:id] = new_page_id
       vol_page_array = attributes.select { |a| a[0] == 'n'}
-      @doc_hash[:vol_page_ss] = vol_page_array.first.last if vol_page_array && !vol_page_array.empty? && !vol_page_array.first.last.empty?
+      @doc_hash[:page_num_ss] = vol_page_array.first.last if vol_page_array && !vol_page_array.empty? && !vol_page_array.first.last.empty?
     when 'p'
       @in_p = true
       @page_has_content = true
