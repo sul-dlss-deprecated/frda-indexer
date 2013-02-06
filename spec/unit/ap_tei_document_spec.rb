@@ -277,7 +277,7 @@ describe ApTeiDocument do
                 "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
                 <head>CONVENTION NATIONALE</head>
                 <p>blah blah</p>
-                <pb n=\"810\" id=\"tq360bc6948_00_0813\"/>" + @end_div2_body_tei
+                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "CONVENTION NATIONALE"))
           @parser.parse(x)
         end
@@ -285,30 +285,63 @@ describe ApTeiDocument do
           x = @start_tei_body_div2_session + 
                 "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
                 <head>CONVENTION NATIONALE</head>
-                <head>PRÉSIDENCE DE M. MERLIN</head>
+                <head>PRESIDENCE DE M. MERLIN</head>
                 <p>blah blah</p>
-                <pb n=\"810\" id=\"tq360bc6948_00_0813\"/>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_not_including(:session_govt_ssi => "PRÉSIDENCE DE M. MERLIN"))
+                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_not_including(:session_govt_ssi => "PRESIDENCE DE M. MERLIN"))
           @parser.parse(x)
         end
-        it "should strip whitespace" do
-          x = "<head>ASSEMBLÉE NATIONALE LÉGISLATIVE. </head>"
-          pending "to be implemented"
+        it "should strip whitespace and punctuation" do
+          x = @start_tei_body_div2_session + 
+                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                <head> 
+                ASSEMBLÉE NATIONALE LÉGISLATIVE. </head>
+                <p>blah blah</p>
+                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "ASSEMBLÉE NATIONALE LÉGISLATIVE"))
+          @parser.parse(x)
         end
         it "should ignore whitespace before first <head> or <p>" do
-          pending "to be implemented"
-        end
-        it "should put the value into French titlecase (from allcaps)" do
-          pending "to be implemented"
+          x = @start_tei_body_div2_session + 
+                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                
+                <head>CONVENTION NATIONALE</head>
+                <p>blah blah</p>
+                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "CONVENTION NATIONALE"))
+          @parser.parse(x)
         end
         it "should find the value if it is in <p> instead of <head>" do
-          x = @start_tei_body_div2_session +
-          "<p>ASSEMBLÉE NATIONALE LÉGISLATIVE. </p>" + @end_div2_body_tei
-          
-          pending "to be implemented"
+          x = @start_tei_body_div2_session + 
+                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                <p>ASSEMBLÉE NATIONALE LÉGISLATIVE. </p>
+                <p>blah blah</p>
+                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "ASSEMBLÉE NATIONALE LÉGISLATIVE"))
+          @parser.parse(x)
+        end
+        it "should ignore elements between session and head" do
+          x = @start_tei_body_div1 + 
+                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                <div2 type=\"session\">
+                <note place=\"foot\">CONVENTION NATIONALE </note>
+                <p>ASSEMBLÉE NATIONALE LÉGISLATIVE. </p>
+                <p>blah blah</p>
+                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "ASSEMBLÉE NATIONALE LÉGISLATIVE"))
+          @parser.parse(x)
         end
         it "should not have leftover text from preceding elements" do
-          pending "to be implemented"
+          @start_tei_body_div2_session = @start_tei_body_div1 + 
+          x = @start_tei_body_div1 + 
+                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                <p>blah blah</p>
+                <div2 type=\"session\">
+                <head>CONVENTION NATIONALE</head>
+                <p>blah blah</p>
+                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "CONVENTION NATIONALE"))
+          @parser.parse(x)
         end
       end # session_govt_ssi
     end

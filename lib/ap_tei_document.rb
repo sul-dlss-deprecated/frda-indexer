@@ -3,7 +3,6 @@ require 'nokogiri'
 
 require 'ap_vol_dates'
 require 'ap_vol_titles'
-#require 'unicode_utils/titlecase'
 
 # Subclass of Nokogiri::XML::SAX::Document for streaming parsing
 #  TEI xml corresponding to volumes of the Archives Parlementaires
@@ -44,7 +43,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @div2_doc_type = DIV2_TYPE[div2_type] if div2_type
       if div2_type == 'session'
         @in_session = true
-        @need_session_head = true
+        @need_session_govt = true
       end
       if @in_body
         add_value_to_doc_hash(:doc_type_ssi, @div2_doc_type)
@@ -87,18 +86,15 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @@div2_doc_type = nil
       @in_session = false
     when 'head'
-      @text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
-      if @in_session && @need_session_head
-        add_value_to_doc_hash(:session_govt_ssi, @text) if @text
-        @text_buffer = NO_BUFFER
-        @need_session_head = false
-      end
+      text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
+      add_session_govt_ssi(text) if  @in_session && @need_session_govt
     when 'p'
-      @text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
+      text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
+      add_session_govt_ssi(text) if @in_session && @need_session_govt && text == text.upcase
       if @in_sp && @speaker
-        add_value_to_doc_hash(:spoken_text_ftsimv, "#{@speaker} #{@text}") if @text
+        add_value_to_doc_hash(:spoken_text_ftsimv, "#{@speaker} #{text}") if text
       else
-        add_value_to_doc_hash(:text_ftsimv, @text) if @text
+        add_value_to_doc_hash(:text_ftsimv, text) if text
       end
       @text_buffer = NO_BUFFER
       @in_p = false
@@ -116,6 +112,15 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @text_buffer = NO_BUFFER
       @in_speaker = false
     end
+    @element_just_ended = true
+  end
+  
+  # add :session_govt_ssi field to doc_hash, and reset appropriate vars
+  def add_session_govt_ssi value
+    value.strip if value && value != NO_BUFFER
+    add_value_to_doc_hash(:session_govt_ssi, value.sub(/[[:punct:]]$/, '')) if value
+    @text_buffer = NO_BUFFER
+    @need_session_govt = false
   end
   
   # Characters within element tags.  This method might be called multiple
@@ -127,9 +132,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     if @text_buffer == NO_BUFFER
       @text_buffer = chars.dup
     else
-      @text_buffer << ' ' + chars.dup
+      @text_buffer << (@element_just_ended ? ' ' : '') + chars.dup
     end
     @text_buffer.gsub!(/\s+/, ' ') if @text_buffer && @text_buffer != NO_BUFFER
+    @element_just_ended = false
   end
   alias cdata_block characters
   
