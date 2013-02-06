@@ -3,12 +3,12 @@
 #   from http://ihrf.univ-paris1.fr/spip.php?article61
 # a mixin for use ap_indexer
 VOL_TITLES = {
-  '1' => 'Tome 1 : 1789 – états généraux. Cahiers des sénéchaussées et baillages',
-  '2' => 'Tome 2 : 1789 – états généraux. Cahiers des sénéchaussées et baillages',
-  '3' => 'Tome 3 : 1789 – états généraux. Cahiers des sénéchaussées et baillages',
-  '4' => 'Tome 4 : 1789 – états généraux. Cahiers des sénéchaussées et baillages',
-  '5' => 'Tome 5 : 1789 – états généraux. Cahiers des sénéchaussées et baillages',
-  '6' => 'Tome 6 : 1789 – états généraux. Cahiers des sénéchaussées et baillages',
+  '1' => 'Tome 1 : 1789 – Introduction - états généraux - préliminaires. Cahiers des sénéchaussées et baillages [Agen - Amont]',
+  '2' => 'Tome 2 : 1789 – États généraux. Cahiers des sénéchaussées et baillages [Angoumois - Clermont-Ferrand]',
+  '3' => 'Tome 3 : 1789 – États généraux. Cahiers des sénéchaussées et baillages [Colmar et Schelestadt - Metz]',
+  '4' => 'Tome 4 : 1789 – États généraux. Cahiers des sénéchaussées et baillages [Mirecourt - Paris (hors les murs)]',
+  '5' => 'Tome 5 : 1789 – États généraux. Suite des cahiers des sénéchaussées et baillages [Paris (hors les murs) (suite) - Toulon]',
+  '6' => 'Tome 6 : 1789 – États généraux. Cahiers des sénéchaussées et baillages [Toul - Vitry-le-François]',
   '7' => 'Tome 7 : Table des cahiers des états généraux',
   '8' => 'Tome 8 : Du 5 mai 1789 au 15 septembre 1789',
   '9' => 'Tome 9 : Du 16 septembre au 11 novembre 1789',
@@ -16,7 +16,7 @@ VOL_TITLES = {
   '11' => 'Tome 11 : Du 24 décembre 1789 au 1er mars 1790',
   '12' => 'Tome 12 : Du 2 mars au 14 avril 1790',
   '13' => 'Tome 13 : Du 14 au 20 avril 1790',
-  '14' => 'Tome 14 : Du 20 avril 1790 (suite de l’état nominatif des pensions sur le Trésor royal)',
+  '14' => 'Tome 14 : Assemblée nationale consitutante du 20 avril 1790',
   '15' => 'Tome 15 : Du 21 avril au 30 mai 1790',
   '16' => 'Tome 16 : Du 31 mai au 8 juillet 1790',
   '17' => 'Tome 17 : Du 9 juillet au 12 août 1790',
