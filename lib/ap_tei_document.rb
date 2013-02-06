@@ -78,6 +78,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_back = false
     when 'div2'
       @in_div2 = false
+      @in_session = false
     when 'p'
       @text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
       if @in_sp && @speaker
