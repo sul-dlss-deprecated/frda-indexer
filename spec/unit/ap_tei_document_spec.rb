@@ -206,7 +206,15 @@ describe ApTeiDocument do
         @parser.parse(@x)
       end
       it "should log a warning if the field isn't multivalued" do
-        pending "need single valued field for test to be implemented"
+        x = @start_tei_body_div2_session + 
+            "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
+            <p>blah blah</p>
+          </div2>
+          <div2 type=\"table_alpha\">
+            <p>blah blah</p>
+          </div2>" + @end_div2_body_tei
+        @logger.should_receive(:warn).with("Solr field doc_type_ssi is single-valued (first value: séance), but got an IGNORED additional value: liste")
+        @parser.parse(x)
       end
     end # field already exists
   end # add_value_to_doc_hash
