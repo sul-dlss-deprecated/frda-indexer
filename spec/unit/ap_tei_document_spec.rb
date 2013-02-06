@@ -12,9 +12,7 @@ describe ApTeiDocument do
     @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, @logger)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
     @start_tei_body_div1 = "<TEI.2><text><body><div1 type=\"volume\" n=\"36\">"
-    @start_tei_body_div2_session = @start_tei_body_div1 + 
-            "<div2 type=\"session\">
-              <pb n=\"\" id=\"wb029sv4796_00_0005\"/>"
+    @start_tei_body_div2_session = @start_tei_body_div1 + "<div2 type=\"session\">"
     @end_div1_body_tei = "</div1></body></text></TEI.2>"
     @end_div2_body_tei = "</div2>#{@end_div1_body_tei}"
     @start_tei_back_div1 = "<TEI.2><text><back><div1 type=\"volume\" n=\"44\">"
@@ -265,7 +263,7 @@ describe ApTeiDocument do
             "<p>actual content</p>" + @end_div2_body_tei
       end
       it "should have a page_doc_type of 'séance'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_si => "séance"))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => "séance"))
         @parser.parse(@x)
       end
     end
@@ -276,7 +274,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it "should have a doc_type_si of 'table des matières'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_si => 'table des matières'))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'table des matières'))
         @parser.parse(@x)
       end
     end
@@ -287,7 +285,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it "should have a doc_type_si of 'errata, rapport, cahier, etc.'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_si => 'errata, rapport, cahier, etc.'))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'errata, rapport, cahier, etc.'))
         @parser.parse(@x)
       end
     end
@@ -298,7 +296,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it "should have a doc_type_si of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_si => 'liste'))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'liste'))
         @parser.parse(@x)
       end
     end
@@ -309,7 +307,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it "should have a doc_type_si of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_si => 'liste'))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'liste'))
         @parser.parse(@x)
       end
     end
@@ -320,7 +318,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it "should have a doc_type_si of 'introduction'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_si => 'introduction'))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'introduction'))
         @parser.parse(@x)
       end
     end

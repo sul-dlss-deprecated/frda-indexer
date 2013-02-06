@@ -44,7 +44,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @in_session = true
       end
       if @in_body
-        @doc_hash[:doc_type_si] = DIV2_TYPE[div2_type]
+        @doc_hash[:doc_type_ssi] = DIV2_TYPE[div2_type]
       end
     when 'pb'
       if @page_has_content && @in_body
