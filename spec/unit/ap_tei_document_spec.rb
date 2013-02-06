@@ -126,7 +126,7 @@ describe ApTeiDocument do
           @parser.parse(@x)
         end
         it "should call init_doc_hash" do
-          @atd.should_receive(:init_doc_hash).twice.and_call_original
+          @atd.should_receive(:init_doc_hash).at_least(2).times.and_call_original
           @rsolr_client.should_receive(:add)
           @parser.parse(@x)
         end
@@ -171,20 +171,21 @@ describe ApTeiDocument do
     context "field doesn't exist in doc_hash yet" do
       before(:all) do
         @x = @start_tei_body_div2_session + 
-            "<sp>
+            "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
+            <sp>
               <speaker>M. Guadet</speaker>
               <p>blah blah</p>
             </sp>" + @end_div2_body_tei
       end
       it "should create field with Array [value] for a multivalued field - ending in m or mv" do
-        @atd.should_receive(:add_value_to_doc_hash).with(:spoken_text_ftsimv, 'M. Guadet blah blah').and_call_original
-        @atd.should_receive(:add_value_to_doc_hash).with(:speaker_ssim, 'M. Guadet').and_call_original
         exp_flds = {:speaker_ssim => ['M. Guadet'], :spoken_text_ftsimv => ['M. Guadet blah blah']}
         @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
         @parser.parse(@x)
       end
       it "should create field with String value for a single valued field" do
-        pending "need single valued field for test to be implemented"
+        exp_flds = {:doc_type_ssi => 'séance'}
+        @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
+        @parser.parse(@x)
       end
     end # field doesn't exist yet
     context "field already exists in doc_hash" do
@@ -200,10 +201,6 @@ describe ApTeiDocument do
             </sp>" + @end_div2_body_tei
       end
       it "should add the value to the doc_hash Array for the field for multivalued field - ending in m or mv" do
-        @atd.should_receive(:add_value_to_doc_hash).with(:spoken_text_ftsimv, 'M. Guadet blah blah').and_call_original
-        @atd.should_receive(:add_value_to_doc_hash).with(:speaker_ssim, 'M. Guadet').and_call_original
-        @atd.should_receive(:add_value_to_doc_hash).with(:spoken_text_ftsimv, 'M. McRae bleah bleah').and_call_original
-        @atd.should_receive(:add_value_to_doc_hash).with(:speaker_ssim, 'M. McRae').and_call_original
         exp_flds = {:speaker_ssim => ['M. Guadet', 'M. McRae'], :spoken_text_ftsimv => ['M. Guadet blah blah', 'M. McRae bleah bleah']}
         @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
         @parser.parse(@x)
@@ -266,12 +263,45 @@ describe ApTeiDocument do
         @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => "séance"))
         @parser.parse(@x)
       end
+      context "session_govt_ssi" do
+        it "should take the value of the first <head> element after <div2>" do
+          pending "to be implemented"
+          x = @start_tei_body_div2_session + "<head>CONVENTION NATIONALE</head>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "CONVENTION NATIONALE"))
+          @parser.parse(x)
+        end
+        it "should ignore subsequent <head> elements, even if allcaps" do
+          pending "to be implemented"
+          x = @start_tei_body_div2_session + 
+                "<head>CONVENTION NATIONALE</head>
+                <head>PRÉSIDENCE DE M. MERLIN</head>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_not_including(:session_govt_ssi => "PRÉSIDENCE DE M. MERLIN"))
+          @parser.parse(x)
+        end
+        it "should strip whitespace" do
+          x = "<head>ASSEMBLÉE NATIONALE LÉGISLATIVE. </head>"
+          pending "to be implemented"
+        end
+        it "should ignore whitespace before first <head> or <p>" do
+          pending "to be implemented"
+        end
+        it "should put the value into French titlecase (from allcaps)" do
+          pending "to be implemented"
+        end
+        it "should find the value if it is in <p> instead of <head>" do
+          x = @start_tei_body_div2_session +
+          "<p>ASSEMBLÉE NATIONALE LÉGISLATIVE. </p>" + @end_div2_body_tei
+          
+          pending "to be implemented"
+        end
+      end
     end
     context 'type="contents"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"contents\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>" + @end_div2_body_tei
+                <pb n=\"5\" id=\"ns351vc7243_00_0008\"/>
+                <p>blah blah</p>
+                <pb n=\"6\" id=\"ns351vc7243_00_0009\"/>" + @end_div2_body_tei
       end
       it "should have a doc_type_si of 'table des matières'" do
         @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'table des matières'))

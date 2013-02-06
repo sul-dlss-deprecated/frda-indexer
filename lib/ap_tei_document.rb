@@ -3,6 +3,7 @@ require 'nokogiri'
 
 require 'ap_vol_dates'
 require 'ap_vol_titles'
+#require 'unicode_utils/titlecase'
 
 # Subclass of Nokogiri::XML::SAX::Document for streaming parsing
 #  TEI xml corresponding to volumes of the Archives Parlementaires
@@ -40,22 +41,25 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'div2'
       @in_div2 = true
       div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
+      @div2_doc_type = DIV2_TYPE[div2_type] if div2_type
       if div2_type == 'session'
         @in_session = true
       end
       if @in_body
-        @doc_hash[:doc_type_ssi] = DIV2_TYPE[div2_type]
+        add_value_to_doc_hash(:doc_type_ssi, @div2_doc_type)
       end
     when 'pb'
       if @page_has_content && @in_body
         add_doc_to_solr
+      else
+        init_doc_hash
       end
       new_page_id = attributes.select { |a| a[0] == 'id'}.first.last
-      @doc_hash[:id] = new_page_id
+      add_value_to_doc_hash(:id, new_page_id)
       vol_page_array = attributes.select { |a| a[0] == 'n'}
-      @doc_hash[:page_num_ss] = vol_page_array.first.last if vol_page_array && !vol_page_array.empty? && !vol_page_array.first.last.empty?
-      @doc_hash[:image_id_ss] = new_page_id + ".jp2"
-      @doc_hash[:ocr_id_ss] = new_page_id.sub(/_00_/, '_99_') + ".txt"
+      add_value_to_doc_hash(:page_num_ss,  vol_page_array.first.last) if vol_page_array && !vol_page_array.empty? && !vol_page_array.first.last.empty?
+      add_value_to_doc_hash(:image_id_ss, new_page_id + ".jp2")
+      add_value_to_doc_hash(:ocr_id_ss, new_page_id.sub(/_00_/, '_99_') + ".txt")
     when 'p'
       @in_p = true
       @page_has_content = true
@@ -78,6 +82,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_back = false
     when 'div2'
       @in_div2 = false
+      @@div2_doc_type = nil
       @in_session = false
     when 'p'
       @text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
@@ -143,10 +148,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
     @doc_hash[:type_ssi] = PAGE_TYPE
     @text_buffer = NO_BUFFER
+    if @in_body && @in_div2
+      @doc_hash[:doc_type_ssi] = @div2_doc_type
+    end
   end
   
   # add the value to the doc_hash for the Solr field.
-  # @param [String] key the Solr field name 
+  # @param [Symbol] key the Solr field name 
   # @param [String] value the value to add to the doc_hash for the key
   def add_value_to_doc_hash(key, value)
     fname = key.to_s
@@ -155,7 +163,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if fname.end_with?('m') || fname.end_with?('mv')
         @doc_hash[key] << val
       else
-        logger.warn("Solr field #{key} is single-valued (first value: #{@doc_hash[key]}), but got an IGNORED additional value: #{val}")
+        @logger.warn("Solr field #{key} is single-valued (first value: #{@doc_hash[key]}), but got an IGNORED additional value: #{val}")
       end
     else
       if fname.end_with?('m') || fname.end_with?('mv')
