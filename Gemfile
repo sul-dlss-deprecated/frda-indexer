@@ -9,7 +9,6 @@ gem 'stanford-mods'
 gem 'nokogiri'
 gem 'rake'
 gem 'rsolr'
-#gem 'unicode_utils' # for French titlecase
 
 # documentation
 group :doc do
