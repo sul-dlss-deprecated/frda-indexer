@@ -44,6 +44,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @div2_doc_type = DIV2_TYPE[div2_type] if div2_type
       if div2_type == 'session'
         @in_session = true
+        @need_session_head = true
       end
       if @in_body
         add_value_to_doc_hash(:doc_type_ssi, @div2_doc_type)
@@ -54,6 +55,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       else
         init_doc_hash
       end
+# TODO: make  process_pb_attributes method?      
       new_page_id = attributes.select { |a| a[0] == 'id'}.first.last
       add_value_to_doc_hash(:id, new_page_id)
       vol_page_array = attributes.select { |a| a[0] == 'n'}
@@ -84,12 +86,19 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_div2 = false
       @@div2_doc_type = nil
       @in_session = false
+    when 'head'
+      @text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
+      if @in_session && @need_session_head
+        add_value_to_doc_hash(:session_govt_ssi, @text) if @text
+        @text_buffer = NO_BUFFER
+        @need_session_head = false
+      end
     when 'p'
       @text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
       if @in_sp && @speaker
-        add_value_to_doc_hash(:spoken_text_ftsimv, "#{@speaker} #{@text}")
+        add_value_to_doc_hash(:spoken_text_ftsimv, "#{@speaker} #{@text}") if @text
       else
-        add_value_to_doc_hash(:text_ftsimv, @text)
+        add_value_to_doc_hash(:text_ftsimv, @text) if @text
       end
       @text_buffer = NO_BUFFER
       @in_p = false

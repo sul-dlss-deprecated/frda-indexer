@@ -273,16 +273,21 @@ describe ApTeiDocument do
       end
       context "session_govt_ssi" do
         it "should take the value of the first <head> element after <div2>" do
-          pending "to be implemented"
-          x = @start_tei_body_div2_session + "<head>CONVENTION NATIONALE</head>" + @end_div2_body_tei
+          x = @start_tei_body_div2_session + 
+                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                <head>CONVENTION NATIONALE</head>
+                <p>blah blah</p>
+                <pb n=\"810\" id=\"tq360bc6948_00_0813\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "CONVENTION NATIONALE"))
           @parser.parse(x)
         end
         it "should ignore subsequent <head> elements, even if allcaps" do
-          pending "to be implemented"
           x = @start_tei_body_div2_session + 
-                "<head>CONVENTION NATIONALE</head>
-                <head>PRÉSIDENCE DE M. MERLIN</head>" + @end_div2_body_tei
+                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                <head>CONVENTION NATIONALE</head>
+                <head>PRÉSIDENCE DE M. MERLIN</head>
+                <p>blah blah</p>
+                <pb n=\"810\" id=\"tq360bc6948_00_0813\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_not_including(:session_govt_ssi => "PRÉSIDENCE DE M. MERLIN"))
           @parser.parse(x)
         end
@@ -302,7 +307,10 @@ describe ApTeiDocument do
           
           pending "to be implemented"
         end
-      end
+        it "should not have leftover text from preceding elements" do
+          pending "to be implemented"
+        end
+      end # session_govt_ssi
     end
     context 'type="contents"' do
       before(:all) do
