@@ -320,17 +320,6 @@ describe ApTeiDocument do
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "ASSEMBLÉE NATIONALE LÉGISLATIVE"))
           @parser.parse(x)
         end
-        it "should ignore elements between session and head" do
-          x = @start_tei_body_div1 + 
-                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
-                <div2 type=\"session\">
-                <note place=\"foot\">CONVENTION NATIONALE </note>
-                <p>ASSEMBLÉE NATIONALE LÉGISLATIVE. </p>
-                <p>blah blah</p>
-                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "ASSEMBLÉE NATIONALE LÉGISLATIVE"))
-          @parser.parse(x)
-        end
         it "should not have leftover text from preceding elements" do
           @start_tei_body_div2_session = @start_tei_body_div1 + 
           x = @start_tei_body_div1 + 

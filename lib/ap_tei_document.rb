@@ -115,14 +115,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @element_just_ended = true
   end
   
-  # add :session_govt_ssi field to doc_hash, and reset appropriate vars
-  def add_session_govt_ssi value
-    value.strip if value && value != NO_BUFFER
-    add_value_to_doc_hash(:session_govt_ssi, value.sub(/[[:punct:]]$/, '')) if value
-    @text_buffer = NO_BUFFER
-    @need_session_govt = false
-  end
-  
   # Characters within element tags.  This method might be called multiple
   # times given one contiguous string of characters.
   #
@@ -150,6 +142,14 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
                 'table_alpha' => 'liste',
                 'alpha' => 'liste',
                 'introduction' => 'introduction'}
+
+  # add :session_govt_ssi field to doc_hash, and reset appropriate vars
+  def add_session_govt_ssi value
+    value.strip if value && value != NO_BUFFER
+    add_value_to_doc_hash(:session_govt_ssi, value.sub(/[[:punct:]]$/, '')) if value
+    @text_buffer = NO_BUFFER
+    @need_session_govt = false
+  end
 
   # initialize instance variable @doc_hash with mappings appropriate for all docs in the volume
   def init_doc_hash
