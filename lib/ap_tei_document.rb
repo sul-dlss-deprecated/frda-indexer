@@ -98,7 +98,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       add_session_govt_ssi(text) if  @in_session && @need_session_govt
     when 'p'
       text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
-      add_session_govt_ssi(text) if @in_session && @need_session_govt && text == text.upcase
+      add_session_govt_ssi(text) if @in_session && @need_session_govt && text && text == text.upcase
       if @in_sp && @speaker
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker} #{text}") if text
       end
@@ -127,12 +127,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] data contains the character data
   def characters(data)
     chars = data.gsub(/\s+/, ' ')
-    if @text_buffer == NO_BUFFER
-      @text_buffer = chars.dup
-    else
-      @text_buffer << (@element_just_ended ? ' ' : '') + chars.dup
-    end
-    @text_buffer.gsub!(/\s+/, ' ') if @text_buffer && @text_buffer != NO_BUFFER
+    @text_buffer = add_chars_to_buffer(chars, @text_buffer)
     @element_just_ended = false
   end
   alias cdata_block characters
@@ -155,6 +150,17 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     add_value_to_doc_hash(:session_govt_ssi, value.sub(/[[:punct:]]$/, '')) if value
     @text_buffer = NO_BUFFER
     @need_session_govt = false
+  end
+  
+  # @param [String] chars the characters to be concatenated to the buffer
+  # @param [String] the text buffer
+  def add_chars_to_buffer(chars, buffer)
+    if buffer == NO_BUFFER
+      buffer = chars.dup
+    else
+      buffer << (@element_just_ended ? ' ' : '') + chars.dup
+    end
+    buffer.gsub!(/\s+/, ' ') if buffer && buffer != NO_BUFFER    
   end
   
   # add :id, :page_num_ss, :image_id_ss and ocr_id_ss to doc_hash, based on attributes
@@ -206,10 +212,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
     @doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
     @doc_hash[:type_ssi] = PAGE_TYPE
-    @text_buffer = NO_BUFFER
     if @in_body && @in_div2
       @doc_hash[:doc_type_ssi] = @div2_doc_type
     end
+    @text_buffer = NO_BUFFER
+    @page_buffer = NO_BUFFER
   end
   
   # add the value to the doc_hash for the Solr field.

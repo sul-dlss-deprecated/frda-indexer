@@ -219,6 +219,123 @@ describe ApTeiDocument do
     end # field already exists
   end # add_value_to_doc_hash
 
+  context "text_tiv (catchall field)" do
+    it "should not get content from <teiHeader>" do
+      x = "<TEI.2><teiHeader type=\"text\" id=\"by423fb7614\">
+        <fileDesc>
+          <titleStmt>
+            <title type=\"main\">ARCHIVES PARLEMENTAIRES</title>
+            <author>MM. MAVIDAL</author>
+          </titleStmt>
+          <publicationStmt>
+            <distributor>
+              <address>
+                <addrLine>blah</addrLine>
+              </address>
+            </distributor>
+            <date>1900</date>
+            <pubPlace>PARIS</pubPlace>
+          </publicationStmt>
+          <notesStmt>
+            <note type="markup">Additional markup added by Digital Divide Data, 20120701</note>
+          </notesStmt>
+          <sourceDesc>
+            <p>Compiled from ARCHIVES PARLEMENTAIRES documents.</p>
+          </sourceDesc>
+        </fileDesc>
+      </teiHeader></TEI.2>"
+      @rsolr_client.should_not_receive(:add).with(hash_including(:text_tiv => 'ns351vc7243_00_0001'))
+      @parser.parse(x)
+    end
+    it "should not get content from <front>" do
+      x = "<TEI.2><text><front>
+            <div type=\"frontpiece\">
+                <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
+                <p>blah blah</p>
+            </div>
+            <div type=\"abstract\">
+                <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
+                <p>blah blah</p>
+            </div></front></text></TEI.2>"
+      @rsolr_client.should_not_receive(:add).with(hash_including(:text_tiv => 'ns351vc7243_00_0001'))
+      @parser.parse(x)
+      pending "to be implemented"
+    end
+    it "should get content from <body>" do
+      pending "to be implemented"
+    end
+    it "should get content from <back>" do
+      pending "to be implemented"
+    end
+    it "should not include the contents of any attributes" do
+      pending "to be implemented"
+    end
+    it "should include the contents of <p> element" do
+      pending "to be implemented"
+    end
+    it "should include the contents of <head> element" do
+      pending "to be implemented"
+    end
+    it "should include the contents of <speaker> element" do
+      pending "to be implemented"
+    end
+    before(:all) do
+      @begin_body = @start_tei_body_div1 + "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>"
+      @end_body = "<pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div1_body_tei
+      @begin_back = @start_tei_back_div1 + "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>"
+      @end_back = "<pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div1_back_tei
+    end
+    it "should include the contents of <date> element" do
+      x = @begin_body + "<date value=\"2013-01-01\">pretending to care</date>" + @end_body
+      @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0814'))
+      @parser.parse(x)
+      x = @begin_back + "<date value=\"2013-01-01\">pretending to care</date>" + @end_back
+      @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0814'))
+      @parser.parse(x)
+    end
+    it "should include the contents of <note> element" do
+      x = @begin_body + "<note place=\"foot\">(1) shoes.</note>" + @end_body
+      @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0814'))
+      @parser.parse(x)
+      x = @begin_back + "<note place=\"foot\">(1) shoes.</note>" + @end_back
+      @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0814'))
+      @parser.parse(x)
+
+
+      pending "to be implemented"
+    end
+    it "should include the contents of <hi> element" do
+      pending "to be implemented"
+    end
+    it "should include the contents of <term> element" do
+      pending "to be implemented"
+    end
+    it "should include the contents of <item> element" do
+      pending "to be implemented"
+    end
+    it "should log a warning for direct text children of <pb>" do
+      pending "to be implemented"
+    end
+    it "should log a warning for direct text children of <sp>" do
+      pending "to be implemented"
+    end
+    it "should log a warning for direct text children of <list>" do
+      pending "to be implemented"
+    end
+    it "should log a warning for direct text children of <div1>, <div2>, <div3>" do
+      pending "to be implemented"
+    end
+    it "should log a warning for direct text children of <text>, <body>, <back>" do
+      pending "to be implemented"
+    end
+    it "should ignore <trailer>" do
+      pending "to be implemented"
+    end
+    it "should ignore <signed>" do
+      pending "to be implemented"
+    end
+  end
+
   context "normalize_date" do
     before(:all) do
     end
@@ -352,7 +469,7 @@ describe ApTeiDocument do
         
         context "text" do
           it "does something" do
-            pending "to be implemented"
+            pending "session_date_ftsiv to be implemented"
           end
         end # date text
         

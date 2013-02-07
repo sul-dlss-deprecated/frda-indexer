@@ -111,9 +111,8 @@
   </fields>
 
   <!-- copy fields -->
-  <copyField source="text_timv" dest="text_ftsimv" />
+  <copyField source="text_tiv" dest="text_ftsiv" />
   <copyField source="spoken_text_timv" dest="spoken_text_ftsimv" />
-  <copyField source="spoken_text_timv" dest="text_ftsimv" />
 
   <types>
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
