@@ -44,9 +44,15 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if div2_type == 'session'
         @in_session = true
         @need_session_govt = true
+        @need_session_date = true
       end
       if @in_body
         add_value_to_doc_hash(:doc_type_ssi, @div2_doc_type)
+      end
+    when 'date'
+      date_val = get_attribute_val('value', attributes)
+      if @need_session_date && date_val
+        add_value_to_doc_hash(:session_date,  get_attribute_val('n', attributes)) 
       end
     when 'pb'
       if @page_has_content && @in_body
@@ -54,13 +60,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       else
         init_doc_hash
       end
-# TODO: make  process_pb_attributes method?      
-      new_page_id = attributes.select { |a| a[0] == 'id'}.first.last
-      add_value_to_doc_hash(:id, new_page_id)
-      vol_page_array = attributes.select { |a| a[0] == 'n'}
-      add_value_to_doc_hash(:page_num_ss,  vol_page_array.first.last) if vol_page_array && !vol_page_array.empty? && !vol_page_array.first.last.empty?
-      add_value_to_doc_hash(:image_id_ss, new_page_id + ".jp2")
-      add_value_to_doc_hash(:ocr_id_ss, new_page_id.sub(/_00_/, '_99_') + ".txt")
+      process_pb_attribs attributes
     when 'p'
       @in_p = true
       @page_has_content = true
@@ -147,6 +147,27 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     add_value_to_doc_hash(:session_govt_ssi, value.sub(/[[:punct:]]$/, '')) if value
     @text_buffer = NO_BUFFER
     @need_session_govt = false
+  end
+  
+  # add :id, :page_num_ss, :image_id_ss and ocr_id_ss to doc_hash, based on attributes
+  # @param [Array<String>] attributes an assoc list of namespaces and attributes, e.g.:
+  #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
+  def process_pb_attribs attributes
+    new_page_id = get_attribute_val('id', attributes)
+    add_value_to_doc_hash(:id, new_page_id)
+    page_num = get_attribute_val('n', attributes)
+    add_value_to_doc_hash(:page_num_ss,  page_num) if page_num
+    add_value_to_doc_hash(:image_id_ss, new_page_id + ".jp2")
+    add_value_to_doc_hash(:ocr_id_ss, new_page_id.sub(/_00_/, '_99_') + ".txt")
+  end
+
+  # @param [String] attr_name the name of the desired attribute
+  # @param [Array<String>] attributes an assoc list of namespaces and attributes, e.g.:
+  #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
+  # @return value of the desired attribute, or nil
+  def get_attribute_val attr_name, attributes
+    attr_array = attributes.select { |a| a[0] == attr_name}
+    attr_val = attr_array.first.last if attr_array && !attr_array.empty? && !attr_array.first.last.empty?
   end
 
   # initialize instance variable @doc_hash with mappings appropriate for all docs in the volume

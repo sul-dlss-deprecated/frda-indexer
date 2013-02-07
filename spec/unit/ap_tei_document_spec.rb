@@ -271,6 +271,74 @@ describe ApTeiDocument do
         @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => "séance"))
         @parser.parse(@x)
       end
+      
+      context "date" do
+        before(:all) do
+          @x = @start_tei_body_div2_session + 
+              "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+              <head>CONVENTION NATIONALE </head>
+              <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
+              <p>L'an II de la République Française une et indivisible </p>
+              <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+        end
+        
+        it "should log a warning if it doesn't find a <date> element before an <sp> element" do
+          x = @start_tei_body_div2_session + 
+              "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+              <sp>
+                <speaker>M. Guadet</speaker>
+                <p>blah blah</p>
+              </sp>
+              <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+          @logger.should_receive(:warn).with("Didn't find <date> tag before <sp> for session in page tq360bc6948_00_0816")
+          @rsolr_client.should_receive(:add)
+          @parser.parse(x)
+        end
+
+        context "value (non-text)" do
+          it "should be the value attribute of the first <date> element after <div2> (and before xxx??)" do
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date => "1793-10-05"))
+            @parser.parse(@x)
+          end
+          it "should ignore subsequent <date> elements" do
+            x = @start_tei_body_div2_session + 
+                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
+                <p><date value=\"2013-01-01\">pretending to care</date></p>
+                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date => "1793-10-05"))
+            @parser.parse(x)
+          end
+          it "should log a warning for unparseable dates" do
+            x = @start_tei_body_div2_session + 
+                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                <p>Séance du samedi <date value=\"1792-08-02/03\">5 octobre 1793</date>. </p>
+                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+            @logger.should_receive(:warn).with("Found <date> tag with unparseable date value: '1792-08-02/03' in page tq360bc6948_00_0816")
+            @rsolr_client.should_receive(:add)
+            @parser.parse(x)
+          end
+
+          context "session_date_dtsi" do
+            it "should transform the value into 1995-12-31T23:59:59Z format" do
+              @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1793-10-05T00:00:00Z"))
+              @parser.parse(@x)
+            end
+          end
+          context "session_date_itsi" do
+            it "should transform the value into 17930101 format" do
+              @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "17931005"))
+              @parser.parse(@x)
+            end
+          end
+        end
+        
+        context "text" do
+
+        end
+        
+      end # session date
+      
       context "session_govt_ssi" do
         it "should take the value of the first <head> element after <div2>" do
           x = @start_tei_body_div2_session + 
