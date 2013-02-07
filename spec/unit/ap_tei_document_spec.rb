@@ -219,6 +219,41 @@ describe ApTeiDocument do
     end # field already exists
   end # add_value_to_doc_hash
 
+  context "normalize_date" do
+    before(:all) do
+    end
+    it "should log a warning for unparseable dates" do
+      x = @start_tei_body_div2_session + 
+          "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+          <p>boo <date value=\"1792-999-02\">5 octobre 1793</date> ya</p>
+          <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+      @logger.should_receive(:warn).with("Found <date> tag with unparseable date value: '1792-999-02' in page tq360bc6948_00_0816")
+      @rsolr_client.should_receive(:add)
+      @parser.parse(x)
+    end
+    it "should cope with day of 00" do
+      @atd.normalize_date("1792-08-00").should == Date.parse('1792-08-01')
+    end
+    it "should cope with single digit days and months (no leading zero)" do
+      @atd.normalize_date("1792-8-1").should == Date.parse('1792-08-01')
+    end
+    it "should cope with year only" do
+      @atd.normalize_date("1792").should == Date.parse('1792-01-01')
+    end
+    it "should cope with year and month only" do
+      @atd.normalize_date("1792-08").should == Date.parse('1792-08-01')
+    end
+    it "should cope with slashes in days area (trying to representing a range)" do
+      @atd.normalize_date("1792-08-01/15/17").should == Date.parse('1792-08-01')
+    end
+    it "should cope with au in date" do
+      @atd.normalize_date("1793-05-17 au 1793-06-02").should == Date.parse('1793-05-17')
+    end
+    it "should cope with spaces preceding or following hyphens" do
+      @atd.normalize_date("1792 - 8 - 01").should == Date.parse('1792-08-01')
+    end
+  end # normalize_date
+
   context "<pb> element" do
     before(:all) do
       @page_id = 'tq360bc6948_00_0813'
@@ -309,63 +344,10 @@ describe ApTeiDocument do
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1793-10-05T00:00:00Z"))
             @parser.parse(x)
           end
-          context "session_date_dtsi" do
-            it "should transform the value into UTC Zulu format" do
-              @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1793-10-05T00:00:00Z"))
-              @parser.parse(@dx)
-            end
+          it "should transform the value into UTC Zulu format" do
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1793-10-05T00:00:00Z"))
+            @parser.parse(@dx)
           end
-
-          context "date value normalization" do
-            before(:all) do
-              @start = @start_tei_body_div2_session + 
-                  "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
-                  <p>boo <date value=\""
-              @end = "\">5 octobre 1793</date> ya</p>
-                  <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            end
-            it "should log a warning for unparseable dates" do
-              x = @start + "1792-999-02" + @end
-              @logger.should_receive(:warn).with("Found <date> tag with unparseable date value: '1792-999-02' in page tq360bc6948_00_0816")
-              @rsolr_client.should_receive(:add)
-              @parser.parse(x)
-            end
-            it "should cope with day of 00" do
-              x = @start + "1792-08-00" + @end
-              @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1792-08-01T00:00:00Z"))
-              @parser.parse(x)
-            end
-            it "should cope with single digit days and months (no leading zero)" do
-              x = @start + "1792-8-1" + @end
-              @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1792-08-01T00:00:00Z"))
-              @parser.parse(x)
-            end
-            it "should cope with year only" do
-              x = @start + "1792" + @end
-              @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1792-01-01T00:00:00Z"))
-              @parser.parse(x)
-            end
-            it "should cope with year and month only" do
-              x = @start + "1792-08" + @end
-              @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1792-08-01T00:00:00Z"))
-              @parser.parse(x)
-            end
-            it "should cope with slashes in days area (trying to representing a range)" do
-              x = @start + "1792-08-01/15/17" + @end
-              @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1792-08-01T00:00:00Z"))
-              @parser.parse(x)
-            end
-            it "should cope with au in date" do
-              x = @start + "1793-05-17 au 1793-06-02" + @end
-              @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1793-05-17T00:00:00Z"))
-              @parser.parse(x)
-            end
-            it "should cope with spaces preceding or following hyphens" do
-              x = @start + "1792 - 8 - 01" + @end
-              @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1792-08-01T00:00:00Z"))
-              @parser.parse(x)
-            end
-          end # date value normalization
         end # date value
         
         context "text" do
