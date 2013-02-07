@@ -1,4 +1,5 @@
 # encoding: UTF-8
+require 'date'
 require 'nokogiri'
 
 require 'ap_vol_dates'
@@ -50,9 +51,16 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         add_value_to_doc_hash(:doc_type_ssi, @div2_doc_type)
       end
     when 'date'
-      date_val = get_attribute_val('value', attributes)
-      if @need_session_date && date_val
-        add_value_to_doc_hash(:session_date,  date_val) 
+      date_val_str = get_attribute_val('value', attributes)
+      begin
+        d = Date.parse(date_val_str)
+      rescue
+        @logger.warn("Found <date> tag with unparseable date value: '#{date_val_str}' in page #{doc_hash[:id]}")
+      end
+      if @need_session_date && date_val_str && d
+        add_value_to_doc_hash(:session_date,  date_val_str) 
+        add_value_to_doc_hash(:session_date_dtsi,  d.strftime('%Y-%m-%dT00:00:00Z')) 
+        add_value_to_doc_hash(:session_date_val_ssi,  date_val_str) 
         @need_session_date = false
       end
     when 'pb'
