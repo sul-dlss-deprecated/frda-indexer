@@ -300,7 +300,7 @@ describe ApTeiDocument do
             @rsolr_client.should_receive(:add).with(hash_including(:session_date => "1793-10-05"))
             @parser.parse(@x)
           end
-          it "should ignore subsequent <date> elements" do
+          it "should ignore subsequent <date> elements and log a warning" do
             x = @start_tei_body_div2_session + 
                 "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
                 <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>

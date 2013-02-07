@@ -52,7 +52,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'date'
       date_val = get_attribute_val('value', attributes)
       if @need_session_date && date_val
-        add_value_to_doc_hash(:session_date,  get_attribute_val('n', attributes)) 
+        add_value_to_doc_hash(:session_date,  date_val) 
+        @need_session_date = false
       end
     when 'pb'
       if @page_has_content && @in_body
