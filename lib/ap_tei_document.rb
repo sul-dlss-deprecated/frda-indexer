@@ -93,8 +93,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       add_session_govt_ssi(text) if @in_session && @need_session_govt && text == text.upcase
       if @in_sp && @speaker
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker} #{text}") if text
-      else
-        add_value_to_doc_hash(:text_timv, text) if text
       end
       @text_buffer = NO_BUFFER
       @in_p = false
