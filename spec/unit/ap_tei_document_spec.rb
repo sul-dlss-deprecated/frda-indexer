@@ -178,7 +178,7 @@ describe ApTeiDocument do
             </sp>" + @end_div2_body_tei
       end
       it "should create field with Array [value] for a multivalued field - ending in m or mv" do
-        exp_flds = {:speaker_ssim => ['M. Guadet'], :spoken_text_ftsimv => ['M. Guadet blah blah']}
+        exp_flds = {:speaker_ssim => ['M. Guadet'], :spoken_text_timv => ['M. Guadet blah blah']}
         @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
         @parser.parse(@x)
       end
@@ -201,7 +201,7 @@ describe ApTeiDocument do
             </sp>" + @end_div2_body_tei
       end
       it "should add the value to the doc_hash Array for the field for multivalued field - ending in m or mv" do
-        exp_flds = {:speaker_ssim => ['M. Guadet', 'M. McRae'], :spoken_text_ftsimv => ['M. Guadet blah blah', 'M. McRae bleah bleah']}
+        exp_flds = {:speaker_ssim => ['M. Guadet', 'M. McRae'], :spoken_text_timv => ['M. Guadet blah blah', 'M. McRae bleah bleah']}
         @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
         @parser.parse(@x)
       end
@@ -435,7 +435,7 @@ describe ApTeiDocument do
       end
     end # speaker_ssim
 
-    context "spoken_text_ftsimv" do
+    context "spoken_text_timv" do
       before(:each) do
         @x = @start_tei_body_div2_session +
             "<p>before</p>
@@ -455,24 +455,24 @@ describe ApTeiDocument do
             <p>after</p>" + @end_div2_body_tei
       end
       it "should have a separate value, starting with the speaker, for each <p> inside a single <sp>" do
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_ftsimv => ['M. Guadet blah blah ...', 'M. Guadet bleah bleah ...']))
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['M. Guadet blah blah ...', 'M. Guadet bleah bleah ...']))
         @parser.parse(@x)
       end
       it "should not include <p> text outside an <sp>" do
-        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['before']))
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['before']))
         @parser.parse(@x)
-        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['middle']))
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['middle']))
         @parser.parse(@x)
-        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['after']))
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['after']))
         @parser.parse(@x)
       end
       it "should not include <p> text when there is no speaker " do
-        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['no speaker']))
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['no speaker']))
         @parser.parse(@x)
-        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_ftsimv => ['also no speaker']))
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['also no speaker']))
         @parser.parse(@x)
       end
-    end # spoken_text_ftsimv
+    end # spoken_text_timv
 
     it "should log a warning when it finds direct non-whitespace text content in <sp> tag" do
       x = @start_tei_body_div2_session +
