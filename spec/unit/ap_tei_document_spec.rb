@@ -237,7 +237,7 @@ describe ApTeiDocument do
             <pubPlace>PARIS</pubPlace>
           </publicationStmt>
           <notesStmt>
-            <note type="markup">Additional markup added by Digital Divide Data, 20120701</note>
+            <note type=\"markup\">Additional markup added by Digital Divide Data, 20120701</note>
           </notesStmt>
           <sourceDesc>
             <p>Compiled from ARCHIVES PARLEMENTAIRES documents.</p>
