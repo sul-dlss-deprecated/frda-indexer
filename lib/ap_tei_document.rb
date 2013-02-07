@@ -78,6 +78,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @page_has_content = true
     when 'sp'
       @in_sp = true
+      if @need_session_date
+        @logger.warn("Didn't find <date> tag before <sp> for session in page #{doc_hash[:id]}")
+        @need_session_date = false
+      end
     when 'speaker'
       @in_speaker = true
     end

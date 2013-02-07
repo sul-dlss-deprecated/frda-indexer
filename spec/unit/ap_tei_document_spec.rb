@@ -501,7 +501,8 @@ describe ApTeiDocument do
     context "speaker_ssim" do
       it "should be present if there is a non-empty <speaker> element" do
         x = @start_tei_body_div2_session +
-            "<sp>
+            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            <sp>
                <speaker>M. Guadet</speaker>
                <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
             </sp>" + @end_div2_body_tei
@@ -510,7 +511,8 @@ describe ApTeiDocument do
       end
       it "should have multiple values for multiple speakers" do
         x = @start_tei_body_div2_session + 
-            "<sp>
+            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            <sp>
               <speaker>M. Guadet</speaker>
               <p>blah blah</p>
             </sp>
@@ -524,7 +526,8 @@ describe ApTeiDocument do
       end
       it "should not be present if there is an empty <speaker> element" do
         x = @start_tei_body_div2_session + 
-            "<sp>
+            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            <sp>
                <speaker></speaker>
                <speaker/>
                <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
@@ -544,6 +547,7 @@ describe ApTeiDocument do
       before(:each) do
         @x = @start_tei_body_div2_session +
             "<p>before</p>
+            <p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
                <speaker>M. Guadet</speaker>
                <p>blah blah ... </p>
@@ -582,6 +586,7 @@ describe ApTeiDocument do
     it "should log a warning when it finds direct non-whitespace text content in <sp> tag" do
       x = @start_tei_body_div2_session +
           "<pb n=\"2\" id=\"ns351vc7243_00_0001\"/>
+          <p><date value=\"2013-01-01\">pretending to care</date></p>
           <sp>
              <speaker>M. Guadet</speaker>
              <p>blah blah ... </p>
