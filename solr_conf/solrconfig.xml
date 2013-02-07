@@ -13,14 +13,14 @@
   <dataDir>${solr.data.dir:}</dataDir>
 
   <indexConfig>
+  	<maxFieldLength>2147483647</maxFieldLength>
+    <unlockOnStartup>true</unlockOnStartup>
 <!-- from sw-solr   
-    <maxFieldLength>2147483647</maxFieldLength>
     <writeLockTimeout>1000</writeLockTimeout>
     <useCompoundFile>false</useCompoundFile>
     <ramBufferSizeMB>128</ramBufferSizeMB>
     <mergeFactor>10</mergeFactor>
     <lockType>simple</lockType>
-    <unlockOnStartup>false</unlockOnStartup>
     <reopenReaders>true</reopenReaders>
     <deletionPolicy class="solr.SolrDeletionPolicy">
       <str name="maxCommitsToKeep">1</str>
@@ -31,9 +31,6 @@
 
   <!-- See docs re: autoCommit -->
   <updateHandler class="solr.DirectUpdateHandler2">
-	  <!-- Enables a transaction log, currently used for real-time get.
-         "dir" - the target directory for transaction logs, defaults to the
-         solr data directory.  -->
     <updateLog>
       <str name="dir">${solr.data.dir:}</str>
     </updateLog>
@@ -61,30 +58,28 @@
           <str name="fl">score</str>
           <bool name="facet">true</bool>
           <int name="facet.mincount">1</int>
-          <str name="facet.field">collection_si</str>
+          <str name="facet.field">collection_ssi</str>
           <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">type_ssi</str>
-          <str name="facet.field">content_type_ssi</str>
-          <str name="facet.field">volume_ssi</str>
-          <str name="facet.field">session_ssi</str>
+          <str name="facet.field">doc_type_ssi</str>
+          <str name="facet.field">session_govt_ssi</str>
         </lst>
         <!-- single object query to populate filter and fieldValue cache -->
         <lst>
-          <str name="q">id:ns351vc7243_volume</str>
+          <str name="q">id:ns351vc7243_00_100</str>
           <str name="qt">standard</str>
           <int name="rows">0</int>
           <str name="fl">score</str>
           <bool name="facet">true</bool>
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
-          <str name="facet.field">collection_si</str>
+          <str name="facet.field">collection_ssi</str>
           <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">type_ssi</str>
-          <str name="facet.field">content_type_ssi</str>
-          <str name="facet.field">volume_ssi</str>
-          <str name="facet.field">session_ssi</str>
+          <str name="facet.field">doc_type_ssi</str>
+          <str name="facet.field">session_govt_ssi</str>
         </lst>
       </arr>
     </listener>
@@ -101,30 +96,28 @@
           <bool name="facet">true</bool>
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
-          <str name="facet.field">collection_si</str>
+          <str name="facet.field">collection_ssi</str>
           <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">type_ssi</str>
-          <str name="facet.field">content_type_ssi</str>
-          <str name="facet.field">volume_ssi</str>
-          <str name="facet.field">session_ssi</str>
+          <str name="facet.field">doc_type_ssi</str>
+          <str name="facet.field">session_govt_ssi</str>
         </lst>
         <!-- single object query to populate filter and fieldValue cache -->
         <lst>
-          <str name="q">id:ns351vc7243_volume</str>
+          <str name="q">id:ns351vc7243_00_100</str>
           <str name="qt">standard</str>
           <int name="rows">0</int>
           <str name="fl">score</str>
           <bool name="facet">true</bool>
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
-          <str name="facet.field">collection_si</str>
+          <str name="facet.field">collection_ssi</str>
           <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">type_ssi</str>
-          <str name="facet.field">content_type_ssi</str>
-          <str name="facet.field">volume_ssi</str>
-          <str name="facet.field">session_ssi</str>
+          <str name="facet.field">doc_type_ssi</str>
+          <str name="facet.field">session_govt_ssi</str>
         </lst>
       </arr>
     </listener>
@@ -155,34 +148,56 @@
       <int name="ps">0</int>
       <float name="tie">0.01</float>
       <str name="qf">
+        spoken_text_timv^5
+        spoken_text_ftsimv
+        text_timv^5
+        text_ftsimv
+        speaker_ssim
+        session_govt_ssi
+        date_ssim
+				doc_type_ssi
         id
         druid_ssi
-        page_num_ssi
-        type_ssi
-        date_ssim
-        volume_ssi
-        session_ssi
-        speaker_ssim
-        text_ftsimv
-        spoken_text_ftsimv
       </str>
       <str name="pf">
-        text_ftsimv^20
-        spoken_text_ftsimv^20
+        spoken_text_timv^20
+        spoken_text_ftsimv^15
+        text_timv^20
+        text_ftsimv^10
+      </str>
+      <str name="qf_exact">
+        spoken_text_timv
+        text_timv
+        speaker_ssim
+        session_govt_ssi
+        date_ssim
+				doc_type_ssi
+      </str>
+      <str name="pf_exact">
+        spoken_text_timv^5
+        text_timv^5
       </str>
 
       <str name="qf_title">
-        title_ftsim
+        title_timv^5
+        title_ftsimv
       </str>
       <str name="pf_title">
-        title_ftsim^20
+        title_timv^10
+        title_ftsimv^5
+      </str>
+      <str name="qf_title_exact">
+        title_timv
+      </str>
+      <str name="pf_title_exact">
+        title_timv^5
       </str>
 
-      <str name="qf_author">
+      <str name="qf_name">
         speaker_ssim
       </str>
-      <str name="pf_author">
-        speaker_ssim^20
+      <str name="pf_name">
+        speaker_ssim^5
       </str>
 
       <str name="fl">score, *</str>
@@ -190,13 +205,12 @@
       <bool name="facet">true</bool>
       <int name="facet.mincount">1</int>
       <int name="facet.limit">21</int>
-      <str name="facet.field">collection_si</str>
+      <str name="facet.field">collection_ssi</str>
       <str name="facet.field">date_ssim</str>
       <str name="facet.field">speaker_ssim</str>
       <str name="facet.field">type_ssi</str>
-      <str name="facet.field">content_type_ssi</str>
-      <str name="facet.field">volume_ssi</str>
-      <str name="facet.field">session_ssi</str>      
+      <str name="facet.field">doc_type_ssi</str>
+      <str name="facet.field">session_govt_ssi</str>
     </lst>    
   </requestHandler>
 
@@ -228,17 +242,29 @@
     <lst name="defaults">
       <str name="defType">lucene</str>
       <str name="echoParams">explicit</str>
-      <str name="df">all_text_timv</str>
+      <str name="df">text_timv</str>
       <str name="q.op">AND</str>
       <str name="sort">score desc</str>
+      <int name="rows">20</int>
+
+      <str name="fl">score, *</str>
+      
+      <bool name="facet">true</bool>
       <int name="facet.mincount">1</int>
+      <int name="facet.limit">21</int>
+      <str name="facet.field">collection_ssi</str>
+      <str name="facet.field">date_ssim</str>
+      <str name="facet.field">speaker_ssim</str>
+      <str name="facet.field">type_ssi</str>
+      <str name="facet.field">doc_type_ssi</str>
+      <str name="facet.field">session_govt_ssi</str>
     </lst>
   </requestHandler>
 
   <searchComponent name="tvComponent" class="org.apache.solr.handler.component.TermVectorComponent"/>
   <requestHandler name="/tvrh" class="solr.SearchHandler" startup="lazy">
     <lst name="defaults">
-      <str name="df">all_text_timv</str>
+      <str name="df">text_timv</str>
       <bool name="tv.all">true</bool>
       <str name="defType">edismax</str>
       <str name="q.alt">*:*</str>
@@ -253,7 +279,7 @@
     <str name="queryAnalyzerFieldType">textSpell</str>
     <lst name="spellchecker">
       <str name="name">default</str>
-      <str name="field">all_text_timv</str>
+      <str name="field">text_timv</str>
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <str name="distanceMeasure">internal</str>
       <float name="accuracy">0.5</float>
