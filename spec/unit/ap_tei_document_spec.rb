@@ -306,7 +306,7 @@ describe ApTeiDocument do
                 <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p><date value=\"2013-01-01\">pretending to care</date></p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date => "1793-10-05"))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1793-10-05T00:00:00Z"))
             @parser.parse(x)
           end
           context "session_date_dtsi" do
