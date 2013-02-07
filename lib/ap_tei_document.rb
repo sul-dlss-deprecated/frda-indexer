@@ -53,14 +53,17 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'date'
       date_val_str = get_attribute_val('value', attributes)
       begin
-        d = Date.parse(date_val_str)
+        norm_date = date_val_str.gsub(/ +\- +/, '-')
+        norm_date.gsub!(/-00$/, '-01')
+        norm_date.concat('-01-01') if norm_date.match(/^\d{4}$/)
+        norm_date.concat('-01') if norm_date.match(/^\d{4}\-\d{2}$/)
+        d = Date.parse(norm_date)
       rescue
         @logger.warn("Found <date> tag with unparseable date value: '#{date_val_str}' in page #{doc_hash[:id]}")
       end
-      if @need_session_date && date_val_str && d
-        add_value_to_doc_hash(:session_date,  date_val_str) 
-        add_value_to_doc_hash(:session_date_dtsi,  d.strftime('%Y-%m-%dT00:00:00Z')) 
+      if @need_session_date && date_val_str
         add_value_to_doc_hash(:session_date_val_ssi,  date_val_str) 
+        add_value_to_doc_hash(:session_date_dtsi,  d.strftime('%Y-%m-%dT00:00:00Z')) if d
         @need_session_date = false
       end
     when 'pb'
