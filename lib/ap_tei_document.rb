@@ -52,15 +52,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
     when 'date'
       date_val_str = get_attribute_val('value', attributes)
-      begin
-        norm_date = date_val_str.gsub(/ +\- +/, '-')
-        norm_date.gsub!(/-00$/, '-01')
-        norm_date.concat('-01-01') if norm_date.match(/^\d{4}$/)
-        norm_date.concat('-01') if norm_date.match(/^\d{4}\-\d{2}$/)
-        d = Date.parse(norm_date)
-      rescue
-        @logger.warn("Found <date> tag with unparseable date value: '#{date_val_str}' in page #{doc_hash[:id]}")
-      end
+      d = normalize_date(date_val_str)
       if @need_session_date && date_val_str
         add_value_to_doc_hash(:session_date_val_ssi,  date_val_str) 
         add_value_to_doc_hash(:session_date_dtsi,  d.strftime('%Y-%m-%dT00:00:00Z')) if d
@@ -184,6 +176,23 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def get_attribute_val attr_name, attributes
     attr_array = attributes.select { |a| a[0] == attr_name}
     attr_val = attr_array.first.last if attr_array && !attr_array.empty? && !attr_array.first.last.empty?
+  end
+  
+  # turns the String representation of the date to a Date object.  
+  #  Logs a warning message if it can't parse the date string.
+  # @param [String] date_str a String representation of a date
+  # @return [Date] a Date object
+  def normalize_date date_str
+    begin
+      norm_date = date_str.gsub(/ +\- +/, '-')
+      norm_date.gsub!(/-00$/, '-01')
+      norm_date.concat('-01-01') if norm_date.match(/^\d{4}$/)
+      norm_date.concat('-01') if norm_date.match(/^\d{4}\-\d{2}$/)
+      Date.parse(norm_date)
+    rescue
+      @logger.warn("Found <date> tag with unparseable date value: '#{date_str}' in page #{doc_hash[:id]}")
+      nil
+    end
   end
 
   # initialize instance variable @doc_hash with mappings appropriate for all docs in the volume
