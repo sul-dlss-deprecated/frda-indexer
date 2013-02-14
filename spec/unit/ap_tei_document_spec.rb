@@ -183,7 +183,7 @@ describe ApTeiDocument do
         @parser.parse(@x)
       end
       it "should create field with String value for a single valued field" do
-        exp_flds = {:doc_type_ssi => 'séance'}
+        exp_flds = {:doc_type_ssim => ['séance']}
         @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
         @parser.parse(@x)
       end
@@ -206,6 +206,7 @@ describe ApTeiDocument do
         @parser.parse(@x)
       end
       it "should log a warning if the field isn't multivalued" do
+        pending "do we have any single valued fields?"
         x = @start_tei_body_div2_session + 
             "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
             <p>blah blah</p>
@@ -213,7 +214,7 @@ describe ApTeiDocument do
           <div2 type=\"table_alpha\">
             <p>blah blah</p>
           </div2>" + @end_div2_body_tei
-        @logger.should_receive(:warn).with("Solr field doc_type_ssi is single-valued (first value: séance), but got an IGNORED additional value: liste")
+        @logger.should_receive(:warn).with("Solr field doc_type_ssim is single-valued (first value: séance), but got an IGNORED additional value: liste")
         @parser.parse(x)
       end
     end # field already exists
@@ -420,7 +421,7 @@ describe ApTeiDocument do
             "<p>actual content</p>" + @end_div2_body_tei
       end
       it "should have a page_doc_type of 'séance'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => "séance"))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["séance"]))
         @parser.parse(@x)
       end
       
@@ -546,7 +547,7 @@ describe ApTeiDocument do
                 <pb n=\"6\" id=\"ns351vc7243_00_0009\"/>" + @end_div2_body_tei
       end
       it "should have a doc_type_si of 'table des matières'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'table des matières'))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['table des matières']))
         @parser.parse(@x)
       end
     end
@@ -557,7 +558,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it "should have a doc_type_si of 'errata, rapport, cahier, etc.'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'errata, rapport, cahier, etc.'))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['errata, rapport, cahier, etc.']))
         @parser.parse(@x)
       end
     end
@@ -568,7 +569,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it "should have a doc_type_si of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'liste'))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste']))
         @parser.parse(@x)
       end
     end
@@ -579,7 +580,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it "should have a doc_type_si of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'liste'))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste']))
         @parser.parse(@x)
       end
     end
@@ -590,7 +591,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it "should have a doc_type_si of 'introduction'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'introduction'))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['introduction']))
         @parser.parse(@x)
       end
     end

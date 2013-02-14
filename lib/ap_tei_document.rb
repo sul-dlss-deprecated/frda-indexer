@@ -48,7 +48,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @need_session_date = true
       end
       if @in_body
-        add_value_to_doc_hash(:doc_type_ssi, @div2_doc_type)
+        add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
       end
     when 'date'
       date_val_str = get_attribute_val('value', attributes)
@@ -144,14 +144,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
                 'alpha' => 'liste',
                 'introduction' => 'introduction'}
 
-  # add :session_govt_ssi field to doc_hash, and reset appropriate vars
-  def add_session_govt_ssi value
-    value.strip if value && value != NO_BUFFER
-    add_value_to_doc_hash(:session_govt_ssi, value.sub(/[[:punct:]]$/, '')) if value
-    @text_buffer = NO_BUFFER
-    @need_session_govt = false
-  end
-  
   # @param [String] chars the characters to be concatenated to the buffer
   # @param [String] the text buffer
   def add_chars_to_buffer(chars, buffer)
@@ -161,6 +153,14 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       buffer << (@element_just_ended ? ' ' : '') + chars.dup
     end
     buffer.gsub!(/\s+/, ' ') if buffer && buffer != NO_BUFFER    
+  end
+  
+  # add :session_govt_ssi field to doc_hash, and reset appropriate vars
+  def add_session_govt_ssi value
+    value.strip if value && value != NO_BUFFER
+    add_value_to_doc_hash(:session_govt_ssi, value.sub(/[[:punct:]]$/, '')) if value
+    @text_buffer = NO_BUFFER
+    @need_session_govt = false
   end
   
   # add :id, :page_num_ss, :image_id_ss and ocr_id_ss to doc_hash, based on attributes
@@ -208,12 +208,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @doc_hash[:druid_ssi] = @druid
     @doc_hash[:vol_num_ssi] = @volume
     @doc_hash[:vol_title_ssi] = VOL_TITLES[@volume]
-    # The format for a Solr date field is 1995-12-31T23:59:59Z
     @doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
     @doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
     @doc_hash[:type_ssi] = PAGE_TYPE
     if @in_body && @in_div2
-      @doc_hash[:doc_type_ssi] = @div2_doc_type
+      add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
     end
     @text_buffer = NO_BUFFER
     @page_buffer = NO_BUFFER

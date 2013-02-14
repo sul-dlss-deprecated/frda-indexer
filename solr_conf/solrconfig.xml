@@ -62,7 +62,7 @@
           <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">type_ssi</str>
-          <str name="facet.field">doc_type_ssi</str>
+          <str name="facet.field">doc_type_ssim</str>
           <str name="facet.field">session_govt_ssi</str>
         </lst>
         <!-- single object query to populate filter and fieldValue cache -->
@@ -78,7 +78,7 @@
           <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">type_ssi</str>
-          <str name="facet.field">doc_type_ssi</str>
+          <str name="facet.field">doc_type_ssim</str>
           <str name="facet.field">session_govt_ssi</str>
         </lst>
       </arr>
@@ -100,7 +100,7 @@
           <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">type_ssi</str>
-          <str name="facet.field">doc_type_ssi</str>
+          <str name="facet.field">doc_type_ssim</str>
           <str name="facet.field">session_govt_ssi</str>
         </lst>
         <!-- single object query to populate filter and fieldValue cache -->
@@ -116,7 +116,7 @@
           <str name="facet.field">date_ssim</str>
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">type_ssi</str>
-          <str name="facet.field">doc_type_ssi</str>
+          <str name="facet.field">doc_type_ssim</str>
           <str name="facet.field">session_govt_ssi</str>
         </lst>
       </arr>
@@ -155,7 +155,7 @@
         speaker_ssim
         session_govt_ssi
         date_ssim
-				doc_type_ssi
+				doc_type_ssim
         id
         druid_ssi
       </str>
@@ -171,7 +171,7 @@
         speaker_ssim
         session_govt_ssi
         date_ssim
-				doc_type_ssi
+				doc_type_ssim
       </str>
       <str name="pf_exact">
         spoken_text_timv^5
@@ -209,7 +209,7 @@
       <str name="facet.field">date_ssim</str>
       <str name="facet.field">speaker_ssim</str>
       <str name="facet.field">type_ssi</str>
-      <str name="facet.field">doc_type_ssi</str>
+      <str name="facet.field">doc_type_ssim</str>
       <str name="facet.field">session_govt_ssi</str>
     </lst>    
   </requestHandler>
@@ -256,7 +256,7 @@
       <str name="facet.field">date_ssim</str>
       <str name="facet.field">speaker_ssim</str>
       <str name="facet.field">type_ssi</str>
-      <str name="facet.field">doc_type_ssi</str>
+      <str name="facet.field">doc_type_ssim</str>
       <str name="facet.field">session_govt_ssi</str>
     </lst>
   </requestHandler>
