@@ -150,8 +150,8 @@
       <str name="qf">
         spoken_text_timv^5
         spoken_text_ftsimv
-        text_timv^5
-        text_ftsimv
+        text_tiv^5
+        text_ftsiv
         speaker_ssim
         session_govt_ssi
         date_ssim
@@ -162,12 +162,12 @@
       <str name="pf">
         spoken_text_timv^20
         spoken_text_ftsimv^15
-        text_timv^20
-        text_ftsimv^10
+        text_tiv^20
+        text_ftsiv^10
       </str>
       <str name="qf_exact">
         spoken_text_timv
-        text_timv
+        text_tiv
         speaker_ssim
         session_govt_ssi
         date_ssim
@@ -175,7 +175,7 @@
       </str>
       <str name="pf_exact">
         spoken_text_timv^5
-        text_timv^5
+        text_tiv^5
       </str>
 
       <str name="qf_title">
@@ -242,7 +242,7 @@
     <lst name="defaults">
       <str name="defType">lucene</str>
       <str name="echoParams">explicit</str>
-      <str name="df">text_timv</str>
+      <str name="df">text_tiv</str>
       <str name="q.op">AND</str>
       <str name="sort">score desc</str>
       <int name="rows">20</int>
@@ -264,7 +264,7 @@
   <searchComponent name="tvComponent" class="org.apache.solr.handler.component.TermVectorComponent"/>
   <requestHandler name="/tvrh" class="solr.SearchHandler" startup="lazy">
     <lst name="defaults">
-      <str name="df">text_timv</str>
+      <str name="df">text_tiv</str>
       <bool name="tv.all">true</bool>
       <str name="defType">edismax</str>
       <str name="q.alt">*:*</str>
@@ -279,7 +279,7 @@
     <str name="queryAnalyzerFieldType">textSpell</str>
     <lst name="spellchecker">
       <str name="name">default</str>
-      <str name="field">text_timv</str>
+      <str name="field">text_tiv</str>
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <str name="distanceMeasure">internal</str>
       <float name="accuracy">0.5</float>
