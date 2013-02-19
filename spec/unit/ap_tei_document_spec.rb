@@ -340,7 +340,9 @@ describe ApTeiDocument do
       @parser.parse(x)
     end
     it "should include the contents of <item> element" do
-      pending "to be implemented"
+      x = @begin_body + "<list><item>item!</item></list>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'item!'))
+      @parser.parse(x)
     end
     it "should log a warning for direct text children of <pb>" do
       pending "to be implemented"
