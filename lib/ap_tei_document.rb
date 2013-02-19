@@ -72,7 +72,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'speaker'
       @in_speaker = true
     end
-    @element_just_started = true unless name = 'hi'  # we don't want to add spaces at beginning of <hi> elements
+    @element_just_started = true unless name == 'hi'  # we don't want to add spaces at beginning of <hi> elements
   end
   
   # @param [String] name the element tag
@@ -85,6 +85,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
       @in_body = false
     when 'back'
+#      if !@page_buffer.empty?
+#        add_doc_to_solr
+#        init_doc_hash
+#      end
       @in_back = false
     when 'div2'
       @in_div2 = false
@@ -123,7 +127,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def characters(data)
     chars = data.gsub(/\s+/, ' ')
     @element_buffer = add_chars_to_buffer(chars, @element_buffer)
-    @page_buffer = add_chars_to_buffer(chars, @page_buffer)
+    @page_buffer = add_chars_to_buffer(chars, @page_buffer) if @in_body || @in_back
     @element_just_started = false
     @element_just_ended = false
   end

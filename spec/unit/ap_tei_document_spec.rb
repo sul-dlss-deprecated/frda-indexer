@@ -312,17 +312,17 @@ describe ApTeiDocument do
       x = @begin_body + "<date value=\"2013-01-01\">pretending to care</date>" + @end_body
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
       @parser.parse(x)
-      x = @begin_back + "<date value=\"2013-01-01\">pretending to care</date>" + @end_back
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
-      @parser.parse(x)
+#      x = @begin_back + "<date value=\"2013-01-01\">pretending to care</date>" + @end_back
+#      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
+#      @parser.parse(x)
     end
     it "should include the contents of <note> element" do
       x = @begin_body + "<note place=\"foot\">(1) shoes.</note>" + @end_body
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.'))
       @parser.parse(x)
-      x = @begin_back + "<note place=\"foot\">(1) shoes.</note>" + @end_back
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.'))
-      @parser.parse(x)
+#      x = @begin_back + "<note place=\"foot\">(1) shoes.</note>" + @end_back
+#      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.'))
+#      @parser.parse(x)
     end
     it "should include the contents of <hi> element" do
       pending "to be implemented"
