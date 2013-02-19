@@ -350,26 +350,15 @@ describe ApTeiDocument do
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'item!'))
       @parser.parse(x)
     end
-    it "should log a warning for direct text children of <pb>" do
-      pending "to be implemented"
-    end
-    it "should log a warning for direct text children of <sp>" do
-      pending "to be implemented"
-    end
-    it "should log a warning for direct text children of <list>" do
-      pending "to be implemented"
-    end
-    it "should log a warning for direct text children of <div1>, <div2>, <div3>" do
-      pending "to be implemented"
-    end
-    it "should log a warning for direct text children of <text>, <body>, <back>" do
-      pending "to be implemented"
+    it "should include the contents of <signed> element" do
+      x = @begin_body + "<signed>Signé : Remillat, à l'original. </signed>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "Signé : Remillat, à l'original."))
+      @parser.parse(x)
     end
     it "should ignore <trailer>" do
-      pending "to be implemented"
-    end
-    it "should ignore <signed>" do
-      pending "to be implemented"
+      x = @begin_body + "<trailer>FIN DE L'INTRODUCTION.</trailer>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_not_including(:text_tiv => "FIN DE L'INTRODUCTION."))
+      @parser.parse(x)
     end
   end
 
@@ -718,7 +707,12 @@ describe ApTeiDocument do
         @parser.parse(@x)
       end
     end # spoken_text_timv
-
+  end # <sp> element
+    
+  context "parsing warnings" do
+    it "should log a warning when it finds direct non-whitespace text content in a wrapper element" do
+      pending "to be implemented"
+    end
     it "should log a warning when it finds direct non-whitespace text content in <sp> tag" do
       x = @start_tei_body_div2_session +
           "<pb n=\"2\" id=\"ns351vc7243_00_0001\"/>
@@ -732,6 +726,37 @@ describe ApTeiDocument do
       @rsolr_client.should_receive(:add)
       @parser.parse(x)
     end
-  end # <sp> element
-    
+    it "should log a warning for direct non-whitespace text children of <pb>" do
+      x = @start_tei_body_div2_session + 
+          "<pb n=\"812\" id=\"tq360bc6948_00_0816\">
+          <p>foo</p>
+          mistake
+          </pb>
+          <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+      @logger.should_receive(:warn).with("Found <pb> tag with direct text content: 'mistake' in page tq360bc6948_00_0816")
+      @rsolr_client.should_receive(:add)
+      @parser.parse(x)
+    end
+    it "should log a warning for direct non-whitespace text children of <list>" do
+      x = @start_tei_body_div2_session + 
+          "<pb n=\"812\" id=\"tq360bc6948_00_0816\">
+          <list>
+          <head>bar</head>
+          <item>1</item>
+          mistake
+          <item>2</item>
+          </list>
+          <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+      @logger.should_receive(:warn).with("Found <list> tag with direct text content: 'mistake' in page tq360bc6948_00_0816")
+      @rsolr_client.should_receive(:add)
+      @parser.parse(x)
+    end
+    it "should log a warning for direct non-whitespace text children of <div1>, <div2>, <div3>" do
+      pending "to be implemented"
+    end
+    it "should log a warning for direct non-whitespace text children of <text>, <body>, <back>" do
+      pending "to be implemented"
+    end
+  end
+  
 end

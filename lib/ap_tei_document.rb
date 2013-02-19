@@ -71,6 +71,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
     when 'speaker'
       @in_speaker = true
+    when 'trailer'
+      @in_trailer = true
     end
     @element_just_started = true unless name == 'hi'  # we don't want to add spaces at beginning of <hi> elements
   end
@@ -97,6 +99,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'head'
       add_session_govt_ssi(@element_buffer.strip) if @in_session && @need_session_govt
       @element_buffer = ''
+    when 'list'
+      if !@element_buffer.strip.empty?
+        @logger.warn("Found <list> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}")
+        @element_buffer = ''
+      end
     when 'p'
       text = @element_buffer.strip if !@element_buffer.strip.empty?
       add_session_govt_ssi(text) if @in_session && @need_session_govt && text && text == text.upcase
@@ -104,10 +111,15 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker} #{text}") if text
       end
       @element_buffer = ''
+    when 'pb'
+      if !@element_buffer.strip.empty?
+        @logger.warn("Found <pb> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}")
+        @element_buffer = ''
+      end
     when 'sp'
       @speaker = nil
       if !@element_buffer.strip.empty?
-        @logger.warn("Found <sp> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}") if !@element_buffer.strip!.empty?
+        @logger.warn("Found <sp> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}")
         @element_buffer = ''
       end
       @in_sp = false
@@ -116,6 +128,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
       @element_buffer = ''
       @in_speaker = false
+    when 'trailer'
+      @in_trailer = false
     end
     @element_just_ended = true
   end
@@ -127,7 +141,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def characters(data)
     chars = data.gsub(/\s+/, ' ')
     @element_buffer = add_chars_to_buffer(chars, @element_buffer)
-    @page_buffer = add_chars_to_buffer(chars, @page_buffer) if @in_body || @in_back
+    @page_buffer = add_chars_to_buffer(chars, @page_buffer) if @in_body || @in_back && @in_trailer == false
     @element_just_started = false
     @element_just_ended = false
   end
