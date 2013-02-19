@@ -311,7 +311,9 @@ describe ApTeiDocument do
       pending "to be implemented"
     end
     it "should include the contents of <speaker> element" do
-      pending "to be implemented"
+      x = @begin_body + "<sp><speaker>M. Bréard.</speaker></sp>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'M. Bréard.'))
+      @parser.parse(x)
     end
     it "should include the contents of <date> element" do
       x = @begin_body + "<date value=\"2013-01-01\">pretending to care</date>" + @end_body
