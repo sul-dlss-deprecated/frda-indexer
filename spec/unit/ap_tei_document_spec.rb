@@ -221,6 +221,12 @@ describe ApTeiDocument do
   end # add_value_to_doc_hash
 
   context "text_tiv (catchall field)" do
+    before(:all) do
+      @begin_body = @start_tei_body_div1 + "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>"
+      @end_body = "<pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div1_body_tei
+      @begin_back = @start_tei_back_div1 + "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>"
+      @end_back = "<pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div1_back_tei
+    end
     it "should not get content from <teiHeader>" do
       x = "<TEI.2><teiHeader type=\"text\" id=\"by423fb7614\">
         <fileDesc>
@@ -244,29 +250,52 @@ describe ApTeiDocument do
             <p>Compiled from ARCHIVES PARLEMENTAIRES documents.</p>
           </sourceDesc>
         </fileDesc>
-      </teiHeader></TEI.2>"
-      @rsolr_client.should_not_receive(:add).with(hash_including(:text_tiv => 'ns351vc7243_00_0001'))
+      </teiHeader>
+      <text><body>
+        <div1 type=\"volume\" n=\"14\">
+          <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>
+          <div2 type=\"contents\">
+            <p>in body</p>
+      #{@end_div2_body_tei}"
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in body'))
       @parser.parse(x)
     end
     it "should not get content from <front>" do
-      x = "<TEI.2><text><front>
-            <div type=\"frontpiece\">
-                <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>
-            </div>
-            <div type=\"abstract\">
-                <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
-                <p>blah blah</p>
-            </div></front></text></TEI.2>"
-      @rsolr_client.should_not_receive(:add).with(hash_including(:text_tiv => 'ns351vc7243_00_0001'))
+      x = "<TEI.2><text>
+            <front>
+              <div type=\"frontpiece\">
+                  <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
+                  <p>blah blah</p>
+              </div>
+              <div type=\"abstract\">
+                  <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
+                  <p>front content</p>
+              </div>
+            </front>
+            <body>
+              <div1 type=\"volume\" n=\"14\">
+                <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>
+                <div2 type=\"contents\">
+                  <p>in body</p>
+            #{@end_div2_body_tei}"
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in body'))
       @parser.parse(x)
-      pending "to be implemented"
     end
     it "should get content from <body>" do
       pending "to be implemented"
     end
     it "should get content from <back>" do
       pending "to be implemented"
+      x = @start_tei_back_div1 +
+          "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
+          <div2 type=\"contents\">
+            <p>in back</p>
+          </div2>
+        </div1>
+        <div1 type=\"volume\" n=\"14\">
+          <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>" + @end_div1_back_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in back'))
+      @parser.parse(x)
     end
     it "should not include the contents of any attributes" do
       pending "to be implemented"
@@ -280,30 +309,21 @@ describe ApTeiDocument do
     it "should include the contents of <speaker> element" do
       pending "to be implemented"
     end
-    before(:all) do
-      @begin_body = @start_tei_body_div1 + "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>"
-      @end_body = "<pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div1_body_tei
-      @begin_back = @start_tei_back_div1 + "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>"
-      @end_back = "<pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div1_back_tei
-    end
     it "should include the contents of <date> element" do
       x = @begin_body + "<date value=\"2013-01-01\">pretending to care</date>" + @end_body
-      @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0814'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
       @parser.parse(x)
       x = @begin_back + "<date value=\"2013-01-01\">pretending to care</date>" + @end_back
-      @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0814'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
       @parser.parse(x)
     end
     it "should include the contents of <note> element" do
       x = @begin_body + "<note place=\"foot\">(1) shoes.</note>" + @end_body
-      @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0814'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.'))
       @parser.parse(x)
       x = @begin_back + "<note place=\"foot\">(1) shoes.</note>" + @end_back
-      @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0814'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.'))
       @parser.parse(x)
-
-
-      pending "to be implemented"
     end
     it "should include the contents of <hi> element" do
       pending "to be implemented"
@@ -379,12 +399,12 @@ describe ApTeiDocument do
             "<pb n=\"1\" id=\"#{@page_id}\"/>
              <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei        
     end
-    context "page_num_ss" do
+    context "page_num_ssi" do
       it "should be present when <pb> has non-empty n attribute" do
         x = @start_tei_body_div2_session + 
               "<pb n=\"1\" id=\"something\"/>
                <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:page_num_ss => '1'))
+        @rsolr_client.should_receive(:add).with(hash_including(:page_num_ssi => '1'))
         @parser.parse(x)
       end
       it "should not be present when <pb> has empty n attribute" do
@@ -392,7 +412,7 @@ describe ApTeiDocument do
               "<div2 type=\"session\">
                   <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
                   <p>blah blah</p>" + @end_div2_body_tei 
-        @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ss))
+        @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ssi))
         @parser.parse(x)
       end
       it "should not be present when <pb> has no n attribute" do
@@ -400,10 +420,10 @@ describe ApTeiDocument do
               "<div2 type=\"session\">
                   <pb id=\"ns351vc7243_00_0001\"/>
                   <p>blah blah</p>" + @end_div2_body_tei 
-        @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ss))
+        @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ssi))
         @parser.parse(x)
       end
-    end # page_num_ss
+    end # page_num_ssi
     it "image_id_ss should be same as <pb> id attrib with .jp2 extension" do
       @rsolr_client.should_receive(:add).with(hash_including(:image_id_ss => "#{@page_id}.jp2"))
       @parser.parse(@x)

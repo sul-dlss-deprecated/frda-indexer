@@ -20,6 +20,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @druid = druid
     @volume = volume.sub(/^Volume /i, '')
     @logger = logger
+    @page_buffer = NO_BUFFER
   end
   
   def start_document
@@ -77,6 +78,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'speaker'
       @in_speaker = true
     end
+    @element_just_started = true unless name = 'hi'  # we don't want to add spaces at beginning of <hi> elements
   end
   
   # @param [String] name the element tag
@@ -95,7 +97,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_session = false
     when 'head'
       text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
-      add_session_govt_ssi(text) if  @in_session && @need_session_govt
+      add_session_govt_ssi(text) if @in_session && @need_session_govt
     when 'p'
       text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
       add_session_govt_ssi(text) if @in_session && @need_session_govt && text && text == text.upcase
@@ -128,6 +130,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def characters(data)
     chars = data.gsub(/\s+/, ' ')
     @text_buffer = add_chars_to_buffer(chars, @text_buffer)
+#    @page_buffer = add_chars_to_buffer(chars, @page_buffer)
+    @element_just_started = false
     @element_just_ended = false
   end
   alias cdata_block characters
@@ -143,16 +147,19 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
                 'table_alpha' => 'liste',
                 'alpha' => 'liste',
                 'introduction' => 'introduction'}
+#  TEXT_TIV = ['head', 'p', 'sp', 'item', 'speaker', 'term', 'date', 'hi', 'note']
 
   # @param [String] chars the characters to be concatenated to the buffer
   # @param [String] the text buffer
   def add_chars_to_buffer(chars, buffer)
-    if buffer == NO_BUFFER
-      buffer = chars.dup
-    else
-      buffer << (@element_just_ended ? ' ' : '') + chars.dup
+    unless chars.empty?
+      if buffer == NO_BUFFER
+        buffer = chars.dup
+      else
+        buffer << (@element_just_started || @element_just_ended ? ' ' : '') + chars.dup
+      end
+      buffer.gsub!(/\s+/, ' ') if buffer && buffer != NO_BUFFER    
     end
-    buffer.gsub!(/\s+/, ' ') if buffer && buffer != NO_BUFFER    
   end
   
   # add :session_govt_ssi field to doc_hash, and reset appropriate vars
@@ -163,14 +170,14 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @need_session_govt = false
   end
   
-  # add :id, :page_num_ss, :image_id_ss and ocr_id_ss to doc_hash, based on attributes
+  # add :id, :page_num_ssi, :image_id_ss and ocr_id_ss to doc_hash, based on attributes
   # @param [Array<String>] attributes an assoc list of namespaces and attributes, e.g.:
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
   def process_pb_attribs attributes
     new_page_id = get_attribute_val('id', attributes)
     add_value_to_doc_hash(:id, new_page_id)
     page_num = get_attribute_val('n', attributes)
-    add_value_to_doc_hash(:page_num_ss,  page_num) if page_num
+    add_value_to_doc_hash(:page_num_ssi,  page_num) if page_num
     add_value_to_doc_hash(:image_id_ss, new_page_id + ".jp2")
     add_value_to_doc_hash(:ocr_id_ss, new_page_id.sub(/_00_/, '_99_') + ".txt")
   end
@@ -223,25 +230,29 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] value the value to add to the doc_hash for the key
   def add_value_to_doc_hash(key, value)
     fname = key.to_s
-    val = value.strip.gsub(/\s+/, ' ')
-    if @doc_hash[key]
-      if fname.end_with?('m') || fname.end_with?('mv')
-        @doc_hash[key] << val
+    unless value == NO_BUFFER
+      val = value.strip.gsub(/\s+/, ' ')
+      if @doc_hash[key]
+        if fname.end_with?('m') || fname.end_with?('mv')
+          @doc_hash[key] << val
+        else
+          @logger.warn("Solr field #{key} is single-valued (first value: #{@doc_hash[key]}), but got an IGNORED additional value: #{val}")
+        end
       else
-        @logger.warn("Solr field #{key} is single-valued (first value: #{@doc_hash[key]}), but got an IGNORED additional value: #{val}")
-      end
-    else
-      if fname.end_with?('m') || fname.end_with?('mv')
-        @doc_hash[key] = [val] 
-      else
-        @doc_hash[key] = val
+        if fname.end_with?('m') || fname.end_with?('mv')
+          @doc_hash[key] = [val] 
+        else
+          @doc_hash[key] = val
+        end
       end
     end
   end
 
   # write @doc_hash to Solr and reinitialize @doc_hash, but only if the current page has content
   def add_doc_to_solr
+    # FIXME:  @page_buffer is the measure of if the page has content
     if @page_has_content
+      add_value_to_doc_hash(:text_tiv, @page_buffer)
       @rsolr_client.add(@doc_hash)
       init_doc_hash
       @page_has_content = false
