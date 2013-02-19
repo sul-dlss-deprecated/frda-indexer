@@ -297,7 +297,9 @@ describe ApTeiDocument do
       @parser.parse(x)
     end
     it "should not include the contents of any attributes" do
-      pending "to be implemented"
+      x = @begin_body + "<p>Art. 1<hi rend=\"superscript\">er</hi></p>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er'))
+      @parser.parse(x)
     end
     it "should include the contents of <p> element" do
       pending "to be implemented"
@@ -325,7 +327,9 @@ describe ApTeiDocument do
 #      @parser.parse(x)
     end
     it "should include the contents of <hi> element" do
-      pending "to be implemented"
+      x = @begin_body + "<p>Art. 1<hi>er.</hi>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er.'))
+      @parser.parse(x)
     end
     it "should include the contents of <term> element" do
       pending "to be implemented"
