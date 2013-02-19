@@ -305,10 +305,14 @@ describe ApTeiDocument do
       @parser.parse(x)
     end
     it "should include the contents of <p> element" do
-      pending "to be implemented"
+      x = @begin_body + "<p>blather</p>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'blather'))
+      @parser.parse(x)
     end
     it "should include the contents of <head> element" do
-      pending "to be implemented"
+      x = @begin_body + "<head>MARDI 15 OCTOBRE 1793.</head>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'MARDI 15 OCTOBRE 1793.'))
+      @parser.parse(x)
     end
     it "should include the contents of <speaker> element" do
       x = @begin_body + "<sp><speaker>M. Bréard.</speaker></sp>" + @end_body
