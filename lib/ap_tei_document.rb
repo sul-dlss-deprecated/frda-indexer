@@ -63,8 +63,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
       init_doc_hash
       process_pb_attribs attributes
-    when 'p'
-      @in_p = true
     when 'sp'
       @in_sp = true
       if @need_session_date
@@ -93,30 +91,24 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @@div2_doc_type = nil
       @in_session = false
     when 'head'
-###
-      text = @element_buffer.strip if @element_buffer && !@element_buffer.empty?
-      add_session_govt_ssi(text) if @in_session && @need_session_govt
+      add_session_govt_ssi(@element_buffer.strip) if @in_session && @need_session_govt
       @element_buffer = ''
     when 'p'
-###
-      text = @element_buffer.strip if @element_buffer && !@element_buffer.empty?
+      text = @element_buffer.strip if !@element_buffer.strip.empty?
       add_session_govt_ssi(text) if @in_session && @need_session_govt && text && text == text.upcase
       if @in_sp && @speaker
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker} #{text}") if text
       end
       @element_buffer = ''
-      @in_p = false
     when 'sp'
       @speaker = nil
-      if !@element_buffer.empty?
+      if !@element_buffer.strip.empty?
         @logger.warn("Found <sp> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}") if !@element_buffer.strip!.empty?
         @element_buffer = ''
       end
       @in_sp = false
     when 'speaker'
-###
-      @speaker = @element_buffer.strip if @element_buffer && !@element_buffer.empty?
-      @speaker = nil if @speaker.empty?
+      @speaker = @element_buffer.strip if !@element_buffer.strip.empty?
       add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
       @element_buffer = ''
       @in_speaker = false
@@ -229,7 +221,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] value the value to add to the doc_hash for the key
   def add_value_to_doc_hash(key, value)
     fname = key.to_s
-    unless value.empty?
+    unless value.strip.empty?
       val = value.strip.gsub(/\s+/, ' ')
       if @doc_hash[key]
         if fname.end_with?('m') || fname.end_with?('mv')
