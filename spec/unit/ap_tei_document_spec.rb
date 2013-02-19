@@ -711,9 +711,6 @@ describe ApTeiDocument do
     
   context "parsing warnings" do
     it "should log a warning when it finds direct non-whitespace text content in a wrapper element" do
-      pending "to be implemented"
-    end
-    it "should log a warning when it finds direct non-whitespace text content in <sp> tag" do
       x = @start_tei_body_div2_session +
           "<pb n=\"2\" id=\"ns351vc7243_00_0001\"/>
           <p><date value=\"2013-01-01\">pretending to care</date></p>
@@ -737,7 +734,7 @@ describe ApTeiDocument do
       @rsolr_client.should_receive(:add)
       @parser.parse(x)
     end
-    it "should log a warning for direct non-whitespace text children of <list>" do
+    it "should log a warning for direct non-whitespace text children when not first" do
       x = @start_tei_body_div2_session + 
           "<pb n=\"812\" id=\"tq360bc6948_00_0816\">
           <list>
