@@ -77,7 +77,6 @@ describe ApTeiDocument do
       it "blank page at beginning of <body> should not go to Solr" do
         x = @start_tei_body_div1 +
                "<pb n=\"\" id=\"pz516hw4711_00_0004\"/>
-                <head>blah</head>
                 <pb n=\"1\" id=\"pz516hw4711_00_0005\"/>" + @end_div1_body_tei
         @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'pz516hw4711_00_0004'))
         @parser.parse(x)

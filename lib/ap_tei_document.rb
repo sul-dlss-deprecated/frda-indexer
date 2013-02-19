@@ -23,7 +23,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   end
   
   def start_document
-    @page_has_content = false
     @in_body = false
     @in_back = false
     init_doc_hash
@@ -59,14 +58,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @need_session_date = false
       end
     when 'pb'
-      if @page_has_content && @in_body
+      if !@page_buffer.empty? && @in_body
         add_doc_to_solr
       end
       init_doc_hash
       process_pb_attribs attributes
     when 'p'
       @in_p = true
-      @page_has_content = true
     when 'sp'
       @in_sp = true
       if @need_session_date
@@ -83,7 +81,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def end_element name    
     case name
     when 'body'
-      if @page_has_content
+      if !@page_buffer.empty?
         add_doc_to_solr
         init_doc_hash
       end
@@ -95,29 +93,32 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @@div2_doc_type = nil
       @in_session = false
     when 'head'
-      text = @element_buffer.strip if @element_buffer && @element_buffer != NO_BUFFER
+###
+      text = @element_buffer.strip if @element_buffer && !@element_buffer.empty?
       add_session_govt_ssi(text) if @in_session && @need_session_govt
-      @element_buffer = NO_BUFFER
+      @element_buffer = ''
     when 'p'
-      text = @element_buffer.strip if @element_buffer && @element_buffer != NO_BUFFER
+###
+      text = @element_buffer.strip if @element_buffer && !@element_buffer.empty?
       add_session_govt_ssi(text) if @in_session && @need_session_govt && text && text == text.upcase
       if @in_sp && @speaker
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker} #{text}") if text
       end
-      @element_buffer = NO_BUFFER
+      @element_buffer = ''
       @in_p = false
     when 'sp'
       @speaker = nil
-      if @element_buffer != NO_BUFFER
+      if !@element_buffer.empty?
         @logger.warn("Found <sp> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}") if !@element_buffer.strip!.empty?
-        @element_buffer = NO_BUFFER
+        @element_buffer = ''
       end
       @in_sp = false
     when 'speaker'
-      @speaker = @element_buffer.strip if @element_buffer && @element_buffer != NO_BUFFER
+###
+      @speaker = @element_buffer.strip if @element_buffer && !@element_buffer.empty?
       @speaker = nil if @speaker.empty?
       add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
-      @element_buffer = NO_BUFFER
+      @element_buffer = ''
       @in_speaker = false
     end
     @element_just_ended = true
@@ -140,7 +141,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     
   COLL_VAL = "ap-collection"
   PAGE_TYPE = "page"
-  NO_BUFFER = :no_buffer
   DIV2_TYPE = {'session' => 'séance',
                 'contents' => 'table des matières',
                 'other' => 'errata, rapport, cahier, etc.',
@@ -153,18 +153,18 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] the text buffer
   def add_chars_to_buffer(chars, buffer)
     unless chars.empty?
-      if buffer == NO_BUFFER
-        buffer = chars.dup
-      else
+      if buffer
         buffer << (@element_just_started || @element_just_ended ? ' ' : '') + chars.dup
+      else
+        buffer = chars.dup
       end
-      buffer.gsub(/\s+/, ' ') if buffer && buffer != NO_BUFFER    
+      buffer.gsub(/\s+/, ' ')
     end
   end
   
   # add :session_govt_ssi field to doc_hash, and reset appropriate vars
   def add_session_govt_ssi value
-    value.strip if value && value != NO_BUFFER
+    value.strip if value
     add_value_to_doc_hash(:session_govt_ssi, value.sub(/[[:punct:]]$/, '')) if value
     @need_session_govt = false
   end
@@ -220,9 +220,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     if @in_body && @in_div2
       add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
     end
-    @element_buffer = NO_BUFFER
-    @page_buffer = NO_BUFFER
-    @page_has_content = false
+    @element_buffer = ''
+    @page_buffer = ''
   end
   
   # add the value to the doc_hash for the Solr field.
@@ -230,7 +229,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] value the value to add to the doc_hash for the key
   def add_value_to_doc_hash(key, value)
     fname = key.to_s
-    unless value == NO_BUFFER
+    unless value.empty?
       val = value.strip.gsub(/\s+/, ' ')
       if @doc_hash[key]
         if fname.end_with?('m') || fname.end_with?('mv')
@@ -250,8 +249,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
 
   # write @doc_hash to Solr and reinitialize @doc_hash, but only if the current page has content
   def add_doc_to_solr
-    # FIXME:  @page_buffer is the measure of if the page has content
-    if @page_has_content
+    if !@page_buffer.strip.empty?
       add_value_to_doc_hash(:text_tiv, @page_buffer)
       @rsolr_client.add(@doc_hash)
     end
