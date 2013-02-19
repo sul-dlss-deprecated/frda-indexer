@@ -20,7 +20,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @druid = druid
     @volume = volume.sub(/^Volume /i, '')
     @logger = logger
-    @page_buffer = NO_BUFFER
   end
   
   def start_document
@@ -62,9 +61,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'pb'
       if @page_has_content && @in_body
         add_doc_to_solr
-      else
-        init_doc_hash
       end
+      init_doc_hash
       process_pb_attribs attributes
     when 'p'
       @in_p = true
@@ -87,6 +85,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'body'
       if @page_has_content
         add_doc_to_solr
+        init_doc_hash
       end
       @in_body = false
     when 'back'
@@ -96,28 +95,29 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @@div2_doc_type = nil
       @in_session = false
     when 'head'
-      text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
+      text = @element_buffer.strip if @element_buffer && @element_buffer != NO_BUFFER
       add_session_govt_ssi(text) if @in_session && @need_session_govt
+      @element_buffer = NO_BUFFER
     when 'p'
-      text = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
+      text = @element_buffer.strip if @element_buffer && @element_buffer != NO_BUFFER
       add_session_govt_ssi(text) if @in_session && @need_session_govt && text && text == text.upcase
       if @in_sp && @speaker
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker} #{text}") if text
       end
-      @text_buffer = NO_BUFFER
+      @element_buffer = NO_BUFFER
       @in_p = false
     when 'sp'
       @speaker = nil
-      if @text_buffer != NO_BUFFER
-        @logger.warn("Found <sp> tag with direct text content: '#{@text_buffer.strip}' in page #{@doc_hash[:id]}") if !@text_buffer.strip!.empty?
-        @text_buffer = NO_BUFFER
+      if @element_buffer != NO_BUFFER
+        @logger.warn("Found <sp> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}") if !@element_buffer.strip!.empty?
+        @element_buffer = NO_BUFFER
       end
       @in_sp = false
     when 'speaker'
-      @speaker = @text_buffer.strip if @text_buffer && @text_buffer != NO_BUFFER
+      @speaker = @element_buffer.strip if @element_buffer && @element_buffer != NO_BUFFER
       @speaker = nil if @speaker.empty?
       add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
-      @text_buffer = NO_BUFFER
+      @element_buffer = NO_BUFFER
       @in_speaker = false
     end
     @element_just_ended = true
@@ -129,8 +129,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] data contains the character data
   def characters(data)
     chars = data.gsub(/\s+/, ' ')
-    @text_buffer = add_chars_to_buffer(chars, @text_buffer)
-#    @page_buffer = add_chars_to_buffer(chars, @page_buffer)
+    @element_buffer = add_chars_to_buffer(chars, @element_buffer)
+    @page_buffer = add_chars_to_buffer(chars, @page_buffer)
     @element_just_started = false
     @element_just_ended = false
   end
@@ -158,7 +158,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       else
         buffer << (@element_just_started || @element_just_ended ? ' ' : '') + chars.dup
       end
-      buffer.gsub!(/\s+/, ' ') if buffer && buffer != NO_BUFFER    
+      buffer.gsub(/\s+/, ' ') if buffer && buffer != NO_BUFFER    
     end
   end
   
@@ -166,7 +166,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def add_session_govt_ssi value
     value.strip if value && value != NO_BUFFER
     add_value_to_doc_hash(:session_govt_ssi, value.sub(/[[:punct:]]$/, '')) if value
-    @text_buffer = NO_BUFFER
     @need_session_govt = false
   end
   
@@ -221,8 +220,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     if @in_body && @in_div2
       add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
     end
-    @text_buffer = NO_BUFFER
+    @element_buffer = NO_BUFFER
     @page_buffer = NO_BUFFER
+    @page_has_content = false
   end
   
   # add the value to the doc_hash for the Solr field.
@@ -254,8 +254,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     if @page_has_content
       add_value_to_doc_hash(:text_tiv, @page_buffer)
       @rsolr_client.add(@doc_hash)
-      init_doc_hash
-      @page_has_content = false
     end
   end
 
