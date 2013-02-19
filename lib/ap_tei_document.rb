@@ -32,6 +32,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [Array<String>] attributes an assoc list of namespaces and attributes, e.g.:
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
   def start_element name, attributes
+    if WRAPPER_ELEMENTS.include? name
+      @child_of_wrapper = true
+    else
+      @child_of_wrapper = false
+    end
     case name
     when 'body'
       @in_body = true
@@ -78,7 +83,14 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   end
   
   # @param [String] name the element tag
-  def end_element name    
+  def end_element name
+    if WRAPPER_ELEMENTS.include? name
+      @child_of_wrapper = false
+      if !@element_buffer.strip.empty?
+        @logger.warn("Found <#{name}> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}")
+      end
+    end
+    
     case name
     when 'body'
       if !@page_buffer.empty?
@@ -98,40 +110,25 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_session = false
     when 'head'
       add_session_govt_ssi(@element_buffer.strip) if @in_session && @need_session_govt
-      @element_buffer = ''
-    when 'list'
-      if !@element_buffer.strip.empty?
-        @logger.warn("Found <list> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}")
-        @element_buffer = ''
-      end
     when 'p'
       text = @element_buffer.strip if !@element_buffer.strip.empty?
       add_session_govt_ssi(text) if @in_session && @need_session_govt && text && text == text.upcase
       if @in_sp && @speaker
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker} #{text}") if text
       end
-      @element_buffer = ''
-    when 'pb'
-      if !@element_buffer.strip.empty?
-        @logger.warn("Found <pb> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}")
-        @element_buffer = ''
-      end
     when 'sp'
       @speaker = nil
-      if !@element_buffer.strip.empty?
-        @logger.warn("Found <sp> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}")
-        @element_buffer = ''
-      end
       @in_sp = false
     when 'speaker'
       @speaker = @element_buffer.strip if !@element_buffer.strip.empty?
       add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
-      @element_buffer = ''
       @in_speaker = false
     when 'trailer'
       @in_trailer = false
-    end
+    end # case name
+    
     @element_just_ended = true
+    @element_buffer = ''
   end
   
   # Characters within element tags.  This method might be called multiple
@@ -158,6 +155,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
                 'alpha' => 'liste',
                 'introduction' => 'introduction'}
 #  TEXT_TIV = ['head', 'p', 'sp', 'item', 'speaker', 'term', 'date', 'hi', 'note']
+  # elements that should not have direct text content - they wrap other elements
+  WRAPPER_ELEMENTS = ['text', 'front', 'body', 'back', 'div', 'div1', 'div2', 'div3', 'list', 'sp', 'pb']
 
   # @param [String] chars the characters to be concatenated to the buffer
   # @param [String] the text buffer
