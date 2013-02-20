@@ -356,8 +356,8 @@ describe ApTeiDocument do
       @parser.parse(x)
     end
     it "should ignore <trailer>" do
-      x = @begin_body + "<trailer>FIN DE L'INTRODUCTION.</trailer>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_not_including(:text_tiv => "FIN DE L'INTRODUCTION."))
+      x = @begin_body + "<trailer>FIN DE L'INTRODUCTION.</trailer><p>blah</p>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "blah"))
       @parser.parse(x)
     end
   end
@@ -747,12 +747,6 @@ describe ApTeiDocument do
       @logger.should_receive(:warn).with("Found <list> tag with direct text content: 'mistake' in page tq360bc6948_00_0816")
       @rsolr_client.should_receive(:add)
       @parser.parse(x)
-    end
-    it "should log a warning for direct non-whitespace text children of <div1>, <div2>, <div3>" do
-      pending "to be implemented"
-    end
-    it "should log a warning for direct non-whitespace text children of <text>, <body>, <back>" do
-      pending "to be implemented"
     end
   end
   

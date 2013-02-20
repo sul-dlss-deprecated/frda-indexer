@@ -73,8 +73,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
     when 'speaker'
       @in_speaker = true
-    when 'trailer'
-      @in_trailer = true
     end
     @element_just_started = true unless name == 'hi'  # we don't want to add spaces at beginning of <hi> elements
   end
@@ -115,8 +113,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @speaker = @element_buffer.strip if !@element_buffer.strip.empty?
       add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
       @in_speaker = false
-    when 'trailer'
-      @in_trailer = false
     end # case name
     
     @element_just_ended = true
@@ -130,13 +126,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def characters(data)
     chars = data.gsub(/\s+/, ' ')
     @element_buffer = add_chars_to_buffer(chars, @element_buffer)
-    if WRAPPER_ELEMENTS.include?(@element_name_stack.last) 
+
+    if NO_TEXT_ELEMENTS.include?(@element_name_stack.last) 
       if !@element_buffer.strip.empty?
         @logger.warn("Found <#{@element_name_stack.last}> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}")
       end
     end
-    
-    @page_buffer = add_chars_to_buffer(chars, @page_buffer) if @in_body || @in_back && @in_trailer == false
+    @page_buffer = add_chars_to_buffer(chars, @page_buffer) if (@in_body || @in_back) && !IGNORE_ELEMENTS.include?(@element_name_stack.last)
     @element_just_started = false
     @element_just_ended = false
   end
@@ -152,9 +148,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
                 'table_alpha' => 'liste',
                 'alpha' => 'liste',
                 'introduction' => 'introduction'}
-#  TEXT_TIV = ['head', 'p', 'sp', 'item', 'speaker', 'term', 'date', 'hi', 'note']
   # elements that should not have direct text content - they wrap other elements
-  WRAPPER_ELEMENTS = ['text', 'front', 'body', 'back', 'div', 'div1', 'div2', 'div3', 'list', 'sp', 'pb']
+  NO_TEXT_ELEMENTS = ['text', 'front', 'body', 'back', 'div', 'div1', 'div2', 'div3', 'list', 'sp', 'pb']
+  # ignore the contents of these elements
+  IGNORE_ELEMENTS = ['trailer']
 
   # @param [String] chars the characters to be concatenated to the buffer
   # @param [String] the text buffer
