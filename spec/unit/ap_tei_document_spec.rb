@@ -219,184 +219,6 @@ describe ApTeiDocument do
     end # field already exists
   end # add_value_to_doc_hash
 
-  context "text_tiv (catchall field)" do
-    before(:all) do
-      @begin_body = @start_tei_body_div1 + "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>"
-      @end_body = "<pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div1_body_tei
-      @begin_back = @start_tei_back_div1 + "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>"
-      @end_back = "<pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div1_back_tei
-    end
-    it "should not get content from <teiHeader>" do
-      x = "<TEI.2><teiHeader type=\"text\" id=\"by423fb7614\">
-        <fileDesc>
-          <titleStmt>
-            <title type=\"main\">ARCHIVES PARLEMENTAIRES</title>
-            <author>MM. MAVIDAL</author>
-          </titleStmt>
-          <publicationStmt>
-            <distributor>
-              <address>
-                <addrLine>blah</addrLine>
-              </address>
-            </distributor>
-            <date>1900</date>
-            <pubPlace>PARIS</pubPlace>
-          </publicationStmt>
-          <notesStmt>
-            <note type=\"markup\">Additional markup added by Digital Divide Data, 20120701</note>
-          </notesStmt>
-          <sourceDesc>
-            <p>Compiled from ARCHIVES PARLEMENTAIRES documents.</p>
-          </sourceDesc>
-        </fileDesc>
-      </teiHeader>
-      <text><body>
-        <div1 type=\"volume\" n=\"14\">
-          <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>
-          <div2 type=\"contents\">
-            <p>in body</p>
-      #{@end_div2_body_tei}"
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in body'))
-      @parser.parse(x)
-    end
-    it "should not get content from <front>" do
-      x = "<TEI.2><text>
-            <front>
-              <div type=\"frontpiece\">
-                  <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
-                  <p>blah blah</p>
-              </div>
-              <div type=\"abstract\">
-                  <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
-                  <p>front content</p>
-              </div>
-            </front>
-            <body>
-              <div1 type=\"volume\" n=\"14\">
-                <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>
-                <div2 type=\"contents\">
-                  <p>in body</p>
-            #{@end_div2_body_tei}"
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in body'))
-      @parser.parse(x)
-    end
-    it "should get content from <body>" do
-      pending "to be implemented"
-    end
-    it "should get content from <back>" do
-      pending "to be implemented"
-      x = @start_tei_back_div1 +
-          "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
-          <div2 type=\"contents\">
-            <p>in back</p>
-          </div2>
-        </div1>
-        <div1 type=\"volume\" n=\"14\">
-          <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>" + @end_div1_back_tei
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in back'))
-      @parser.parse(x)
-    end
-    it "should not include the contents of any attributes" do
-      x = @begin_body + "<p>Art. 1<hi rend=\"superscript\">er</hi></p>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er'))
-      @parser.parse(x)
-      x = @begin_body + "<date value=\"2013-01-01\">pretending to care</date>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
-      @parser.parse(x)
-    end
-    it "should include the contents of <p> element" do
-      x = @begin_body + "<p>blather</p>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'blather'))
-      @parser.parse(x)
-    end
-    it "should include the contents of <head> element" do
-      x = @begin_body + "<head>MARDI 15 OCTOBRE 1793.</head>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'MARDI 15 OCTOBRE 1793.'))
-      @parser.parse(x)
-    end
-    it "should include the contents of <speaker> element" do
-      x = @begin_body + "<sp><speaker>M. Bréard.</speaker></sp>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'M. Bréard.'))
-      @parser.parse(x)
-    end
-    it "should include the contents of <date> element" do
-      x = @begin_body + "<date value=\"2013-01-01\">pretending to care</date>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
-      @parser.parse(x)
-#      x = @begin_back + "<date value=\"2013-01-01\">pretending to care</date>" + @end_back
-#      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
-#      @parser.parse(x)
-    end
-    it "should include the contents of <note> element" do
-      x = @begin_body + "<note place=\"foot\">(1) shoes.</note>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.'))
-      @parser.parse(x)
-#      x = @begin_back + "<note place=\"foot\">(1) shoes.</note>" + @end_back
-#      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.'))
-#      @parser.parse(x)
-    end
-    it "should include the contents of <hi> element" do
-      x = @begin_body + "<p>Art. 1<hi>er.</hi>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er.'))
-      @parser.parse(x)
-    end
-    it "should include the contents of <term> element" do
-      x = @begin_body + "<p><term>Abbaye </term>(Prison de F).</p>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Abbaye (Prison de F).'))
-      @parser.parse(x)
-    end
-    it "should include the contents of <item> element" do
-      x = @begin_body + "<list><item>item!</item></list>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'item!'))
-      @parser.parse(x)
-    end
-    it "should include the contents of <signed> element" do
-      x = @begin_body + "<signed>Signé : Remillat, à l'original. </signed>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "Signé : Remillat, à l'original."))
-      @parser.parse(x)
-    end
-    it "should ignore <trailer>" do
-      x = @begin_body + "<trailer>FIN DE L'INTRODUCTION.</trailer><p>blah</p>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "blah"))
-      @parser.parse(x)
-    end
-  end
-
-  context "normalize_date" do
-    before(:all) do
-    end
-    it "should log a warning for unparseable dates" do
-      x = @start_tei_body_div2_session + 
-          "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
-          <p>boo <date value=\"1792-999-02\">5 octobre 1793</date> ya</p>
-          <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-      @logger.should_receive(:warn).with("Found <date> tag with unparseable date value: '1792-999-02' in page tq360bc6948_00_0816")
-      @rsolr_client.should_receive(:add)
-      @parser.parse(x)
-    end
-    it "should cope with day of 00" do
-      @atd.normalize_date("1792-08-00").should == Date.parse('1792-08-01')
-    end
-    it "should cope with single digit days and months (no leading zero)" do
-      @atd.normalize_date("1792-8-1").should == Date.parse('1792-08-01')
-    end
-    it "should cope with year only" do
-      @atd.normalize_date("1792").should == Date.parse('1792-01-01')
-    end
-    it "should cope with year and month only" do
-      @atd.normalize_date("1792-08").should == Date.parse('1792-08-01')
-    end
-    it "should cope with slashes in days area (trying to representing a range)" do
-      @atd.normalize_date("1792-08-01/15/17").should == Date.parse('1792-08-01')
-    end
-    it "should cope with au in date" do
-      @atd.normalize_date("1793-05-17 au 1793-06-02").should == Date.parse('1793-05-17')
-    end
-    it "should cope with spaces preceding or following hyphens" do
-      @atd.normalize_date("1792 - 8 - 01").should == Date.parse('1792-08-01')
-    end
-  end # normalize_date
-
   context "<pb> element" do
     before(:all) do
       @page_id = 'tq360bc6948_00_0813'
@@ -429,8 +251,8 @@ describe ApTeiDocument do
         @parser.parse(x)
       end
     end # page_num_ssi
-    it "image_id_ss should be same as <pb> id attrib with .jp2 extension" do
-      @rsolr_client.should_receive(:add).with(hash_including(:image_id_ss => "#{@page_id}.jp2"))
+    it "image_id_ssm should be same as <pb> id attrib with .jp2 extension" do
+      @rsolr_client.should_receive(:add).with(hash_including(:image_id_ssm => ["#{@page_id}.jp2"]))
       @parser.parse(@x)
     end
     it "ocr_id_ss should be same as <pb> id attrib with _99_ replacing middle _00_ and .txt extension" do
@@ -445,7 +267,7 @@ describe ApTeiDocument do
         @x = @start_tei_body_div2_session +
             "<p>actual content</p>" + @end_div2_body_tei
       end
-      it "should have a page_doc_type of 'séance'" do
+      it "should have doc_type_ssim of 'séance'" do
         @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["séance"]))
         @parser.parse(@x)
       end
@@ -709,6 +531,184 @@ describe ApTeiDocument do
     end # spoken_text_timv
   end # <sp> element
     
+  context "text_tiv (catchall field)" do
+    before(:all) do
+      @begin_body = @start_tei_body_div1 + "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>"
+      @end_body = "<pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div1_body_tei
+      @begin_back = @start_tei_back_div1 + "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>"
+      @end_back = "<pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div1_back_tei
+    end
+    it "should not get content from <teiHeader>" do
+      x = "<TEI.2><teiHeader type=\"text\" id=\"by423fb7614\">
+        <fileDesc>
+          <titleStmt>
+            <title type=\"main\">ARCHIVES PARLEMENTAIRES</title>
+            <author>MM. MAVIDAL</author>
+          </titleStmt>
+          <publicationStmt>
+            <distributor>
+              <address>
+                <addrLine>blah</addrLine>
+              </address>
+            </distributor>
+            <date>1900</date>
+            <pubPlace>PARIS</pubPlace>
+          </publicationStmt>
+          <notesStmt>
+            <note type=\"markup\">Additional markup added by Digital Divide Data, 20120701</note>
+          </notesStmt>
+          <sourceDesc>
+            <p>Compiled from ARCHIVES PARLEMENTAIRES documents.</p>
+          </sourceDesc>
+        </fileDesc>
+      </teiHeader>
+      <text><body>
+        <div1 type=\"volume\" n=\"14\">
+          <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>
+          <div2 type=\"contents\">
+            <p>in body</p>
+      #{@end_div2_body_tei}"
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in body'))
+      @parser.parse(x)
+    end
+    it "should not get content from <front>" do
+      x = "<TEI.2><text>
+            <front>
+              <div type=\"frontpiece\">
+                  <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
+                  <p>blah blah</p>
+              </div>
+              <div type=\"abstract\">
+                  <pb n=\"ii\" id=\"ns351vc7243_00_0002\"/>
+                  <p>front content</p>
+              </div>
+            </front>
+            <body>
+              <div1 type=\"volume\" n=\"14\">
+                <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>
+                <div2 type=\"contents\">
+                  <p>in body</p>
+            #{@end_div2_body_tei}"
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in body'))
+      @parser.parse(x)
+    end
+    it "should get content from <body>" do
+      pending "to be implemented"
+    end
+    it "should get content from <back>" do
+      pending "to be implemented"
+      x = @start_tei_back_div1 +
+          "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
+          <div2 type=\"contents\">
+            <p>in back</p>
+          </div2>
+        </div1>
+        <div1 type=\"volume\" n=\"14\">
+          <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>" + @end_div1_back_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in back'))
+      @parser.parse(x)
+    end
+    it "should not include the contents of any attributes" do
+      x = @begin_body + "<p>Art. 1<hi rend=\"superscript\">er</hi></p>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er'))
+      @parser.parse(x)
+      x = @begin_body + "<date value=\"2013-01-01\">pretending to care</date>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
+      @parser.parse(x)
+    end
+    it "should include the contents of <p> element" do
+      x = @begin_body + "<p>blather</p>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'blather'))
+      @parser.parse(x)
+    end
+    it "should include the contents of <head> element" do
+      x = @begin_body + "<head>MARDI 15 OCTOBRE 1793.</head>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'MARDI 15 OCTOBRE 1793.'))
+      @parser.parse(x)
+    end
+    it "should include the contents of <speaker> element" do
+      x = @begin_body + "<sp><speaker>M. Bréard.</speaker></sp>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'M. Bréard.'))
+      @parser.parse(x)
+    end
+    it "should include the contents of <date> element" do
+      x = @begin_body + "<date value=\"2013-01-01\">pretending to care</date>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
+      @parser.parse(x)
+#      x = @begin_back + "<date value=\"2013-01-01\">pretending to care</date>" + @end_back
+#      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
+#      @parser.parse(x)
+    end
+    it "should include the contents of <note> element" do
+      x = @begin_body + "<note place=\"foot\">(1) shoes.</note>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.'))
+      @parser.parse(x)
+#      x = @begin_back + "<note place=\"foot\">(1) shoes.</note>" + @end_back
+#      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.'))
+#      @parser.parse(x)
+    end
+    it "should include the contents of <hi> element" do
+      x = @begin_body + "<p>Art. 1<hi>er.</hi>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er.'))
+      @parser.parse(x)
+    end
+    it "should include the contents of <term> element" do
+      x = @begin_body + "<p><term>Abbaye </term>(Prison de F).</p>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Abbaye (Prison de F).'))
+      @parser.parse(x)
+    end
+    it "should include the contents of <item> element" do
+      x = @begin_body + "<list><item>item!</item></list>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'item!'))
+      @parser.parse(x)
+    end
+    it "should include the contents of <signed> element" do
+      x = @begin_body + "<signed>Signé : Remillat, à l'original. </signed>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "Signé : Remillat, à l'original."))
+      @parser.parse(x)
+    end
+    it "should ignore <trailer>" do
+      x = @begin_body + "<trailer>FIN DE L'INTRODUCTION.</trailer><p>blah</p>" + @end_body
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "blah"))
+      @parser.parse(x)
+    end
+  end
+
+  context "normalize_date" do
+    before(:all) do
+    end
+    it "should log a warning for unparseable dates" do
+      x = @start_tei_body_div2_session + 
+          "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+          <p>boo <date value=\"1792-999-02\">5 octobre 1793</date> ya</p>
+          <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+      @logger.should_receive(:warn).with("Found <date> tag with unparseable date value: '1792-999-02' in page tq360bc6948_00_0816")
+      @rsolr_client.should_receive(:add)
+      @parser.parse(x)
+    end
+    it "should cope with day of 00" do
+      @atd.normalize_date("1792-08-00").should == Date.parse('1792-08-01')
+    end
+    it "should cope with single digit days and months (no leading zero)" do
+      @atd.normalize_date("1792-8-1").should == Date.parse('1792-08-01')
+    end
+    it "should cope with year only" do
+      @atd.normalize_date("1792").should == Date.parse('1792-01-01')
+    end
+    it "should cope with year and month only" do
+      @atd.normalize_date("1792-08").should == Date.parse('1792-08-01')
+    end
+    it "should cope with slashes in days area (trying to representing a range)" do
+      @atd.normalize_date("1792-08-01/15/17").should == Date.parse('1792-08-01')
+    end
+    it "should cope with au in date" do
+      @atd.normalize_date("1793-05-17 au 1793-06-02").should == Date.parse('1793-05-17')
+    end
+    it "should cope with spaces preceding or following hyphens" do
+      @atd.normalize_date("1792 - 8 - 01").should == Date.parse('1792-08-01')
+    end
+  end # normalize_date
+
   context "parsing warnings" do
     it "should log a warning when it finds direct non-whitespace text content in a wrapper element" do
       x = @start_tei_body_div2_session +

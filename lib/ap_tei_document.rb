@@ -140,7 +140,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   # --------- Not part of the Nokogiri::XML::SAX::Document events -----------------
     
-  COLL_VAL = "ap-collection"
+  COLL_VAL = "Archives parlementaires"
   PAGE_TYPE = "page"
   DIV2_TYPE = {'session' => 'séance',
                 'contents' => 'table des matières',
@@ -181,7 +181,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     add_value_to_doc_hash(:id, new_page_id)
     page_num = get_attribute_val('n', attributes)
     add_value_to_doc_hash(:page_num_ssi,  page_num) if page_num
-    add_value_to_doc_hash(:image_id_ss, new_page_id + ".jp2")
+    add_value_to_doc_hash(:image_id_ssm, new_page_id + ".jp2")
     add_value_to_doc_hash(:ocr_id_ss, new_page_id.sub(/_00_/, '_99_') + ".txt")
   end
 
