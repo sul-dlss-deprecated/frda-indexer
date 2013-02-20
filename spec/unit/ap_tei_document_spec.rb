@@ -734,9 +734,9 @@ describe ApTeiDocument do
       @rsolr_client.should_receive(:add)
       @parser.parse(x)
     end
-    it "should log a warning for direct non-whitespace text children when not first" do
+    it "should log a warning for direct non-whitespace text children when not last" do
       x = @start_tei_body_div2_session + 
-          "<pb n=\"812\" id=\"tq360bc6948_00_0816\">
+          "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
           <list>
           <head>bar</head>
           <item>1</item>

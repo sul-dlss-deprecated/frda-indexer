@@ -23,6 +23,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   end
   
   def start_document
+    @element_name_stack = []
     @in_body = false
     @in_back = false
     init_doc_hash
@@ -32,11 +33,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [Array<String>] attributes an assoc list of namespaces and attributes, e.g.:
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
   def start_element name, attributes
-    if WRAPPER_ELEMENTS.include? name
-      @child_of_wrapper = true
-    else
-      @child_of_wrapper = false
-    end
+    @element_name_stack.push(name)
     case name
     when 'body'
       @in_body = true
@@ -84,13 +81,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   # @param [String] name the element tag
   def end_element name
-    if WRAPPER_ELEMENTS.include? name
-      @child_of_wrapper = false
-      if !@element_buffer.strip.empty?
-        @logger.warn("Found <#{name}> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}")
-      end
-    end
-    
+    @element_name_stack.pop
+
     case name
     when 'body'
       if !@page_buffer.empty?
@@ -138,6 +130,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def characters(data)
     chars = data.gsub(/\s+/, ' ')
     @element_buffer = add_chars_to_buffer(chars, @element_buffer)
+    if WRAPPER_ELEMENTS.include?(@element_name_stack.last) 
+      if !@element_buffer.strip.empty?
+        @logger.warn("Found <#{@element_name_stack.last}> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}")
+      end
+    end
+    
     @page_buffer = add_chars_to_buffer(chars, @page_buffer) if @in_body || @in_back && @in_trailer == false
     @element_just_started = false
     @element_just_ended = false
