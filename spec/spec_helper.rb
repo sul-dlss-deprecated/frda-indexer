@@ -18,7 +18,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'ap_indexer'
 require 'ap_tei_document'
-require 'bnf_solr_doc_builder'
+require 'bnf_images_indexer'
 
 #RSpec.configure do |config|
 #end
