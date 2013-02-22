@@ -14,7 +14,7 @@ class BnfSolrDocBuilder
   attr_reader :logger
 
   # @param [String] druid of BnF object, e.g. ab123cd4567
-  # @param [Harvestdor::Client] harvestdor client used to get mods and public_xml
+  # @param [Harvestdor::Client] harvestdor_client used to get mods and public_xml
   # @param [Logger] logger for indexing messages
   def initialize(druid, harvestdor_client, logger)
     @druid = druid
