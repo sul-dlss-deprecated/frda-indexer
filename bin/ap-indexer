@@ -5,10 +5,10 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 
 require 'rubygems'
 begin
-  require 'indexer'
+  require 'ap_indexer'
 rescue LoadError
   require 'bundler/setup'
-  require 'indexer'
+  require 'ap_indexer'
 end
 
 config_yml_path = ARGV.pop
@@ -17,5 +17,5 @@ if config_yml_path.nil?
   exit
 end
   
-indexer = Indexer.new(config_yml_path)
+indexer = ApIndexer.new(config_yml_path, ARGV)
 indexer.harvest_and_index

@@ -2,7 +2,7 @@ source "https://rubygems.org"
 source "http://sul-gems.stanford.edu"
 
 # sul-gems
-gem 'harvestdor'
+gem 'harvestdor-indexer'
 gem 'stanford-mods'
 
 # external gems

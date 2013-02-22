@@ -154,7 +154,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   IGNORE_ELEMENTS = ['trailer']
 
   # @param [String] chars the characters to be concatenated to the buffer
-  # @param [String] the text buffer
+  # @param [String] buffer the text buffer
   def add_chars_to_buffer(chars, buffer)
     unless chars.empty?
       if buffer
