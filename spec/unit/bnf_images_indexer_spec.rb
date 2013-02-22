@@ -13,23 +13,25 @@ describe BnfImagesIndexer do
     @ng_mods_xml = Nokogiri::XML("<mods #{@ns_decl}><note>hi</note></mods>")
   end
   
-  before(:each) do
-    @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
-  end
-  
-  it "the druid should be the value of the :id and :druid_ssi fields" do
-    @solr_client.should_receive(:add).with(hash_including(:id => @fake_druid, :druid_ssi => @fake_druid))
-    @indexer.index(@fake_druid)
-  end
-  
-  context "fields that are constants" do
-    it ":collection_ssi should be Images de la Révolution française" do
-      @solr_client.should_receive(:add).with(hash_including(:collection_ssi => 'Images de la Révolution française'))
+  context "index method" do
+    before(:each) do
+      @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
+      @indexer.stub(:content_md).and_return(nil)
+    end
+
+    it "the druid should be the value of the :id and :druid_ssi fields" do
+      @solr_client.should_receive(:add).with(hash_including(:id => @fake_druid, :druid_ssi => @fake_druid))
       @indexer.index(@fake_druid)
     end
-    it ":type_ssi should be 'image'" do
-      @solr_client.should_receive(:add).with(hash_including(:type_ssi => 'image'))
-      @indexer.index(@fake_druid)
+    context "fields that are constants" do
+      it ":collection_ssi should be Images de la Révolution française" do
+        @solr_client.should_receive(:add).with(hash_including(:collection_ssi => 'Images de la Révolution française'))
+        @indexer.index(@fake_druid)
+      end
+      it ":type_ssi should be 'image'" do
+        @solr_client.should_receive(:add).with(hash_including(:type_ssi => 'image'))
+        @indexer.index(@fake_druid)
+      end
     end
   end
 
@@ -61,88 +63,57 @@ describe BnfImagesIndexer do
   end
   
 
-  context ":image_id field" do
-    
+  context ":image_id_ssn field" do
+    it "should be the value of image_ids method" do
+      pending "to be implemented"
+    end
   end
   
   
- context "fields from and methods pertaining to contentMetadata" do
+  context "image_ids method" do
     before(:all) do
-      @cntnt_md_type = 'image'
-      @cntnt_md_xml = "<contentMetadata type='#{@cntnt_md_type}' objectId='#{@fake_druid}'></contentMetadata>"
-      @pub_xml = "<publicObject id='druid:#{@fake_druid}'>#{@cntnt_md_xml}</publicObject>"
-      @ng_pub_xml = Nokogiri::XML(@pub_xml)
+      @content_md_start = "<contentMetadata objectId='#{@fake_druid}'>"
+      @content_md_end = "</contentMetadata>"
     end
-    before(:each) do
-      @hdor_client = double()
-      @hdor_client.stub(:mods).with(@fake_druid).and_return(@ng_mods_xml)
-      @hdor_client.stub(:public_xml).with(@fake_druid).and_return(@ng_pub_xml)
-      @sdb = SolrDocBuilder.new(@fake_druid, @hdor_client, Logger.new(STDOUT))
+    it "should be nil if there are no <resource> elements in the contentMetadata" do
+      ng_xml = Nokogiri::XML("#{@content_md_start}#{@content_md_end}")
+      @indexer.stub(:content_md).and_return(ng_xml.root)
+      @indexer.image_ids(@fake_druid).should == nil
     end
-
-    it "content_md should get the contentMetadata from the public_xml" do
-      content_md = @sdb.send(:content_md)
-      content_md.should be_an_instance_of(Nokogiri::XML::Element)
-      content_md.name.should == 'contentMetadata'
-# NOTE:  the below isn't working -- probably due to Nokogiri attribute bug introduced      
-  #    content_md.should be_equivalent_to(@cntnt_md_xml)
+    it "should ignore <resource> elements with attribute type other than 'image'" do
+      ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='blarg'><file id='foo'/></resource>#{@content_md_end}")
+      @indexer.stub(:content_md).and_return(ng_xml.root)
+      @indexer.image_ids(@fake_druid).should == nil
     end
-
-    it "dor_content_type should be the value of the type attribute on the contentMetadata element" do
-      @sdb.send(:dor_content_type).should == @cntnt_md_type
+    it "should be ignore all but <file> element children of the image resource element" do
+      ng_xml = ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><label id='foo'>bar</label></resource>#{@content_md_end}")
+      @indexer.stub(:content_md).and_return(ng_xml.root)
+      @indexer.image_ids(@fake_druid).should == nil
     end
-
-    context "image_ids" do
-      before(:all) do
-        @content_md_start = "<contentMetadata objectId='#{@fake_druid}'>"
-        @content_md_end = "</contentMetadata>"
-      end
-      before(:each) do
-        @hdor_client = double()
-        @hdor_client.stub(:mods).with(@fake_druid).and_return(@ng_mods_xml)
-        @hdor_client.stub(:public_xml).with(@fake_druid).and_return(nil)
-        @sdb = SolrDocBuilder.new(@fake_druid, @hdor_client, Logger.new(STDOUT))
-      end
-      it "should be nil if there are no <resource> elements in the contentMetadata" do
-        ng_xml = Nokogiri::XML("#{@content_md_start}#{@content_md_end}")
-        @sdb.stub(:content_md).and_return(ng_xml.root)
-        @sdb.image_ids.should == nil
-      end
-      it "should ignore <resource> elements with attribute type other than 'image'" do
-        ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='blarg'><file id='foo'/></resource>#{@content_md_end}")
-        @sdb.stub(:content_md).and_return(ng_xml.root)
-        @sdb.image_ids.should == nil
-      end
-      it "should be ignore all but <file> element children of the image resource element" do
-        ng_xml = ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><label id='foo'>bar</label></resource>#{@content_md_end}")
-        @sdb.stub(:content_md).and_return(ng_xml.root)
-        @sdb.image_ids.should == nil
-      end
-      it "should be nil if there are no id elements on file elements" do
-        ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file/></resource>#{@content_md_end}")
-        @sdb.stub(:content_md).and_return(ng_xml.root)
-        @sdb.image_ids.should == nil
-      end
-      it "should be an Array of size one if there is a single <resource><file id='something'> in the content metadata" do
-        ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file id='foo'/></resource>#{@content_md_end}")
-        @sdb.stub(:content_md).and_return(ng_xml.root)
-        @sdb.image_ids.should == ['foo']
-      end
-      it "should be the same size as the number of <resource><file id='something'> in the content metadata" do
-        ng_xml = Nokogiri::XML("#{@content_md_start}
-              <resource type='image'><file id='foo'/></resource>
-              <resource type='image'><file id='bar'/></resource>#{@content_md_end}")
-        @sdb.stub(:content_md).and_return(ng_xml.root)
-        @sdb.image_ids.should == ['foo', 'bar']
-      end
-      it "endings of .jp2 should not be stripped" do
-        ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file id='W188_000001_300.jp2'/></resource>#{@content_md_end}")
-        @sdb.stub(:content_md).and_return(ng_xml.root)
-        @sdb.image_ids.should == ['W188_000001_300.jp2']
-      end
+    it "should be nil if there are no id elements on file elements" do
+      ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file/></resource>#{@content_md_end}")
+      @indexer.stub(:content_md).and_return(ng_xml.root)
+      @indexer.image_ids(@fake_druid).should == nil
+    end
+    it "should be an Array of size one if there is a single <resource><file id='something'> in the content metadata" do
+      ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file id='foo'/></resource>#{@content_md_end}")
+      @indexer.stub(:content_md).and_return(ng_xml.root)
+      @indexer.image_ids(@fake_druid).should == ['foo']
+    end
+    it "should be the same size as the number of <resource><file id='something'> in the content metadata" do
+      ng_xml = Nokogiri::XML("#{@content_md_start}
+            <resource type='image'><file id='foo'/></resource>
+            <resource type='image'><file id='bar'/></resource>#{@content_md_end}")
+      @indexer.stub(:content_md).and_return(ng_xml.root)
+      @indexer.image_ids(@fake_druid).should == ['foo', 'bar']
+    end
+    it "endings of .jp2 should not be stripped" do
+      ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file id='W188_000001_300.jp2'/></resource>#{@content_md_end}")
+      @indexer.stub(:content_md).and_return(ng_xml.root)
+      @indexer.image_ids(@fake_druid).should == ['W188_000001_300.jp2']
     end
 
-  end # fields from and methods pertaining to contentMetadata
+  end # image_ids method
   
   
 end

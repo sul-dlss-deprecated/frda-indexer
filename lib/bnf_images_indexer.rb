@@ -12,6 +12,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
 
   # create Solr doc for the druid and add it to Solr, unless it is on the blacklist.  
   #  NOTE: don't forget to send commit to Solr, either once at end (already in harvest_and_index), or for each add, or ...
+  # @param [String] druid e.g. ab123cd4567
   def index druid
     if blacklist.include?(druid)
       logger.info("BnF Images Druid #{druid} is on the blacklist and will have no Solr doc created")
@@ -23,6 +24,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
         :druid_ssi => druid,
         :type_ssi => TYPE_VAL,
         :collection_ssi => COLL_VAL,
+        :image_id_ssm => image_ids(druid)
       }
       mods_doc_hash = doc_hash_from_mods druid
 #      doc_hash.merge!(mods_doc_hash) if mods_doc_hash
@@ -36,7 +38,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
   end
   
   # Create a Hash representing a Solr doc, with all MODS related fields populated.
-  # @param [Stanford::Mods::Record] smods_rec_obj from the MODS xml for the druid
+  # @param [String] druid e.g. ab123cd4567
   # @return [Hash] Hash representing the Solr document
   def doc_hash_from_mods druid
     smods_rec_obj = smods_rec(druid)
@@ -74,23 +76,24 @@ class BnfImagesIndexer < Harvestdor::Indexer
   
   # Retrieve the image file ids from the contentMetadata: xpath  contentMetadata/resource[@type='image']/file/@id
   #  but with jp2 file extension stripped off.
+  # @param [String] druid e.g. ab123cd4567
   # @return [Array<String>] the ids of the image files, without file type extension (e.g. 'W188_000002_300')
   def image_ids druid
-    @image_ids ||= begin
-      ids = []
-      if content_md
-        content_md.xpath('./resource[@type="image"]/file/@id').each { |node|
-          ids << node.text
-        }
-      end
-      return nil if ids.empty?
-      ids
+    ids = []
+    cntmd = content_md druid
+    if cntmd
+      cntmd.xpath('./resource[@type="image"]/file/@id').each { |node|
+        ids << node.text
+      }
     end
+    return nil if ids.empty?
+    ids
   end
 
-# FIXME: only retrieve content metadata if that's all we need
+# TODO: only retrieve content metadata if that's all we need
 
   # the contentMetadata for this object, derived from the public_xml
+  # @param [String] druid e.g. ab123cd4567
   # @return [Nokogiri::XML::Element] containing the contentMetadata
   def content_md druid
 # FIXME:  create nom-xml terminology for contentMetadata in harvestdor?
@@ -98,6 +101,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
   end
   
   # the public_xml for the druid as a Nokogiri::XML::Document object
+  # @param [String] druid e.g. ab123cd4567
   # @return [Nokogiri::XML::Document] containing the public xml for the druid
   def public_xml druid
     @harvestdor_client.public_xml druid
