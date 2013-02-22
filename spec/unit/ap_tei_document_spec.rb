@@ -297,7 +297,7 @@ describe ApTeiDocument do
 
         context "value attribute" do
           it "should be the value attribute of the first <date> element after <div2>" do
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_val_ssi => "1793-10-05"))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_val_ssim => ["1793-10-05"]))
             @parser.parse(@dx)
           end
           it "should ignore subsequent <date> elements and log a warning" do
@@ -306,31 +306,31 @@ describe ApTeiDocument do
                 <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p><date value=\"2013-01-01\">pretending to care</date></p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1793-10-05T00:00:00Z"))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsim => ["1793-10-05T00:00:00Z"]))
             @parser.parse(x)
           end
           it "should transform the value into UTC Zulu format" do
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsi => "1793-10-05T00:00:00Z"))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsim => ["1793-10-05T00:00:00Z"]))
             @parser.parse(@dx)
           end
         end # date value
         
         context "text" do
           it "does something" do
-            pending "session_date_ftsiv to be implemented"
+            pending "session_date_ftsimv to be implemented"
           end
         end # date text
         
       end # session date
       
-      context "session_govt_ssi" do
+      context "session_govt_ssim" do
         it "should take the value of the first <head> element after <div2>" do
           x = @start_tei_body_div2_session + 
                 "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
                 <head>CONVENTION NATIONALE</head>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "CONVENTION NATIONALE"))
+          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
           @parser.parse(x)
         end
         it "should ignore subsequent <head> elements, even if allcaps" do
@@ -340,7 +340,7 @@ describe ApTeiDocument do
                 <head>PRESIDENCE DE M. MERLIN</head>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_not_including(:session_govt_ssi => "PRESIDENCE DE M. MERLIN"))
+          @rsolr_client.should_receive(:add).with(hash_not_including(:session_govt_ssim => ["PRESIDENCE DE M. MERLIN"]))
           @parser.parse(x)
         end
         it "should strip whitespace and punctuation" do
@@ -350,7 +350,7 @@ describe ApTeiDocument do
                 ASSEMBLÉE NATIONALE LÉGISLATIVE. </head>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "ASSEMBLÉE NATIONALE LÉGISLATIVE"))
+          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["ASSEMBLÉE NATIONALE LÉGISLATIVE"]))
           @parser.parse(x)
         end
         it "should ignore whitespace before first <head> or <p>" do
@@ -360,7 +360,7 @@ describe ApTeiDocument do
                 <head>CONVENTION NATIONALE</head>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "CONVENTION NATIONALE"))
+          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
           @parser.parse(x)
         end
         it "should find the value if it is in <p> instead of <head>" do
@@ -369,7 +369,7 @@ describe ApTeiDocument do
                 <p>ASSEMBLÉE NATIONALE LÉGISLATIVE. </p>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "ASSEMBLÉE NATIONALE LÉGISLATIVE"))
+          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["ASSEMBLÉE NATIONALE LÉGISLATIVE"]))
           @parser.parse(x)
         end
         it "should not have leftover text from preceding elements" do
@@ -381,10 +381,10 @@ describe ApTeiDocument do
                 <head>CONVENTION NATIONALE</head>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssi => "CONVENTION NATIONALE"))
+          @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
           @parser.parse(x)
         end
-      end # session_govt_ssi
+      end # session_govt_ssim
     end
     context 'type="contents"' do
       before(:all) do

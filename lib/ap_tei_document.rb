@@ -55,8 +55,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       date_val_str = get_attribute_val('value', attributes)
       d = normalize_date(date_val_str)
       if @need_session_date && date_val_str
-        add_value_to_doc_hash(:session_date_val_ssi,  date_val_str) 
-        add_value_to_doc_hash(:session_date_dtsi,  d.strftime('%Y-%m-%dT00:00:00Z')) if d
+        add_value_to_doc_hash(:session_date_val_ssim, date_val_str) 
+        add_value_to_doc_hash(:session_date_dtsim, d.strftime('%Y-%m-%dT00:00:00Z')) if d
         @need_session_date = false
       end
     when 'pb'
@@ -99,10 +99,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @@div2_doc_type = nil
       @in_session = false
     when 'head'
-      add_session_govt_ssi(@element_buffer.strip) if @in_session && @need_session_govt
+      add_session_govt_ssim(@element_buffer.strip) if @in_session && @need_session_govt
     when 'p'
       text = @element_buffer.strip if !@element_buffer.strip.empty?
-      add_session_govt_ssi(text) if @in_session && @need_session_govt && text && text == text.upcase
+      add_session_govt_ssim(text) if @in_session && @need_session_govt && text && text == text.upcase
       if @in_sp && @speaker
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker} #{text}") if text
       end
@@ -166,10 +166,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
   end
   
-  # add :session_govt_ssi field to doc_hash, and reset appropriate vars
-  def add_session_govt_ssi value
+  # add :session_govt_ssim field to doc_hash, and reset appropriate vars
+  def add_session_govt_ssim value
     value.strip if value
-    add_value_to_doc_hash(:session_govt_ssi, value.sub(/[[:punct:]]$/, '')) if value
+    add_value_to_doc_hash(:session_govt_ssim, value.sub(/[[:punct:]]$/, '')) if value
     @need_session_govt = false
   end
   
