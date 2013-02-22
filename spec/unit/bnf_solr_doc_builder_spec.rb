@@ -12,6 +12,24 @@ describe BnfSolrDocBuilder do
     @hdor_client.stub(:public_xml).with(@fake_druid).and_return(nil)
   end
   
+  context "solr_doc fields" do
+    before(:all) do
+      @ns_decl = "xmlns='#{Mods::MODS_NS}'"
+      @mods_xml = "<mods #{@ns_decl}><note>hi</note></mods>"
+    end
+    before(:each) do
+      @title = 'qervavdsaasdfa'
+      ng_mods = Nokogiri::XML("<mods #{@ns_decl}><titleInfo><title>#{@title}</title></titleInfo></mods>")
+#      @hdor_client.stub(:mods).with(@fake_druid).and_return(ng_mods)
+#      @doc_hash = @indexer.solr_doc(@fake_druid)
+    end
+
+    it "should have fields populated from the MODS" do
+      pending "need to fix - only true for BnF Images"
+      @doc_hash[:title_245_search] = @title
+    end       
+  end # solr_doc
+
   context "fields from /mods/titleInfo" do
     before(:all) do
       m = "<mods #{@ns_decl}>
