@@ -1,4 +1,5 @@
 require 'harvestdor-indexer'
+require 'ap_tei_document'
 
 # Indexer for Archives Parlementaires data
 #  Harvest AP info from DOR via harvestdor-indexer gem, then index it 
