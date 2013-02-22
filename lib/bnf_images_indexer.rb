@@ -29,7 +29,6 @@ class BnfImagesIndexer < Harvestdor::Indexer
       mods_doc_hash = doc_hash_from_mods druid
 #      doc_hash.merge!(mods_doc_hash) if mods_doc_hash
       
-      # contentMetadata, identityMetadata ...
 
       solr_client.add(doc_hash)
       logger.info("Added doc for #{druid} to Solr")
@@ -80,7 +79,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
   # @return [Array<String>] the ids of the image files, without file type extension (e.g. 'W188_000002_300')
   def image_ids druid
     ids = []
-    cntmd = content_md druid
+    cntmd = @harvestdor_client.content_metadata druid
     if cntmd
       cntmd.xpath('./resource[@type="image"]/file/@id').each { |node|
         ids << node.text
@@ -90,21 +89,4 @@ class BnfImagesIndexer < Harvestdor::Indexer
     ids
   end
 
-# TODO: only retrieve content metadata if that's all we need
-
-  # the contentMetadata for this object, derived from the public_xml
-  # @param [String] druid e.g. ab123cd4567
-  # @return [Nokogiri::XML::Element] containing the contentMetadata
-  def content_md druid
-# FIXME:  create nom-xml terminology for contentMetadata in harvestdor?
-    public_xml(druid).root.xpath('/publicObject/contentMetadata').first
-  end
-  
-  # the public_xml for the druid as a Nokogiri::XML::Document object
-  # @param [String] druid e.g. ab123cd4567
-  # @return [Nokogiri::XML::Document] containing the public xml for the druid
-  def public_xml druid
-    @harvestdor_client.public_xml druid
-  end
-  
 end
