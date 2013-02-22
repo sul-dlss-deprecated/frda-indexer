@@ -13,4 +13,10 @@ FRDA is comprised of two collections:
 Check out code from git
 
 Execute:
-    $ bundle install
+  $ bundle install
+
+Check config files in config dir (ap.yml, bnf-images.yml).
+
+To Run AP indexing:
+  $ bin/ap-indexer config/ap.yml
+
