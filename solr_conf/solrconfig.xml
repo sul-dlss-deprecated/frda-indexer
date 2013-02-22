@@ -148,6 +148,9 @@
       <int name="ps">0</int>
       <float name="tie">0.01</float>
       <str name="qf">
+        catalog_heading_timv^3
+        catalog_heading_ftsimv
+        catalog_heading_etsimv
         spoken_text_timv^5
         spoken_text_ftsimv
         text_tiv^5
@@ -164,8 +167,12 @@
         spoken_text_ftsimv^15
         text_tiv^20
         text_ftsiv^10
+        catalog_heading_timv^20
+        catalog_heading_ftsimv^15
+        catalog_heading_etsimv^15
       </str>
       <str name="qf_exact">
+        catalog_heading_timv
         spoken_text_timv
         text_tiv
         speaker_ssim
@@ -174,6 +181,7 @@
 				doc_type_ssim
       </str>
       <str name="pf_exact">
+        catalog_heading_timv^5
         spoken_text_timv^5
         text_tiv^5
       </str>
@@ -273,82 +281,7 @@
       <str>tvComponent</str>
     </arr>
   </requestHandler>
-  
-  <!-- Spell Check  http://wiki.apache.org/solr/SpellCheckComponent -->
-  <searchComponent name="spellcheck" class="solr.SpellCheckComponent">
-    <str name="queryAnalyzerFieldType">textSpell</str>
-    <lst name="spellchecker">
-      <str name="name">default</str>
-      <str name="field">text_tiv</str>
-      <str name="classname">solr.DirectSolrSpellChecker</str>
-      <str name="distanceMeasure">internal</str>
-      <float name="accuracy">0.5</float>
-      <int name="maxEdits">2</int>
-      <int name="minPrefix">1</int>
-      <int name="maxInspections">5</int>
-      <int name="minQueryLength">4</int>
-      <float name="maxQueryFrequency">0.01</float>
-    </lst>    
-  </searchComponent>
-  
-  <!-- Highlighting Component  http://wiki.apache.org/solr/HighlightingParameters -->
-  <searchComponent class="solr.HighlightComponent" name="highlight">
-    <highlighting>
-      <fragmenter name="gap" default="true" class="solr.highlight.GapFragmenter">
-        <lst name="defaults">
-          <int name="hl.fragsize">100</int>
-        </lst>
-      </fragmenter>
-      <fragmenter name="regex" class="solr.highlight.RegexFragmenter">
-        <lst name="defaults">
-          <int name="hl.fragsize">70</int>
-          <float name="hl.regex.slop">0.5</float>
-          <str name="hl.regex.pattern">[-\w ,/\n\&quot;&apos;]{20,200}</str>
-        </lst>
-      </fragmenter>
-      
-      <formatter name="html" default="true" class="solr.highlight.HtmlFormatter">
-        <lst name="defaults">
-          <str name="hl.simple.pre"><![CDATA[<em>]]></str>
-          <str name="hl.simple.post"><![CDATA[</em>]]></str>
-        </lst>
-      </formatter>
-      
-      <encoder name="html" class="solr.highlight.HtmlEncoder" />
-      
-      <fragListBuilder name="simple" class="solr.highlight.SimpleFragListBuilder"/>
-      <fragListBuilder name="single" class="solr.highlight.SingleFragListBuilder"/>
-      <fragListBuilder name="weighted" default="true" class="solr.highlight.WeightedFragListBuilder"/>
-
-      <fragmentsBuilder name="default" default="true" class="solr.highlight.ScoreOrderFragmentsBuilder" />
-      <fragmentsBuilder name="colored" class="solr.highlight.ScoreOrderFragmentsBuilder">
-        <lst name="defaults">
-          <str name="hl.tag.pre"><![CDATA[
-               <b style="background:yellow">,<b style="background:lawgreen">,
-               <b style="background:aquamarine">,<b style="background:magenta">,
-               <b style="background:palegreen">,<b style="background:coral">,
-               <b style="background:wheat">,<b style="background:khaki">,
-               <b style="background:lime">,<b style="background:deepskyblue">]]></str>
-          <str name="hl.tag.post"><![CDATA[</b>]]></str>
-        </lst>
-      </fragmentsBuilder>
-      
-      <boundaryScanner name="default" default="true" class="solr.highlight.SimpleBoundaryScanner">
-        <lst name="defaults">
-          <str name="hl.bs.maxScan">10</str>
-          <str name="hl.bs.chars">.,!? &#9;&#10;&#13;</str>
-        </lst>
-      </boundaryScanner>
-      <boundaryScanner name="breakIterator" class="solr.highlight.BreakIteratorBoundaryScanner">
-        <lst name="defaults">
-          <str name="hl.bs.type">WORD</str>
-          <str name="hl.bs.language">fr</str>
-          <str name="hl.bs.country">FR</str>
-        </lst>
-      </boundaryScanner>
-    </highlighting>
-  </searchComponent>
-  
+    
   <requestHandler name="/update" class="solr.UpdateRequestHandler" startup="lazy" />
   <requestHandler name="/replication" class="solr.ReplicationHandler" startup="lazy" />  
   <requestHandler name="/admin/" class="org.apache.solr.handler.admin.AdminHandlers" />
