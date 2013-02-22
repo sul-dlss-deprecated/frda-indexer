@@ -1,20 +1,38 @@
 # Settings for Archives Parlementaires
 
 # log_dir:  directory for log file  (default logs, relative to harvestdor gem path)
-log_dir: spec/test_logs  
-
+log_dir: spec/test_logs
 # log_name: name of log file  (default: harvestdor.log)
 log_name: bnf.log
 
 # purl: url for the DOR purl server (used to get ContentMetadata, etc.)
 purl: http://purl.stanford.edu
 
-# ---------- OAI harvesting parameters -----------
+# ---------- White and Black list parameters -----
 
-# oai_client_debug:  true for OAI::Client debug mode  (default: false)
+# name of file containing druids that will NOT be profiled even if they are harvested via OAI
+#  either give absolute directory, or directory relative to where the command will be executed
+#blacklist: config/bnf_images_blacklist.txt
+
+# name of file containing druids that WILL be profiled (all others will be ignored)
+#  either give absolute directory, or directory relative to where the command will be executed
+#whitelist: config/bnf_images_whitelist.txt
+
+# ----------- SOLR index (that we're writing INTO) parameters ------------
+solr:
+  url: https://sul-solr-test.stanford.edu/solr/frda
+  # timeouts are in seconds;  read_timeout -> open/read, open_timeout -> connection open
+  read_timeout: 60
+  open_timeout: 60
+
+# ---------- OAI harvesting parameters -----------
 
 # oai_repository_url:  URL of the OAI data provider
 oai_repository_url: https://dor-oaiprovider-prod.stanford.edu/oai
+
+# default_set:  default set for harvest  (default: nil)
+#   can be overridden on calls to harvest_ids and harvest_records
+default_set: is_governed_by_ht275vw4351
 
 # default_metadata_prefix:  default metadata prefix to be used for harvesting  (default: mods)
 #   can be overridden on calls to harvest_ids and harvest_records
@@ -25,13 +43,12 @@ oai_repository_url: https://dor-oaiprovider-prod.stanford.edu/oai
 # default_until_date:  default until date for harvest  (default: nil)
 #   can be overridden on calls to harvest_ids and harvest_records
 
-# default_set:  default set for harvest  (default: nil)
-#   can be overridden on calls to harvest_ids and harvest_records
-default_set: is_governed_by_ht275vw4351
+# oai_client_debug:  true for OAI::Client debug mode  (default: false)
 
 # Additional options to pass to Faraday http client (https://github.com/technoweenie/faraday)
 http_options:
   ssl:
     verify: false
-  timeout: 500
-  open_timeout: 500
+  # timeouts are in seconds;  timeout -> open/read, open_timeout -> connection open
+  timeout: 180
+  open_timeout: 180
