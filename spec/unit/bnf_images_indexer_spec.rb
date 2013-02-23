@@ -35,16 +35,19 @@ describe BnfImagesIndexer do
       end
     end
     
-#    context ":image_id_ssm field" do
-#      it "should be the value of image_ids method" do
-#        ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file id='W188_000001_300.jp2'/></resource>#{@content_md_end}")
-#        @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml.root)
-#        @solr_client.should_receive(:add).with(hash_including(:image_id_ssm => ['W188_000001_300.jp2']))
-#        @indexer.index(@fake_druid)
-#      end
-#    end
-
   end # index method
+
+  context ":image_id_ssm field" do
+    it "should be the value of image_ids method" do
+      @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
+      @content_md_start = "<contentMetadata objectId='#{@fake_druid}'>"
+      @content_md_end = "</contentMetadata>"
+      ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file id='W188_000001_300.jp2'/></resource>#{@content_md_end}")
+      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml.root)
+      @solr_client.should_receive(:add).with(hash_including(:image_id_ssm => ['W188_000001_300.jp2']))
+      @indexer.index(@fake_druid)
+    end
+  end
 
   context "fields from mods" do
     it ":mods_xml" do
