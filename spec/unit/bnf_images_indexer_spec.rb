@@ -10,7 +10,8 @@ describe BnfImagesIndexer do
     @solr_client = @indexer.solr_client
     @fake_druid = 'oo000oo0000'
     @ns_decl = "xmlns='#{Mods::MODS_NS}'"
-    @ng_mods_xml = Nokogiri::XML("<mods #{@ns_decl}><note>hi</note></mods>")
+    @mods_xml = "<mods #{@ns_decl}><note>hi</note></mods>"
+    @ng_mods_xml = Nokogiri::XML(@mods_xml)
   end
   
   context "index method" do
@@ -51,7 +52,10 @@ describe BnfImagesIndexer do
 
   context "fields from mods" do
     it ":mods_xml" do
-      pending "to be implemented"
+      @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
+      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(nil)
+      @solr_client.should_receive(:add).with(hash_including(:mods_xml))
+      @indexer.index(@fake_druid)
     end
 =begin    
           :speaker_ssim => '', #-> subject name e.g. bg698df3242

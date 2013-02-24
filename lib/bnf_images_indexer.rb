@@ -27,7 +27,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
         :image_id_ssm => image_ids(druid)
       }
       mods_doc_hash = doc_hash_from_mods druid
-#      doc_hash.merge!(mods_doc_hash) if mods_doc_hash
+      doc_hash.merge!(mods_doc_hash) if mods_doc_hash
       
 
       solr_client.add(doc_hash)
@@ -65,7 +65,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
       :title_ftsim => smods_rec_obj.sw_full_title,
       :title_fti => smods_rec_obj.sw_sort_title,
       
-      :modsxml => "#{smods_rec_obj.to_xml}",
+      :mods_xml => "#{smods_rec_obj.to_xml}",
       :text_tiv => smods_rec_obj.text,  # anything else here?
       
     }
