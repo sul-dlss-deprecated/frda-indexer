@@ -41,6 +41,13 @@ class BnfImagesIndexer < Harvestdor::Indexer
   # @return [Hash] Hash representing the Solr document
   def doc_hash_from_mods druid
     smods_rec_obj = smods_rec(druid)
+    doc_hash = {
+      :mods_xml => "#{smods_rec_obj.to_xml}",
+    }
+    doc_hash[:title_short_ftsi] = smods_rec_obj.sw_short_title if smods_rec_obj.sw_short_title
+    doc_hash[:title_long_ftsi] = smods_rec_obj.sw_full_title if smods_rec_obj.sw_full_title
+    
+=begin    
     doc_hash = { 
       
       # batch 1
@@ -58,18 +65,11 @@ class BnfImagesIndexer < Harvestdor::Indexer
       
 #          dates -> originInfo_dateIssued_sim,    subject_temporal_sim  ?
       
-      :title_short_ssi => smods_rec_obj.sw_short_title,
-      :title_long_ssi => smods_rec_obj.sw_full_title,
       
-      
-      :title_ftsim => smods_rec_obj.sw_full_title,
-      :title_fti => smods_rec_obj.sw_sort_title,
-      
-      :mods_xml => "#{smods_rec_obj.to_xml}",
       :text_tiv => smods_rec_obj.text,  # anything else here?
       
     }
-    
+=end    
     doc_hash
   end
   
