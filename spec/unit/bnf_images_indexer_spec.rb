@@ -60,33 +60,42 @@ describe BnfImagesIndexer do
       @solr_client.should_receive(:add).with(hash_including(:mods_xml))
       @indexer.index(@fake_druid)
     end
-    it ":title_short_ftsi should be absent if the data is absent from the MODS record" do
-      @hdor_client.should_receive(:mods).with(@fake_druid).twice.and_return(@ng_mods_xml)
-      smods_rec = @indexer.smods_rec(@fake_druid)
-      @solr_client.should_receive(:add).with(hash_not_including(:title_short_ftsi))
-      @indexer.index(@fake_druid)
+    context "title fields" do
+      it ":title_short_ftsi should be absent if the data is absent from the MODS record" do
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
+        @solr_client.should_receive(:add).with(hash_not_including(:title_short_ftsi))
+        @indexer.index(@fake_druid)
+      end
+      it ":title_long_ftsi should be absent if the data is absent from the MODS record" do
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
+        @solr_client.should_receive(:add).with(hash_not_including(:title_long_ftsi))
+        @indexer.index(@fake_druid)
+      end
+      it ":title_short_ftsi should be Stanford::Mods::Record.sw_short_title" do
+        mods_xml = "<mods #{@ns_decl}><titleInfo><title>basic</title></titleInfo></mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).at_least(:twice).and_return(Nokogiri::XML(mods_xml))
+        @solr_client.should_receive(:add).with(hash_including(:title_short_ftsi => @indexer.smods_rec(@fake_druid).sw_short_title))
+        @indexer.index(@fake_druid)
+      end
+      it ":title_long_ftsi should be Stanford::Mods::Record.sw_full_title" do
+        mods_xml = "<mods #{@ns_decl}><titleInfo><title>basic</title></titleInfo></mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).at_least(:twice).and_return(Nokogiri::XML(mods_xml))
+        @solr_client.should_receive(:add).with(hash_including(:title_long_ftsi => @indexer.smods_rec(@fake_druid).sw_full_title))
+        @indexer.index(@fake_druid)
+      end
     end
-    it ":title_long_ftsi should be absent if the data is absent from the MODS record" do
-      @hdor_client.should_receive(:mods).with(@fake_druid).twice.and_return(@ng_mods_xml)
-      smods_rec = @indexer.smods_rec(@fake_druid)
-      @solr_client.should_receive(:add).with(hash_not_including(:title_long_ftsi))
-      @indexer.index(@fake_druid)
-    end
-    it ":title_short_ftsi should be Stanford::Mods::Record.sw_short_title" do
-      mods_xml = "<mods #{@ns_decl}><titleInfo><title>basic</title></titleInfo></mods>"
-      @hdor_client.should_receive(:mods).with(@fake_druid).at_least(:twice).and_return(Nokogiri::XML(mods_xml))
-      smods_rec = @indexer.smods_rec(@fake_druid)
-      smods_rec.should_receive(:sw_short_title).once.and_call_original
-      @solr_client.should_receive(:add).with(hash_including(:title_short_ftsi => smods_rec.sw_short_title))
-      @indexer.index(@fake_druid)
-    end
-    it ":title_long_ftsi should be Stanford::Mods::Record.sw_full_title" do
-      mods_xml = "<mods #{@ns_decl}><titleInfo><title>basic</title></titleInfo></mods>"
-      @hdor_client.should_receive(:mods).with(@fake_druid).at_least(:twice).and_return(Nokogiri::XML(mods_xml))
-      smods_rec = @indexer.smods_rec(@fake_druid)
-      smods_rec.should_receive(:sw_full_title).once.and_call_original
-      @solr_client.should_receive(:add).with(hash_including(:title_long_ftsi => smods_rec.sw_full_title))
-      @indexer.index(@fake_druid)
+    context ":genre_ssim" do
+      it ":genre_ssim should be absent if there are no <genre> fields in the MODS record" do
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
+        @solr_client.should_receive(:add).with(hash_not_including(:genre_ssim))
+        @indexer.index(@fake_druid)
+      end
+      it ":genre_ssim should be the contents of the MODS <genre> fields" do
+        mods_xml = "<mods #{@ns_decl}><genre>one</genre><genre>two</genre></mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['one', 'two']))
+        @indexer.index(@fake_druid)
+      end
     end
 =begin    
           :speaker_ssim => '', #-> subject name e.g. bg698df3242
