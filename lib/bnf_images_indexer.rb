@@ -47,6 +47,8 @@ class BnfImagesIndexer < Harvestdor::Indexer
     doc_hash[:title_short_ftsi] = smods_rec_obj.sw_short_title if smods_rec_obj.sw_short_title
     doc_hash[:title_long_ftsi] = smods_rec_obj.sw_full_title if smods_rec_obj.sw_full_title
     doc_hash[:genre_ssim] = smods_rec_obj.genre.map {|n| n.text } if smods_rec_obj.genre && !smods_rec_obj.genre.empty?
+    phys_desc_nodeset = smods_rec_obj.physical_description if smods_rec_obj.physical_description
+    doc_hash[:doc_type_ssim] = phys_desc_nodeset.form.map {|n| n.text } if phys_desc_nodeset.form && !phys_desc_nodeset.form.empty?
 =begin    
     doc_hash = { 
       
@@ -58,7 +60,6 @@ class BnfImagesIndexer < Harvestdor::Indexer
       
       :doc_type_ssim => '', # physicalDescription/form 
       :medium_ssi => '', #  physicalDescription_extent_sim  -  between colon and semicolon
-      :genre_ssim => smods_rec_obj.genre,
 
       :catalog_heading_ftsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  fre
       :catalog_heading_etsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  english

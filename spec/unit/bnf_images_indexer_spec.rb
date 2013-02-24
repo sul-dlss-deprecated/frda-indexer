@@ -61,16 +61,6 @@ describe BnfImagesIndexer do
       @indexer.index(@fake_druid)
     end
     context "title fields" do
-      it ":title_short_ftsi should be absent if the data is absent from the MODS record" do
-        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
-        @solr_client.should_receive(:add).with(hash_not_including(:title_short_ftsi))
-        @indexer.index(@fake_druid)
-      end
-      it ":title_long_ftsi should be absent if the data is absent from the MODS record" do
-        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
-        @solr_client.should_receive(:add).with(hash_not_including(:title_long_ftsi))
-        @indexer.index(@fake_druid)
-      end
       it ":title_short_ftsi should be Stanford::Mods::Record.sw_short_title" do
         mods_xml = "<mods #{@ns_decl}><titleInfo><title>basic</title></titleInfo></mods>"
         @hdor_client.should_receive(:mods).with(@fake_druid).at_least(:twice).and_return(Nokogiri::XML(mods_xml))
@@ -83,20 +73,78 @@ describe BnfImagesIndexer do
         @solr_client.should_receive(:add).with(hash_including(:title_long_ftsi => @indexer.smods_rec(@fake_druid).sw_full_title))
         @indexer.index(@fake_druid)
       end
-    end
-    context ":genre_ssim" do
-      it ":genre_ssim should be absent if there are no <genre> fields in the MODS record" do
+      it ":title_short_ftsi should be absent if the data is absent from the MODS record" do
         @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
-        @solr_client.should_receive(:add).with(hash_not_including(:genre_ssim))
+        @solr_client.should_receive(:add).with(hash_not_including(:title_short_ftsi))
         @indexer.index(@fake_druid)
       end
-      it ":genre_ssim should be the contents of the MODS <genre> fields" do
+      it ":title_long_ftsi should be absent if the data is absent from the MODS record" do
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
+        @solr_client.should_receive(:add).with(hash_not_including(:title_long_ftsi))
+        @indexer.index(@fake_druid)
+      end
+    end
+    context ":genre_ssim" do
+      it "should be the contents of the MODS <genre> fields" do
         mods_xml = "<mods #{@ns_decl}><genre>one</genre><genre>two</genre></mods>"
         @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
         @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['one', 'two']))
         @indexer.index(@fake_druid)
       end
+      it "should be absent if there are no <genre> fields in the MODS record" do
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
+        @solr_client.should_receive(:add).with(hash_not_including(:genre_ssim))
+        @indexer.index(@fake_druid)
+      end
     end
+    context "MODS <physicalDescription>" do
+      before(:each) do
+        @mods_pd = "<mods #{@ns_decl}>
+                      <physicalDescription>
+                        <form authority=\"gmd\">Image fixe</form>
+                        <form authority=\"marccategory\">nonprojected graphic</form>
+                        <form authority=\"marcsmd\">print</form>
+                        <extent>1 est. : manière noire ; 51 x 37,5 cm (tr. c.)</extent>
+                      </physicalDescription></mods>"
+      end
+      context ":doc_type_ssim" do
+        it "should be the contents of the MODS <physicalDescription><form> fields" do
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_pd))
+          @solr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['Image fixe', 'nonprojected graphic', 'print']))
+          @indexer.index(@fake_druid)
+        end
+        it "should be absent if there are no <physicalDescription> fields in the MODS record" do
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
+          @solr_client.should_receive(:add).with(hash_not_including(:doc_type_ssim))
+          @indexer.index(@fake_druid)
+        end
+        it "should be absent if there are no <physicalDescription><form> fields in the MODS record" do
+          mods_xml = "<mods #{@ns_decl}><physicalDescription><extent>basic</extent></physicalDescription></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
+          @indexer.index(@fake_druid)
+        end
+      end
+      context ":medium_ssi" do
+        it "should be the contents of the MODS <physicalDescription><extent> field between the colon and the semicolon" do
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_pd))
+          @solr_client.should_receive(:add).with(hash_including(:medium_ssi => 'manière noire'))
+          @indexer.index(@fake_druid)
+        end
+        it "should be absent if there are no <physicalDescription> fields in the MODS record" do
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
+          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
+          @indexer.index(@fake_druid)
+        end
+        it "should be absent if there are no <physicalDescription><extent> fields in the MODS record" do
+          mods_xml = "<mods #{@ns_decl}><physicalDescription><form>basic</form></physicalDescription></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
+          @indexer.index(@fake_druid)
+        end
+      end
+    end # <physicalDescription>
+
 =begin    
           :speaker_ssim => '', #-> subject name e.g. bg698df3242
           :collector_ssim => '', # name w role col, or dnr
@@ -104,7 +152,6 @@ describe BnfImagesIndexer do
 
           :doc_type_ssim => '', # physicalDescription/form 
           :medium_ssi => '', #  physicalDescription_extent_sim  -  between colon and semicolon
-          :genre_ssim => smods_rec.genre,
 
           :catalog_heading_ftsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  fre
           :catalog_heading_etsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  english
