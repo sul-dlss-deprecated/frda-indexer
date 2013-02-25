@@ -29,7 +29,6 @@ class BnfImagesIndexer < Harvestdor::Indexer
       mods_doc_hash = doc_hash_from_mods druid
       doc_hash.merge!(mods_doc_hash) if mods_doc_hash
       
-
       solr_client.add(doc_hash)
       logger.info("Added doc for #{druid} to Solr")
       # TODO: update DOR object's workflow datastream??
@@ -41,35 +40,42 @@ class BnfImagesIndexer < Harvestdor::Indexer
   # @return [Hash] Hash representing the Solr document
   def doc_hash_from_mods druid
     smods_rec_obj = smods_rec(druid)
-    doc_hash = {
-      :mods_xml => "#{smods_rec_obj.to_xml}",
-    }
+    doc_hash = {}
     doc_hash[:title_short_ftsi] = smods_rec_obj.sw_short_title if smods_rec_obj.sw_short_title
     doc_hash[:title_long_ftsi] = smods_rec_obj.sw_full_title if smods_rec_obj.sw_full_title
     doc_hash[:genre_ssim] = smods_rec_obj.genre.map {|n| n.text } if smods_rec_obj.genre && !smods_rec_obj.genre.empty?
     phys_desc_nodeset = smods_rec_obj.physical_description if smods_rec_obj.physical_description
-    doc_hash[:doc_type_ssim] = phys_desc_nodeset.form.map {|n| n.text } if phys_desc_nodeset.form && !phys_desc_nodeset.form.empty?
+    if phys_desc_nodeset
+      doc_hash[:doc_type_ssim] = phys_desc_nodeset.form.map {|n| n.text } if !phys_desc_nodeset.form.empty?
+      extents = phys_desc_nodeset.extent.map {|n| n.text} if !phys_desc_nodeset.extent.empty?
+      if extents && extents.size > 1
+        logger.warn("#{druid} unexpectedly has multiple <physicalDescription><extent> fields; using first only for :medium_ssi")
+      end
+      if extents
+        full_str = extents.first
+        desired = full_str[/.*\:(.*?);.*/, 1]
+        if desired
+          doc_hash[:medium_ssi] = desired.strip
+        else
+          logger.warn("#{druid} has no :medium_ssi; MODS <physicalDescription><extent> has unexpected format: '#{full_str}'")
+        end
+      end
+    end
 =begin    
     doc_hash = { 
-      
-      # batch 1
-      
       :speaker_ssim => '', #-> subject name e.g. bg698df3242
       :collector_ssim => '', # name w role col, or dnr
       :artist_ssim => '', # name w role art, egr, ill, scl, drm
       
-      :doc_type_ssim => '', # physicalDescription/form 
-      :medium_ssi => '', #  physicalDescription_extent_sim  -  between colon and semicolon
-
       :catalog_heading_ftsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  fre
       :catalog_heading_etsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  english
       
 #          dates -> originInfo_dateIssued_sim,    subject_temporal_sim  ?
     
-      :text_tiv => smods_rec_obj.text,  # anything else here?
-      
+      :text_tiv => smods_rec_obj.text,  # anything else here?      
     }
-=end    
+=end
+    doc_hash[:mods_xml] = smods_rec_obj.to_xml
     doc_hash
   end
   

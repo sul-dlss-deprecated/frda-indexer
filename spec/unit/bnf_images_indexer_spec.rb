@@ -121,7 +121,7 @@ describe BnfImagesIndexer do
         it "should be absent if there are no <physicalDescription><form> fields in the MODS record" do
           mods_xml = "<mods #{@ns_decl}><physicalDescription><extent>basic</extent></physicalDescription></mods>"
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
-          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
+          @solr_client.should_receive(:add).with(hash_not_including(:doc_type_ssim))
           @indexer.index(@fake_druid)
         end
       end
@@ -142,6 +142,27 @@ describe BnfImagesIndexer do
           @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
           @indexer.index(@fake_druid)
         end
+        it "should log a warning message if more than one <physicalDescription><extent> field is found" do
+          mods = "<mods #{@ns_decl}>
+                    <physicalDescription>
+                      <extent>one : one ; one</extent>
+                      <extent>two</extent>
+                    </physicalDescription></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @indexer.logger.should_receive(:warn).with("#{@fake_druid} unexpectedly has multiple <physicalDescription><extent> fields; using first only for :medium_ssi")
+          @solr_client.should_receive(:add).with(hash_including(:medium_ssi))
+          @indexer.index(@fake_druid)
+        end
+        it "should log a warning message if <physicalDescription><extent> doesn't match regex" do
+          mods = "<mods #{@ns_decl}>
+                    <physicalDescription>
+                      <extent>one</extent>
+                    </physicalDescription></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no :medium_ssi; MODS <physicalDescription><extent> has unexpected format: 'one'")
+          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
+          @indexer.index(@fake_druid)
+        end
       end
     end # <physicalDescription>
 
@@ -150,20 +171,13 @@ describe BnfImagesIndexer do
           :collector_ssim => '', # name w role col, or dnr
           :artist_ssim => '', # name w role art, egr, ill, scl, drm
 
-          :doc_type_ssim => '', # physicalDescription/form 
-          :medium_ssi => '', #  physicalDescription_extent_sim  -  between colon and semicolon
-
           :catalog_heading_ftsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  fre
           :catalog_heading_etsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  english
-
-          :title_short_ssi => smods_rec.sw_short_title,
-          :title_long_ssi => smods_rec.sw_full_title,
 
           :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
           :date_issued_dtsim
 
           :text_tiv => smods_rec.text  # anything else here?
-          :mods_xml 
 =end    
   end # doc_hash_from_mods
   
