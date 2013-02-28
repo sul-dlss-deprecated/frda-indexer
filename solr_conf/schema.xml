@@ -101,11 +101,15 @@
     <!-- you must define copyField source fields or schemaBrowser doesn't work (bug in Solr 4.0) -->
     <field name="text_tiv" type="text" stored="false" indexed="true" multiValued="false" termVectors="true" termPositions="true" termOffsets="true"/>
     <field name="spoken_text_timv" type="text" stored="false" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
-    <field name="session_date_ftsimv" type="text_fr" stored="true" indexed="true" multiValued="false" termVectors="true" termPositions="true" termOffsets="true"/>
+    <field name="session_date_ftsimv" type="text_fr" stored="true" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
+    <field name="title_short_ftsi" type="text_fr" stored="true" indexed="true" multiValued="false"/>
+    <field name="title_long_ftsi" type="text_fr" stored="true" indexed="true" multiValued="false"/>
     <!-- you must define copyField destination fields or schemaBrowser doesn't work (bug in Solr 4.0) -->
     <field name="text_ftsiv" type="text_fr" stored="true" indexed="true" multiValued="false" termVectors="true" termPositions="true" termOffsets="true"/>
     <field name="spoken_text_ftsimv" type="text_fr" stored="true" indexed="true" multiValued="true" termVectors="true" termPositions="true" termOffsets="true"/>
-    <field name="session_date_sim" type="string" stored="false" indexed="true" multiValued="false"/>
+    <field name="session_date_sim" type="string" stored="false" indexed="true" multiValued="true"/>
+    <field name="title_short_ti" type="text" stored="false" indexed="true" multiValued="false"/>
+    <field name="title_long_ti" type="text" stored="false" indexed="true" multiValued="false"/>
     
   </fields>
 
@@ -113,6 +117,8 @@
   <copyField source="session_date_ftsimv" dest="session_date_sim" />
   <copyField source="text_tiv" dest="text_ftsiv" />
   <copyField source="spoken_text_timv" dest="spoken_text_ftsimv" />
+  <copyField source="title_short_ftsi" dest="title_short_ti" />
+  <copyField source="title_long_ftsi" dest="title_long_ti" />
 
   <types>
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" />

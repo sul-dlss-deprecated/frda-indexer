@@ -148,6 +148,10 @@
       <int name="ps">0</int>
       <float name="tie">0.01</float>
       <str name="qf">
+				title_short_ti^5
+				title_long_ti^5
+				title_short_ftsi
+				title_long_ftsi
         catalog_heading_timv^3
         catalog_heading_ftsimv
         catalog_heading_etsimv
@@ -163,6 +167,10 @@
         druid_ssi
       </str>
       <str name="pf">
+				title_short_ti^20
+				title_long_ti^20
+				title_short_ftsi^15
+				title_long_ftsi^15
         spoken_text_timv^20
         spoken_text_ftsimv^15
         text_tiv^20
@@ -172,6 +180,8 @@
         catalog_heading_etsimv^15
       </str>
       <str name="qf_exact">
+				title_short_ti
+				title_long_ti
         catalog_heading_timv
         spoken_text_timv
         text_tiv
@@ -181,24 +191,32 @@
 				doc_type_ssim
       </str>
       <str name="pf_exact">
+				title_short_ti^5
+				title_long_ti^5
         catalog_heading_timv^5
         spoken_text_timv^5
         text_tiv^5
       </str>
 
       <str name="qf_title">
-        title_timv^5
-        title_ftsimv
+				title_short_ti^5
+				title_long_ti^5
+				title_short_ftsi
+				title_long_ftsi
       </str>
       <str name="pf_title">
-        title_timv^10
-        title_ftsimv^5
+				title_short_ti^10
+				title_long_ti^10
+				title_short_ftsi^5
+				title_long_ftsi^5
       </str>
       <str name="qf_title_exact">
-        title_timv
+				title_short_ti
+				title_long_ti
       </str>
       <str name="pf_title_exact">
-        title_timv^5
+				title_short_ti^5
+				title_long_ti^5
       </str>
 
       <str name="qf_name">
