@@ -65,20 +65,23 @@ class BnfImagesIndexer < Harvestdor::Indexer
     end
 
     smods_rec_obj.subject.each { |subj_node|
+      doc_hash[:catalog_heading_etsimv] ||= []
+      doc_hash[:catalog_heading_ftsimv] ||= []
       if subj_node.displayLabel && subj_node.displayLabel == 'Catalog heading'
         topics = subj_node.topic.map { |n| n.text } if !subj_node.topic.empty?
         if topics
           val = topics.join(' -- ')
           case subj_node.lang
             when "fre"
-              doc_hash[:catalog_heading_ftsimv] = [val] if val
+              doc_hash[:catalog_heading_ftsimv] << val if val
             when "eng"
-              doc_hash[:catalog_heading_etsimv] = [val] if val
+              doc_hash[:catalog_heading_etsimv] << val if val
             else
               logger.warn("#{druid} has subject with @displayLabel 'Catalog heading' but @lang not 'fre' or 'eng': '#{subj_node.to_xml}'")
           end
         end
-      end # displayLabel = 'Catalog heading'
+      end
+
       doc_hash[:speaker_ssim] ||= []
       subj_node.name_el.each { |sub_name_node|
         if sub_name_node.type_at && sub_name_node.type_at == 'personal'
@@ -97,6 +100,8 @@ class BnfImagesIndexer < Harvestdor::Indexer
         end
       }
     } # each subject node
+    doc_hash.delete(:catalog_heading_etsimv) if doc_hash[:catalog_heading_etsimv] && doc_hash[:catalog_heading_etsimv].empty?
+    doc_hash.delete(:catalog_heading_ftsimv) if doc_hash[:catalog_heading_ftsimv] && doc_hash[:catalog_heading_ftsimv].empty?
     doc_hash.delete(:speaker_ssim) if doc_hash[:speaker_ssim] && doc_hash[:speaker_ssim].empty?
     
 =begin    

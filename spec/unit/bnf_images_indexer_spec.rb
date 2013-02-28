@@ -207,9 +207,6 @@ describe BnfImagesIndexer do
           @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
           @indexer.index(@fake_druid)
         end
-        it "FIXME: test for multiple single lang catalog headings" do
-          pending "to be implemented"
-        end
         context "lang attribute" do
           it "lang='fre' :catalog_heading_ftsimv should combine the <topic> elements into a single string separated by ' -- ' " do
             @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_cat_head))
@@ -219,6 +216,19 @@ describe BnfImagesIndexer do
           it "lang='eng' :catalog_heading_etsimv should combine the lang='eng' <topic> elements into a single string separated by ' -- ' " do
             @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_cat_head))
             @solr_client.should_receive(:add).with(hash_including(:catalog_heading_etsimv => ['Archives and documents -- Portraits -- B']))
+            @indexer.index(@fake_druid)
+          end
+          it "should allow multiple catalog headings for a single language" do
+            mods = "<mods #{@ns_decl}>
+                          <subject lang=\"eng\" displayLabel=\"Catalog heading\">
+                            <topic>eng1</topic>
+                          </subject>
+                          <subject lang=\"eng\" displayLabel=\"Catalog heading\">
+                            <topic>eng2</topic>
+                          </subject>
+                        </mods>"
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+            @solr_client.should_receive(:add).with(hash_including(:catalog_heading_etsimv => ['eng1', 'eng2']))
             @indexer.index(@fake_druid)
           end
           it "should log a warning if it finds a lang other than 'eng' or 'fre'" do
