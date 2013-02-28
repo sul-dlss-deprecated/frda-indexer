@@ -207,6 +207,9 @@ describe BnfImagesIndexer do
           @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
           @indexer.index(@fake_druid)
         end
+        it "FIXME: test for multiple single lang catalog headings" do
+          pending "to be implemented"
+        end
         context "lang attribute" do
           it "lang='fre' :catalog_heading_ftsimv should combine the <topic> elements into a single string separated by ' -- ' " do
             @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_cat_head))
@@ -228,16 +231,13 @@ describe BnfImagesIndexer do
             @solr_client.should_receive(:add).with(hash_not_including(:catalog_heading_ftsimv, :catalog_heading_etsimv))
             @indexer.index(@fake_druid)
           end
-          it "FIXME: test for multiple" do
-            pending "to be implemented"
-          end
         end # lang attribute
         context "<name> in subject" do
           before(:all) do
             @mods_sub_name = "<mods #{@ns_decl}>
                           <subject>
                             <name type=\"personal\">
-                              <namePart type=\"termsOfAddress\">Ier, empereur des Franc&#x327;ais</namePart>
+                              <namePart type=\"termsOfAddress\">term</namePart>
                               <namePart>Napoléon</namePart>
                               <namePart type=\"date\">1769-1821</namePart>
                             </name>
@@ -261,13 +261,57 @@ describe BnfImagesIndexer do
               @indexer.index(@fake_druid)
             end
             it ":speaker_ssim should cope with family and given and untyped <namePart>" do
-              pending "to be implemented"
+              mods = "<mods #{@ns_decl}>
+                        <subject>
+                          <name type=\"personal\">
+                            <namePart type=\"termsOfAddress\">term</namePart>
+                            <namePart type=\"family\">family</namePart>
+                            <namePart type=\"given\">given</namePart>
+                            <namePart type=\"date\">1769-1821</namePart>
+                            <namePart>plain</namePart>
+                          </name>
+                        </subject>
+                      </mods>"
+              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+              @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['family, given, plain']))
+              @indexer.index(@fake_druid)
             end
             it "there should be no :speaker_sim if there is no subject personal name" do
-              pending "to be implemented"
+              mods = "<mods #{@ns_decl}>
+                        <subject type=\"corporate\">
+                          <name>
+                            <namePart>corporate</namePart>
+                          </name>
+                        </subject>
+                        <subject>
+                          <name>
+                            <namePart>untyped</namePart>
+                          </name>
+                        </subject>
+                      </mods>"
+              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+              @solr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
+              @indexer.index(@fake_druid)
             end
             it ":speaker_ssim can have multiple values" do
-              pending "to be implemented"
+              mods = "<mods #{@ns_decl}>
+                        <subject>
+                          <name type=\"personal\">
+                            <namePart>plain1</namePart>
+                          </name>
+                        </subject>
+                        <subject>
+                          <name type=\"personal\">
+                            <namePart>plain2</namePart>
+                          </name>
+                          <name type=\"personal\">
+                            <namePart>plain3</namePart>
+                          </name>
+                        </subject>
+                      </mods>"
+              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+              @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['plain1', 'plain2', 'plain3']))
+              @indexer.index(@fake_druid)
             end
             it "should normalize the name to match AP names" do
               pending "name normalization for images to be implemented"
