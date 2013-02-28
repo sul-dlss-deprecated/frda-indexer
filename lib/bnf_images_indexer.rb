@@ -24,6 +24,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
         :druid_ssi => druid,
         :type_ssi => TYPE_VAL,
         :collection_ssi => COLL_VAL,
+        :result_group_ssi => COLL_VAL,
         :image_id_ssm => image_ids(druid)
       }
       mods_doc_hash = doc_hash_from_mods druid

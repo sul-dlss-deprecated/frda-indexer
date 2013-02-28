@@ -26,12 +26,16 @@ describe BnfImagesIndexer do
     end
 
     context "fields that are constants" do
-      it ":collection_ssi should be Images de la Révolution française" do
+      it ":collection_ssi should be 'Images de la Révolution française'" do
         @solr_client.should_receive(:add).with(hash_including(:collection_ssi => 'Images de la Révolution française'))
         @indexer.index(@fake_druid)
       end
       it ":type_ssi should be 'image'" do
         @solr_client.should_receive(:add).with(hash_including(:type_ssi => 'image'))
+        @indexer.index(@fake_druid)
+      end
+      it ":result_group_ssi should be 'Images de la Révolution française'" do
+        @solr_client.should_receive(:add).with(hash_including(:result_group_ssi => 'Images de la Révolution française'))
         @indexer.index(@fake_druid)
       end
     end
