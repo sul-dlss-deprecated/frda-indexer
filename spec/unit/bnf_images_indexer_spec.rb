@@ -173,7 +173,7 @@ describe BnfImagesIndexer do
     context "subjects" do
       context "<topic> displayLabel='Catalog heading'" do
         before(:all) do
-          @mods_ch = "<mods #{@ns_decl}>
+          @mods_sub_cat_head = "<mods #{@ns_decl}>
                         <subject lang=\"fre\" displayLabel=\"Catalog heading\">
                           <topic>Archives et documents</topic>
                           <topic>Portraits</topic>
@@ -184,31 +184,10 @@ describe BnfImagesIndexer do
                           <topic>Portraits</topic>
                           <topic>B</topic>
                         </subject>
+                        <subject>
+                          <topic>something</topic>
+                        <subject>
                       </mods>"
-        end
-        context "lang='fre'" do
-          it ":catalog_heading_ftsimv should combine the <topic> elements into a single string separated by ' -- ' " do
-            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_ch))
-            @solr_client.should_receive(:add).with(hash_including(:catalog_heading_ftsimv => ['Archives et documents -- Portraits -- B']))
-            @indexer.index(@fake_druid)
-          end
-        end
-        context "lang='eng'" do
-          it ":catalog_heading_etsimv should combine the lang='eng' <topic> elements into a single string separated by ' -- ' " do
-            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_ch))
-            @solr_client.should_receive(:add).with(hash_including(:catalog_heading_etsimv => ['Archives and documents -- Portraits -- B']))
-            @indexer.index(@fake_druid)
-          end
-        end
-        it "should log a warning if it find a lang other than 'eng' or 'fre'" do
-          mods = "<mods #{@ns_decl}>
-                    <subject lang=\"oth\" displayLabel=\"Catalog heading\">
-                      <topic>one</topic>
-                    </subject></mods>"
-          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-          @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} has subject with @displayLabel 'Catalog heading' but @lang not 'fre' or 'eng': '/)
-          @solr_client.should_receive(:add).with(hash_not_including(:catalog_heading_ftsimv, :catalog_heading_etsimv))
-          @indexer.index(@fake_druid)
         end
         it "should ignore <subject> without a displayLabel" do
           mods = "<mods #{@ns_decl}>
@@ -228,21 +207,85 @@ describe BnfImagesIndexer do
           @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
           @indexer.index(@fake_druid)
         end
+        context "lang attribute" do
+          it "lang='fre' :catalog_heading_ftsimv should combine the <topic> elements into a single string separated by ' -- ' " do
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_cat_head))
+            @solr_client.should_receive(:add).with(hash_including(:catalog_heading_ftsimv => ['Archives et documents -- Portraits -- B']))
+            @indexer.index(@fake_druid)
+          end
+          it "lang='eng' :catalog_heading_etsimv should combine the lang='eng' <topic> elements into a single string separated by ' -- ' " do
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_cat_head))
+            @solr_client.should_receive(:add).with(hash_including(:catalog_heading_etsimv => ['Archives and documents -- Portraits -- B']))
+            @indexer.index(@fake_druid)
+          end
+          it "should log a warning if it finds a lang other than 'eng' or 'fre'" do
+            mods = "<mods #{@ns_decl}>
+                      <subject lang=\"oth\" displayLabel=\"Catalog heading\">
+                        <topic>one</topic>
+                      </subject></mods>"
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+            @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} has subject with @displayLabel 'Catalog heading' but @lang not 'fre' or 'eng': '/)
+            @solr_client.should_receive(:add).with(hash_not_including(:catalog_heading_ftsimv, :catalog_heading_etsimv))
+            @indexer.index(@fake_druid)
+          end
+        end # lang attribute
+        context "<name> in subject" do
+          before(:all) do
+            @mods_sub_name = "<mods #{@ns_decl}>
+                          <subject>
+                            <name type=\"personal\">
+                              <namePart type=\"termsOfAddress\">Ier, empereur des Franc&#x327;ais</namePart>
+                              <namePart>Napole&#x301;on</namePart>
+                              <namePart type=\"date\">1769-1821</namePart>
+                            </name>
+                          </subject>
+                          <subject type=\"corporate\">
+                            <name>
+                              <namePart>corporate</namePart>
+                            </name>
+                          </subject>
+                          <subject>
+                            <name>
+                              <namePart>untyped</namePart>
+                            </name>
+                          </subject>
+                        </mods>"
+          end
+          it ":speaker_ssim should be personal name, without dates" do
+            pending
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
+            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Napoléon']))
+            @indexer.index(@fake_druid)
+          end
+          it ":subject_name_ssim should be any type other than personal name" do
+            pending
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
+            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['corporate', 'untyped']))
+            @indexer.index(@fake_druid)
+          end
+          it "should normalize the name to match AP names" do
+            pending "name normalization for images to be implemented"
+          end
+        end
       end # subjects
+      
+       
+=begin    
+      :speaker_ssim => '', #-> subject name e.g. bg698df3242
+      :collector_ssim => '', # name w role col, or dnr
+      :artist_ssim => '', # name w role art, egr, ill, scl, drm
+
+      :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
+      :date_issued_dtsim
+      :search_date  YYYYMMDD   or dt or i?
+      :facet_date YYYYMM   i or s or ???
+
+      :text_tiv => smods_rec.text  # anything else here?
+=end      
     end # fields from MODS
 
 # FIXME:  adjust solrconfig facets, qf and pf lists;  schema copyfields
 
-=begin    
-          :speaker_ssim => '', #-> subject name e.g. bg698df3242
-          :collector_ssim => '', # name w role col, or dnr
-          :artist_ssim => '', # name w role art, egr, ill, scl, drm
-
-          :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
-          :date_issued_dtsim
-
-          :text_tiv => smods_rec.text  # anything else here?
-=end    
   end # doc_hash_from_mods
   
   context "image_ids method" do
