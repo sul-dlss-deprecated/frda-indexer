@@ -51,9 +51,9 @@ describe BnfImagesIndexer do
     end
   end
 
-  context "fields from mods" do
+  context "fields from MODS" do
     before(:each) do
-      @hdor_client.should_receive(:content_metadata).with(@fake_druid).at_least(:once).and_return(nil)      
+      @hdor_client.should_receive(:content_metadata).with(@fake_druid).at_most(:once).and_return(nil)      
     end
     it ":mods_xml" do
       @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
@@ -98,14 +98,15 @@ describe BnfImagesIndexer do
       end
     end
     context "MODS <physicalDescription>" do
-      before(:each) do
+      before(:all) do
         @mods_pd = "<mods #{@ns_decl}>
                       <physicalDescription>
                         <form authority=\"gmd\">Image fixe</form>
                         <form authority=\"marccategory\">nonprojected graphic</form>
                         <form authority=\"marcsmd\">print</form>
                         <extent>1 est. : manière noire ; 51 x 37,5 cm (tr. c.)</extent>
-                      </physicalDescription></mods>"
+                      </physicalDescription>
+                    </mods>"
       end
       context ":doc_type_ssim" do
         it "should be the contents of the MODS <physicalDescription><form> fields" do
@@ -165,14 +166,73 @@ describe BnfImagesIndexer do
         end
       end
     end # <physicalDescription>
+    context "subjects" do
+      context "<topic> displayLabel='Catalog heading'" do
+        before(:all) do
+          @mods_ch = "<mods #{@ns_decl}>
+                        <subject lang=\"fre\" displayLabel=\"Catalog heading\">
+                          <topic>Archives et documents</topic>
+                          <topic>Portraits</topic>
+                          <topic>B</topic>
+                        </subject>
+                        <subject lang=\"eng\" displayLabel=\"Catalog heading\">
+                          <topic>Archives and documents</topic>
+                          <topic>Portraits</topic>
+                          <topic>B</topic>
+                        </subject>
+                      </mods>"
+        end
+        context "lang='fre'" do
+          it ":catalog_heading_ftsimv should combine the <topic> elements into a single string separated by ' -- ' " do
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_ch))
+            @solr_client.should_receive(:add).with(hash_including(:catalog_heading_ftsimv => ['Archives et documents -- Portraits -- B']))
+            @indexer.index(@fake_druid)
+          end
+        end
+        context "lang='eng'" do
+          it ":catalog_heading_etsimv should combine the lang='eng' <topic> elements into a single string separated by ' -- ' " do
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_ch))
+            @solr_client.should_receive(:add).with(hash_including(:catalog_heading_etsimv => ['Archives and documents -- Portraits -- B']))
+            @indexer.index(@fake_druid)
+          end
+        end
+        it "should log a warning if it find a lang other than 'eng' or 'fre'" do
+          mods = "<mods #{@ns_decl}>
+                    <subject lang=\"oth\" displayLabel=\"Catalog heading\">
+                      <topic>one</topic>
+                    </subject></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} has subject with @displayLabel 'Catalog heading' but @lang not 'fre' or 'eng': '/)
+          @solr_client.should_receive(:add).with(hash_not_including(:catalog_heading_ftsimv, :catalog_heading_etsimv))
+          @indexer.index(@fake_druid)
+        end
+        it "should ignore <subject> without a displayLabel" do
+          mods = "<mods #{@ns_decl}>
+                    <subject lang='fre'>
+                      <topic>one</topic>
+                    </subject></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_not_including(:catalog_heading_ftsimv, :catalog_heading_etsimv))
+          @indexer.index(@fake_druid)
+        end
+        it "should ignore <subject> with a different displayLabel value" do
+          mods = "<mods #{@ns_decl}>
+                    <subject displayLabel='other'>
+                      <topic>one</topic>
+                    </subject></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
+          @indexer.index(@fake_druid)
+        end
+      end # subjects
+    end # fields from MODS
+
+# FIXME:  adjust solrconfig facets, qf and pf lists;  schema copyfields
 
 =begin    
           :speaker_ssim => '', #-> subject name e.g. bg698df3242
           :collector_ssim => '', # name w role col, or dnr
           :artist_ssim => '', # name w role art, egr, ill, scl, drm
-
-          :catalog_heading_ftsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  fre
-          :catalog_heading_etsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  english
 
           :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
           :date_issued_dtsim

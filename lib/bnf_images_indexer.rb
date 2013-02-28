@@ -44,6 +44,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
     doc_hash[:title_short_ftsi] = smods_rec_obj.sw_short_title if smods_rec_obj.sw_short_title
     doc_hash[:title_long_ftsi] = smods_rec_obj.sw_full_title if smods_rec_obj.sw_full_title
     doc_hash[:genre_ssim] = smods_rec_obj.genre.map {|n| n.text } if smods_rec_obj.genre && !smods_rec_obj.genre.empty?
+    
     phys_desc_nodeset = smods_rec_obj.physical_description if smods_rec_obj.physical_description
     if phys_desc_nodeset
       doc_hash[:doc_type_ssim] = phys_desc_nodeset.form.map {|n| n.text } if !phys_desc_nodeset.form.empty?
@@ -61,16 +62,32 @@ class BnfImagesIndexer < Harvestdor::Indexer
         end
       end
     end
+
+    smods_rec_obj.subject.each { |subj_node|  
+      if subj_node.displayLabel && subj_node.displayLabel == 'Catalog heading'
+        topics = subj_node.topic.map { |n| n.text } if !subj_node.topic.empty?
+        if topics
+          val = topics.join(' -- ')
+          case subj_node.lang
+            when "fre"
+              doc_hash[:catalog_heading_ftsimv] = [val] if val
+            when "eng"
+              doc_hash[:catalog_heading_etsimv] = [val] if val
+            else
+              logger.warn("#{druid} has subject with @displayLabel 'Catalog heading' but @lang not 'fre' or 'eng': '#{subj_node.to_xml}'")
+          end
+        end
+      end
+    }
 =begin    
     doc_hash = { 
       :speaker_ssim => '', #-> subject name e.g. bg698df3242
       :collector_ssim => '', # name w role col, or dnr
       :artist_ssim => '', # name w role art, egr, ill, scl, drm
       
-      :catalog_heading_ftsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  fre
-      :catalog_heading_etsimv => '', # use double hyphen separator;  subject browse hierarchical subjects  english
-      
 #          dates -> originInfo_dateIssued_sim,    subject_temporal_sim  ?
+# :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
+# :date_issued_dtsim
     
       :text_tiv => smods_rec_obj.text,  # anything else here?      
     }
