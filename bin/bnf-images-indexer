@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..'))
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+
+require 'rubygems'
+begin
+  require 'bnf_images_indexer'
+rescue LoadError
+  require 'bundler/setup'
+  require 'bnf_images_indexer'
+end
+
+config_yml_path = ARGV.pop
+if config_yml_path.nil?
+  puts "** You must provide the full path to a config yml file **"
+  exit
+end
+  
+indexer = BnfImagesIndexer.new(config_yml_path, ARGV)
+indexer.harvest_and_index
