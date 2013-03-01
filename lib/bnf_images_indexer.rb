@@ -64,9 +64,9 @@ class BnfImagesIndexer < Harvestdor::Indexer
       end
     end
 
+    sub_flds = [:catalog_heading_etsimv, :catalog_heading_ftsimv, :speaker_ssim, :subject_name_ssim]
+    sub_flds.each { |fld| doc_hash[fld] = [] }
     smods_rec_obj.subject.each { |subj_node|
-      doc_hash[:catalog_heading_etsimv] ||= []
-      doc_hash[:catalog_heading_ftsimv] ||= []
       if subj_node.displayLabel && subj_node.displayLabel == 'Catalog heading'
         topics = subj_node.topic.map { |n| n.text } if !subj_node.topic.empty?
         if topics
@@ -82,30 +82,25 @@ class BnfImagesIndexer < Harvestdor::Indexer
         end
       end
 
-      doc_hash[:speaker_ssim] ||= []
-      doc_hash[:subject_name_ssim] ||= []
       subj_node.name_el.each { |sub_name_node|
         if sub_name_node.type_at && sub_name_node.type_at == 'personal'
           # want non-date parts   (currently, Images have subject nameParts with explicit types of 'date' and 'termsOfAddress')
           parts = []
-          sub_name_node.namePart.each { |namePart|  
+          sub_name_node.namePart.each { |namePart|
             if namePart.type_at != 'date' && namePart.type_at != 'termsOfAddress'
               parts << namePart.text unless namePart.text.empty?
             end
-          }          
-#          parts = sub_name_node.namePart.map { |npn| npn.text unless npn.text.empty? || (npn.type_at && (npn.type_at == 'date' || npn.type_at == 'termsOfAddress')) }
+          }
           doc_hash[:speaker_ssim] << parts.join(', ').strip unless parts.empty?
         else
-          parts = sub_name_node.namePart.map { |npn| npn.text unless npn.text.empty? }  
+          parts = sub_name_node.namePart.map { |npn| npn.text unless npn.text.empty? }
           doc_hash[:subject_name_ssim] << parts.join(', ').strip unless parts.empty?
         end
       }
     } # each subject node
-    [:catalog_heading_etsimv, :catalog_heading_ftsimv, :speaker_ssim, :subject_name_ssim]
-    doc_hash.delete(:catalog_heading_etsimv) if doc_hash[:catalog_heading_etsimv] && doc_hash[:catalog_heading_etsimv].empty?
-    doc_hash.delete(:catalog_heading_ftsimv) if doc_hash[:catalog_heading_ftsimv] && doc_hash[:catalog_heading_ftsimv].empty?
-    doc_hash.delete(:speaker_ssim) if doc_hash[:speaker_ssim] && doc_hash[:speaker_ssim].empty?
-    doc_hash.delete(:subject_name_ssim) if doc_hash[:subject_name_ssim] && doc_hash[:subject_name_ssim].empty?
+    sub_flds.each { |fld|  
+      doc_hash.delete(fld) if doc_hash[fld] && doc_hash[fld].empty?
+    }
     
 =begin    
     doc_hash = { 
