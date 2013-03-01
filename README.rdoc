@@ -20,3 +20,5 @@ Check config files in config dir (ap.yml, bnf-images.yml).
 To Run AP indexing:
   $ bin/ap-indexer config/ap.yml
 
+To Run BNF Images indexing:
+  $ bin/bnf-images-indexer config/bnf-images.yml
