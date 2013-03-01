@@ -260,6 +260,7 @@ describe BnfImagesIndexer do
                           <subject>
                             <name>
                               <namePart>untyped</namePart>
+                              <namePart>part2</namePart>
                             </name>
                           </subject>
                         </mods>"
@@ -270,7 +271,7 @@ describe BnfImagesIndexer do
               @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Napoléon']))
               @indexer.index(@fake_druid)
             end
-            it ":speaker_ssim should cope with family and given and untyped <namePart>" do
+            it "should cope with family, given and untyped <namePart>" do
               mods = "<mods #{@ns_decl}>
                         <subject>
                           <name type=\"personal\">
@@ -286,7 +287,7 @@ describe BnfImagesIndexer do
               @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['family, given, plain']))
               @indexer.index(@fake_druid)
             end
-            it "there should be no :speaker_sim if there is no subject personal name" do
+            it "there should be none if there is no subject personal name" do
               mods = "<mods #{@ns_decl}>
                         <subject type=\"corporate\">
                           <name>
@@ -303,7 +304,7 @@ describe BnfImagesIndexer do
               @solr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
               @indexer.index(@fake_druid)
             end
-            it ":speaker_ssim can have multiple values" do
+            it "can have multiple values" do
               mods = "<mods #{@ns_decl}>
                         <subject>
                           <name type=\"personal\">
@@ -326,22 +327,34 @@ describe BnfImagesIndexer do
             it "should normalize the name to match AP names" do
               pending "name normalization for images to be implemented"
             end
-          end
-          it ":subject_name_ssim should be any type other than personal name" do
-            pending "to be implemented"
-            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
-            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['corporate', 'untyped']))
-            @indexer.index(@fake_druid)
-          end
-          it ":subject_name_ssim can have multiple values" do
-            pending "to be implemented"
-          end
-        end
+          end # :speaker_ssim
+          context ":subject_name_ssim" do
+            it ":subject_name_ssim should be any type other than personal name" do
+              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
+              @solr_client.should_receive(:add).with(hash_including(:subject_name_ssim => ['corporate', 'untyped, part2']))
+              @indexer.index(@fake_druid)
+            end
+            it "there should be none if there is no subject impersonal name" do
+              mods = "<mods #{@ns_decl}>
+                        <subject>
+                          <name type=\"personal\">
+                            <namePart>personal</namePart>
+                          </name>
+                        </subject>
+                      </mods>"
+              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+              @solr_client.should_receive(:add).with(hash_not_including(:subject_name_ssim))
+              @indexer.index(@fake_druid)
+            end
+            it "can have multiple values" do
+              # already tested for above
+            end
+          end # :subject_name_ssim
+        end # subject name
       end # subjects
       
        
 =begin    
-      :speaker_ssim => '', #-> subject name e.g. bg698df3242
       :collector_ssim => '', # name w role col, or dnr
       :artist_ssim => '', # name w role art, egr, ill, scl, drm
 
