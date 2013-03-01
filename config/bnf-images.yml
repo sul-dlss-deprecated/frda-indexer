@@ -24,7 +24,8 @@ blacklist: config/bnf-images.blacklist.txt
 
 # name of file containing druids that WILL be profiled (all others will be ignored)
 #  either give absolute directory, or directory relative to where the command will be executed
-#whitelist: config/bnf_images_w_old_mods_druids.txt
+whitelist: config/bnf-images.whitelist.txt
+
 
 # ---------- OAI harvesting parameters -----------
 
