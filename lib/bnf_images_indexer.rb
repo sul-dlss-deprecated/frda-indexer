@@ -64,6 +64,31 @@ class BnfImagesIndexer < Harvestdor::Indexer
       end
     end
 
+    sub_fld_hash = subject_field_hash(smods_rec_obj, druid)
+    doc_hash.merge!(sub_fld_hash) if sub_fld_hash
+    
+=begin    
+    doc_hash = { 
+      :collector_ssim => '', # name w role col, or dnr
+      :artist_ssim => '', # name w role art, egr, ill, scl, drm
+      
+#          dates -> originInfo_dateIssued_sim,    subject_temporal_sim  ?
+# :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
+# :date_issued_dtsim
+    
+      :text_tiv => smods_rec_obj.text,  # anything else here?      
+    }
+=end
+    doc_hash[:mods_xml] = smods_rec_obj.to_xml
+    doc_hash
+  end
+  
+  # create a Hash of Solr fields based on MODS <subject> fields
+  # @param [Stanford::Mods::Record] smods_rec_obj (for a particular druid)
+  # @param [String] druid e.g. ab123cd4567 (for error reporting)
+  # @return [Hash<String, String>] with the Solr fields derived from the MODS <subject> fields
+  def subject_field_hash(smods_rec_obj, druid)
+    doc_hash = {}
     sub_flds = [:catalog_heading_etsimv, :catalog_heading_ftsimv, :speaker_ssim, :subject_name_ssim]
     sub_flds.each { |fld| doc_hash[fld] = [] }
     smods_rec_obj.subject.each { |subj_node|
@@ -98,23 +123,10 @@ class BnfImagesIndexer < Harvestdor::Indexer
         end
       }
     } # each subject node
+    
     sub_flds.each { |fld|  
       doc_hash.delete(fld) if doc_hash[fld] && doc_hash[fld].empty?
     }
-    
-=begin    
-    doc_hash = { 
-      :collector_ssim => '', # name w role col, or dnr
-      :artist_ssim => '', # name w role art, egr, ill, scl, drm
-      
-#          dates -> originInfo_dateIssued_sim,    subject_temporal_sim  ?
-# :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
-# :date_issued_dtsim
-    
-      :text_tiv => smods_rec_obj.text,  # anything else here?      
-    }
-=end
-    doc_hash[:mods_xml] = smods_rec_obj.to_xml
     doc_hash
   end
   
