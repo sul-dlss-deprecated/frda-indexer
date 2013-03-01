@@ -156,7 +156,7 @@
     </fieldType>
     
     <!-- A text field that only splits on whitespace for exact matching of words -->
-    <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="100">
+    <fieldType name="text_ws" class="solr.TextField" positionIncrementGap="10000">
       <analyzer>
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
         <filter class="solr.TrimFilterFactory"/>
@@ -173,7 +173,7 @@
     </fieldtype>
     
     <!-- A text field with defaults appropriate for English -->
-    <fieldType name="text_en" class="solr.TextField" positionIncrementGap="100">
+    <fieldType name="text_en" class="solr.TextField" positionIncrementGap="10000">
       <analyzer>
         <tokenizer class="solr.ICUTokenizerFactory"/>
         <filter class="solr.ICUFoldingFilterFactory"/>  <!-- NFKC, case folding, diacritics removed -->
@@ -187,7 +187,7 @@
     </fieldType>
         
     <!-- French -->
-    <fieldType name="text_fr" class="solr.TextField" positionIncrementGap="100">
+    <fieldType name="text_fr" class="solr.TextField" positionIncrementGap="10000">
       <analyzer> 
         <tokenizer class="solr.ICUTokenizerFactory"/>
         <filter class="solr.ICUFoldingFilterFactory"/>  <!-- NFKC, case folding, diacritics removed -->
