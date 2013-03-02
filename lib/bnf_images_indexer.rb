@@ -17,22 +17,26 @@ class BnfImagesIndexer < Harvestdor::Indexer
     if blacklist.include?(druid)
       logger.info("BnF Images Druid #{druid} is on the blacklist and will have no Solr doc created")
     else
-      logger.info("About to prep #{druid}")
-
-      doc_hash = {
-        :id => druid, 
-        :druid_ssi => druid,
-        :type_ssi => TYPE_VAL,
-        :collection_ssi => COLL_VAL,
-        :result_group_ssi => COLL_VAL,
-        :image_id_ssm => image_ids(druid)
-      }
-      mods_doc_hash = doc_hash_from_mods druid
-      doc_hash.merge!(mods_doc_hash) if mods_doc_hash
+      begin
+        logger.debug("About to prep #{druid}")
+        doc_hash = {
+          :id => druid, 
+          :druid_ssi => druid,
+          :type_ssi => TYPE_VAL,
+          :collection_ssi => COLL_VAL,
+          :result_group_ssi => COLL_VAL,
+          :image_id_ssm => image_ids(druid)
+        }
+        mods_doc_hash = doc_hash_from_mods druid
+        doc_hash.merge!(mods_doc_hash) if mods_doc_hash
       
-      solr_client.add(doc_hash)
-      logger.info("Added doc for #{druid} to Solr")
-      # TODO: update DOR object's workflow datastream??
+        solr_client.add(doc_hash)
+        logger.info("Added doc for #{druid} to Solr")
+        # TODO: provide call to code to update DOR object's workflow datastream??
+      rescue => e
+        p e.backtrace
+        logger.error "Failed to index #{druid}: #{e.message}"
+      end
     end
   end
   
@@ -67,17 +71,20 @@ class BnfImagesIndexer < Harvestdor::Indexer
     sub_fld_hash = subject_field_hash(smods_rec_obj, druid)
     doc_hash.merge!(sub_fld_hash) if sub_fld_hash
     
+    smods_rec_obj.plain_name.each { |name_node|  
+      
+    }
+    
 =begin    
-    doc_hash = { 
       :collector_ssim => '', # name w role col, or dnr
       :artist_ssim => '', # name w role art, egr, ill, scl, drm
       
-#          dates -> originInfo_dateIssued_sim,    subject_temporal_sim  ?
-# :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
-# :date_issued_dtsim
-    
+      :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
+      :date_issued_dtsim
+      :search_date  YYYYMMDD   or dt or i?
+      :facet_date YYYYMM   i or s or ???
+          
       :text_tiv => smods_rec_obj.text,  # anything else here?      
-    }
 =end
     doc_hash[:mods_xml] = smods_rec_obj.to_xml
     doc_hash
@@ -136,7 +143,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
   # @return [Array<String>] the ids of the image files, without file type extension (e.g. 'W188_000002_300')
   def image_ids druid
     ids = []
-    cntmd = @harvestdor_client.content_metadata druid
+    cntmd = harvestdor_client.content_metadata druid
     if cntmd
       cntmd.xpath('./resource[@type="image"]/file/@id').each { |node|
         ids << node.text
