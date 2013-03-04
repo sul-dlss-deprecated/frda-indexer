@@ -150,6 +150,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
       }
     else
       logger.warn("#{druid} did not retrieve any contentMetadata")
+      return nil
     end
     if ids.empty?
       logger.warn("#{druid} did not find any image ids: #{cntmd.to_xml}")
