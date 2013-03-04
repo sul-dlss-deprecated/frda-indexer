@@ -145,11 +145,17 @@ class BnfImagesIndexer < Harvestdor::Indexer
     ids = []
     cntmd = harvestdor_client.content_metadata druid
     if cntmd
-      cntmd.xpath('./resource[@type="image"]/file/@id').each { |node|
+      cntmd.root.xpath('./resource[@type="image"]/file/@id').each { |node|
         ids << node.text
       }
+    else
+      logger.warn("#{druid} did not retrieve any contentMetadata")
+      return nil
     end
-    return nil if ids.empty?
+    if ids.empty?
+      logger.warn("#{druid} did not find any image ids: #{cntmd.to_xml}")
+      return nil
+    end
     ids
   end
 

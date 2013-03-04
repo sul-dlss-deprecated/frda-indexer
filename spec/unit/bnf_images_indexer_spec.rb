@@ -12,6 +12,8 @@ describe BnfImagesIndexer do
     @ns_decl = "xmlns='#{Mods::MODS_NS}'"
     @mods_xml = "<mods #{@ns_decl}><note>hi</note></mods>"
     @ng_mods_xml = Nokogiri::XML(@mods_xml)
+    @content_md_start = "<contentMetadata objectId='#{@fake_druid}'>"
+    @content_md_end = "</contentMetadata>"
   end
   
   context "index method" do
@@ -45,10 +47,8 @@ describe BnfImagesIndexer do
   context ":image_id_ssm field" do
     it "should be the value of image_ids method" do
       @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
-      @content_md_start = "<contentMetadata objectId='#{@fake_druid}'>"
-      @content_md_end = "</contentMetadata>"
       ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file id='W188_000001_300.jp2'/></resource>#{@content_md_end}")
-      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml.root)
+      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml)
       @indexer.should_receive(:image_ids).with(@fake_druid).and_call_original
       @solr_client.should_receive(:add).with(hash_including(:image_id_ssm => ['W188_000001_300.jp2']))
       @indexer.index(@fake_druid)
@@ -154,6 +154,7 @@ describe BnfImagesIndexer do
                       <extent>two</extent>
                     </physicalDescription></mods>"
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} did not retrieve any contentMetadata/)
           @indexer.logger.should_receive(:warn).with("#{@fake_druid} unexpectedly has multiple <physicalDescription><extent> fields; using first only for :medium_ssi")
           @solr_client.should_receive(:add).with(hash_including(:medium_ssi))
           @indexer.index(@fake_druid)
@@ -164,6 +165,7 @@ describe BnfImagesIndexer do
                       <extent>one</extent>
                     </physicalDescription></mods>"
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} did not retrieve any contentMetadata/)
           @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no :medium_ssi; MODS <physicalDescription><extent> has unexpected format: 'one'")
           @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
           @indexer.index(@fake_druid)
@@ -237,6 +239,7 @@ describe BnfImagesIndexer do
                         <topic>one</topic>
                       </subject></mods>"
             @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+            @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} did not retrieve any contentMetadata/)
             @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} has subject with @displayLabel 'Catalog heading' but @lang not 'fre' or 'eng': '/)
             @solr_client.should_receive(:add).with(hash_not_including(:catalog_heading_ftsimv, :catalog_heading_etsimv))
             @indexer.index(@fake_druid)
@@ -372,45 +375,41 @@ describe BnfImagesIndexer do
   end # doc_hash_from_mods
   
   context "image_ids method" do
-    before(:all) do
-      @content_md_start = "<contentMetadata objectId='#{@fake_druid}'>"
-      @content_md_end = "</contentMetadata>"
-    end
     it "should be nil if there are no <resource> elements in the contentMetadata" do
       ng_xml = Nokogiri::XML("#{@content_md_start}#{@content_md_end}")
-      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml.root)
+      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml)
       @indexer.image_ids(@fake_druid).should == nil
     end
     it "should ignore <resource> elements with attribute type other than 'image'" do
       ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='blarg'><file id='foo'/></resource>#{@content_md_end}")
-      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml.root)
+      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml)
       @indexer.image_ids(@fake_druid).should == nil
     end
     it "should be ignore all but <file> element children of the image resource element" do
       ng_xml = ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><label id='foo'>bar</label></resource>#{@content_md_end}")
-      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml.root)
+      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml)
       @indexer.image_ids(@fake_druid).should == nil
     end
     it "should be nil if there are no id elements on file elements" do
       ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file/></resource>#{@content_md_end}")
-      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml.root)
+      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml)
       @indexer.image_ids(@fake_druid).should == nil
     end
     it "should be an Array of size one if there is a single <resource><file id='something'> in the content metadata" do
       ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file id='foo'/></resource>#{@content_md_end}")
-      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml.root)
+      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml)
       @indexer.image_ids(@fake_druid).should == ['foo']
     end
     it "should be the same size as the number of <resource><file id='something'> in the content metadata" do
       ng_xml = Nokogiri::XML("#{@content_md_start}
             <resource type='image'><file id='foo'/></resource>
             <resource type='image'><file id='bar'/></resource>#{@content_md_end}")
-      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml.root)
+      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml)
       @indexer.image_ids(@fake_druid).should == ['foo', 'bar']
     end
     it "endings of .jp2 should not be stripped" do
       ng_xml = Nokogiri::XML("#{@content_md_start}<resource type='image'><file id='W188_000001_300.jp2'/></resource>#{@content_md_end}")
-      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml.root)
+      @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml)
       @indexer.image_ids(@fake_druid).should == ['W188_000001_300.jp2']
     end
   end # image_ids method  
