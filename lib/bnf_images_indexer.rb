@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'harvestdor-indexer'
+require 'date'
 
 # Indexer for BnF Images data
 #  Harvest BnfImages from DOR via harvestdor-indexer gem, then index it 
@@ -51,7 +52,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
     doc_hash[:genre_ssim] = smods_rec_obj.genre.map {|n| n.text } if smods_rec_obj.genre && !smods_rec_obj.genre.empty?
     
     phys_desc_nodeset = smods_rec_obj.physical_description if smods_rec_obj.physical_description
-    if phys_desc_nodeset
+    unless phys_desc_nodeset.empty?
       doc_hash[:doc_type_ssim] = phys_desc_nodeset.form.map {|n| n.text } if !phys_desc_nodeset.form.empty?
       extents = phys_desc_nodeset.extent.map {|n| n.text} if !phys_desc_nodeset.extent.empty?
       if extents && extents.size > 1
@@ -68,9 +69,39 @@ class BnfImagesIndexer < Harvestdor::Indexer
       end
     end
 
-    sub_fld_hash = subject_field_hash(smods_rec_obj, druid)
-    doc_hash.merge!(sub_fld_hash) if sub_fld_hash
+    doc_hash.merge!(name_field_hash(smods_rec_obj, druid))
+    doc_hash.merge!(subject_field_hash(smods_rec_obj, druid))
     
+#    pub_date = get_date(smods_rec_obj, druid)
+#    doc_hash[:search_date_dtsim] = pub_date if pub_date
+    
+=begin
+      :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
+      :date_issued_dtsim
+      :search_date  YYYYMMDD   or dt or i?
+      :facet_date YYYYMM   i or s or ???
+          
+      :text_tiv => smods_rec_obj.text,  # anything else here?      
+=end
+    doc_hash[:mods_xml] = smods_rec_obj.to_xml
+    doc_hash
+  end
+  
+  # NAOMI_MUST_COMMENT_THIS_METHOD
+  # @param [Stanford::Mods::Record] smods_rec_obj (for a particular druid)
+  # @param [String] druid e.g. ab123cd4567 (for error reporting)
+  def get_date smods_rec_obj, druid
+    dates = smods_rec_obj.origin_info.dateIssued
+    d = Date.parse(dates.first) unless dates.empty?
+    d.strftime '%FT%TZ' if d
+  end
+  
+  # create a Hash of Solr fields based on MODS top level <name> fields
+  # @param [Stanford::Mods::Record] smods_rec_obj (for a particular druid)
+  # @param [String] druid e.g. ab123cd4567 (for error reporting)
+  # @return [Hash<String, String>] with the Solr fields derived from the MODS top level <name> fields
+  def name_field_hash smods_rec_obj, druid
+    doc_hash = {}
     name_flds = [:collector_ssim, :artist_ssim]
     name_flds.each { |fld| doc_hash[fld] = [] }
     smods_rec_obj.plain_name.each { |name_node|
@@ -93,17 +124,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
     name_flds.each { |fld|
       doc_hash.delete(fld) if doc_hash[fld] && doc_hash[fld].empty?
     }
-    
-=begin
-      :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
-      :date_issued_dtsim
-      :search_date  YYYYMMDD   or dt or i?
-      :facet_date YYYYMM   i or s or ???
-          
-      :text_tiv => smods_rec_obj.text,  # anything else here?      
-=end
-    doc_hash[:mods_xml] = smods_rec_obj.to_xml
-    doc_hash
+    doc_hash    
   end
   
   # @param [Nokogiri::XML::Node] name_node - a MODS <name> node
@@ -137,7 +158,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
   # @param [Stanford::Mods::Record] smods_rec_obj (for a particular druid)
   # @param [String] druid e.g. ab123cd4567 (for error reporting)
   # @return [Hash<String, String>] with the Solr fields derived from the MODS <subject> fields
-  def subject_field_hash(smods_rec_obj, druid)
+  def subject_field_hash smods_rec_obj, druid
     doc_hash = {}
     sub_flds = [:catalog_heading_etsimv, :catalog_heading_ftsimv, :speaker_ssim, :subject_name_ssim]
     sub_flds.each { |fld| doc_hash[fld] = [] }
