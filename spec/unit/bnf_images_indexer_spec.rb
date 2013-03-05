@@ -445,9 +445,8 @@ describe BnfImagesIndexer do
             @solr_client.should_receive(:add).with(hash_not_including(:collector_ssim))
             @indexer.index(@fake_druid)
           end
-          it "should work for role code or text " do
-            pending "to be implemented"
-          end
+          # as of 2013-03-04, all roles for BnF Images are of type code
+          #it "should work for role code or text"
         end # collector_ssim
         context ":artist_ssim (roles: art, drm, egr, ill, scl)" do
           it "should be assigned for correct roles only" do
@@ -506,9 +505,8 @@ describe BnfImagesIndexer do
             @solr_client.should_receive(:add).with(hash_not_including(:artist_ssim))
             @indexer.index(@fake_druid)
           end
-          it "should work for role code or text " do
-            pending "to be implemented"
-          end
+          # as of 2013-03-04, all roles for BnF Images are of type code
+          # it "should work for role code or text"
         end  # :artist_ssim
       end # names
        
