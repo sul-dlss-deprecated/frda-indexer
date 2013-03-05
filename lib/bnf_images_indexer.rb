@@ -71,14 +71,30 @@ class BnfImagesIndexer < Harvestdor::Indexer
     sub_fld_hash = subject_field_hash(smods_rec_obj, druid)
     doc_hash.merge!(sub_fld_hash) if sub_fld_hash
     
-    smods_rec_obj.plain_name.each { |name_node|  
-      
+    name_flds = [:collector_ssim, :artist_ssim]
+    name_flds.each { |fld| doc_hash[fld] = [] }
+    smods_rec_obj.plain_name.each { |name_node|
+      # as of 2013-03-04, all roles for BnF Images are of type code
+      if name_node.role && name_node.role.code
+        name_node.role.code.each { |code| 
+          if code && !code.empty?
+            case code.strip
+              when 'col', 'dnr'
+                val = name_no_dates name_node
+                doc_hash[:collector_ssim] << val if val
+              when 'art', 'drm', 'egr', 'ill', 'scl'
+                val = name_with_dates name_node
+                doc_hash[:artist_ssim] << val if val
+            end
+          end
+        }
+      end
+    }
+    name_flds.each { |fld|
+      doc_hash.delete(fld) if doc_hash[fld] && doc_hash[fld].empty?
     }
     
-=begin    
-      :collector_ssim => '', # name w role col, or dnr
-      :artist_ssim => '', # name w role art, egr, ill, scl, drm
-      
+=begin
       :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
       :date_issued_dtsim
       :search_date  YYYYMMDD   or dt or i?
@@ -88,6 +104,33 @@ class BnfImagesIndexer < Harvestdor::Indexer
 =end
     doc_hash[:mods_xml] = smods_rec_obj.to_xml
     doc_hash
+  end
+  
+  # @param [Nokogiri::XML::Node] name_node - a MODS <name> node
+  # @return [String] the "[family], [given]" form of a name if  nameParts of type "family" and/or "given" are indicated; 
+  #  otherwise returns all nameParts that are not of type "date" or "termsOfAddress"
+  def name_no_dates name_node
+    if !name_node.family_name.empty?
+      return name_node.given_name.empty? ? name_node.family_name.text : "#{name_node.family_name.text}, #{name_node.given_name.text}"
+    elsif !name_node.given_name.empty?
+      return name_node.given_name.text
+    end
+    names = name_node.namePart.map { |npn| npn.text unless npn.type_at == 'date' || npn.type_at == 'termsOfAddress'}.compact
+    return names.join(' ') unless names.empty?
+    nil
+  end
+  
+  # @param [Nokogiri::XML::Node] name_node - a MODS <name> node
+  # @return [String] the "[family], [given] ([date])" form of a name if nameParts of type "family" and/or "given" (and "date") are indicated; 
+  #  otherwise returns all plain nameParts followed by " ([date])" if there is a namePart of type "date"
+  def name_with_dates name_node
+    dates = name_node.namePart.map { |npn| npn.text if npn.type_at == 'date' }.compact
+    date_str = ' (' + dates.first + ')' unless dates.empty?
+    just_name = name_no_dates name_node
+    if just_name
+      return date_str ? just_name << date_str : just_name
+    end
+    nil
   end
   
   # create a Hash of Solr fields based on MODS <subject> fields
