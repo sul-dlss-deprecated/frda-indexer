@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'spec_helper'
+require 'stanford-mods'
 
 describe BnfImagesIndexer do
   
@@ -14,27 +15,99 @@ describe BnfImagesIndexer do
     @ng_mods_xml = Nokogiri::XML(@mods_xml)
     @content_md_start = "<contentMetadata objectId='#{@fake_druid}'>"
     @content_md_end = "</contentMetadata>"
-  end
-  before(:each) do
-    @hdor_client.should_receive(:content_metadata).and_return(nil)
-  end
-  
-  context "priority order" do
-    it "should take date from originInfo if it can" do
-      pending "to be implemented"
-    end
-    it "should take from subect temporal if no originInfo" do
-      pending "to be implemented"
-    end
-    it "should take from note date de creation if no originInfo or temporal" do
-      pending "to be implemented"
-    end
-    it "should take from artist dates if no other is avail" do
-      pending "to be implemented"
-    end
+    @unparseable_date = '[Entre 1789 et 1791]'
+    @smr = Stanford::Mods::Record.new
   end
   
-  context "from originInfo" do
+  context "get_date" do
+    it "date should be in iso8601 zed format (YYYY-MM-DDThh:mm:ssZ)" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>April 1 1797</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.get_date(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z']
+    end
+    it "should have a value for each non-duplicated value in MODS" do
+      pending "to be implemented"
+    end
+    it "should not include duplicate dates" do
+      pending "to be implemented"
+    end
+    it "should include every parseable non-duplicate date" do
+      pending "to be implemented"
+    end
+    it "should return nil if there are no values" do
+      mods = "<mods #{@ns_decl}><note>hi</note></mods>"
+      @smr.from_str(mods)
+      @indexer.logger.should_receive(:warn)
+      @indexer.get_date(@smr, @fake_druid).should == nil
+    end
+
+    context "log messages" do
+      it "should print a WARN error when it can't parse a date (and there isn't another one it CAN parse?)" do
+        mods = "<mods #{@ns_decl}>
+                  <originInfo>
+                    <dateIssued>#{@unparseable_date}</dateIssued>
+                    <dateIssued>April 1 1797</dateIssued>
+                  </originInfo>
+                </mods>"
+        @smr.from_str(mods)
+        @indexer.logger.should_receive(:warn).with("#{@fake_druid} has unparseable originInfo/dateIssued value: '#{@unparseable_date}'")
+        @indexer.get_date(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z']
+      end
+      it "should print a WARN when none of the originInfo/dateIssued values are parseable" do
+        mods = "<mods #{@ns_decl}>
+                  <originInfo>
+                    <dateIssued>#{@unparseable_date}</dateIssued>
+                  </originInfo>
+                </mods>"
+        @smr.from_str(mods)
+        @indexer.logger.should_receive(:warn).with("#{@fake_druid} has unparseable originInfo/dateIssued value: '#{@unparseable_date}'")
+        @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no parseable originInfo/dateIssued value")
+        @indexer.get_date(@smr, @fake_druid).should == nil
+      end
+      it "should print a WARN when there is no originInfo date" do
+        mods = "<mods #{@ns_decl}><note>hi</note></mods>"
+        @smr.from_str(mods)
+        @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no originInfo/dateIssued field")
+        @indexer.get_date(@smr, @fake_druid).should == nil
+      end
+    end # log messages
+  end
+  
+  context "in doc hash" do
+    before(:each) do
+      @hdor_client.should_receive(:content_metadata).and_return(nil)
+    end
+    
+    # search_date_dtsim    1791-12-11T00:00:00Z
+    it "search_date_dtsim should be in iso8601 zed format (YYYY-MM-DDThh:mm:ssZ)" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>April 1 1797</dateIssued>
+                </originInfo>
+              </mods>"
+      @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+      @solr_client.should_receive(:add).with(hash_including(:search_date_dtsim => '1797-04-01T00:00:00Z'))
+      @indexer.index(@fake_druid)
+    end
+    it "should choose the most granular date even if it's not marc encoding" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>April 1 1797</dateIssued>
+                  <dateIssued encoding=\"marc\">1797</dateIssued>
+                </originInfo>
+              </mods>"
+      @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+      @solr_client.should_receive(:add).with(hash_including(:search_date_dtsim => '1797-04-01T00:00:00Z'))
+      @indexer.index(@fake_druid)
+    end
+
+  end # in doc hash
+  
+  context "date parsing oddities" do
     before(:all) do
       @mods_sub_cat_head = "<mods #{@ns_decl}>
                     <originInfo>
@@ -58,18 +131,10 @@ describe BnfImagesIndexer do
                       </originInfo>
                   </mods>"
     end
-    # search_date_dtsim    1791-12-11T00:00:00Z
-    it "should choose the most granular date even if it's not marc encoding" do
-      mods = "<mods #{@ns_decl}>
-                <originInfo>
-                  <dateIssued>April 1 1797</dateIssued>
-                  <dateIssued encoding=\"marc\">1797</dateIssued>
-                </originInfo>
-              </mods>"
-      @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-      @solr_client.should_receive(:add).with(hash_including(:search_date_dtsim => '1797-04-01T00:00:00Z'))
-      @indexer.index(@fake_druid)
-    end
+    # [Entre 1789 et 1791] -> if no marc one
+    # [entre 1500 et 1599]
+    # [1782] -> if no marc one  (missing open bracket)
+    # [ca 1798]  -> if no marc one (missing open bracket)
     it "should deal with year only (no month or day) if that's the best we've got" do
       pending "to be implemented"
     end
@@ -83,11 +148,20 @@ describe BnfImagesIndexer do
       # See Legal Characters section under field 008/06 of MARC Bibliographic
       #  (from http://www.loc.gov/standards/mods/userguide/generalapp.html#list)
     end
-    
+
     # parses!
     # le 1er septembre 1791
     it "should remove square brackets" do
       pending "to be implemented"
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>[1790]</dateIssued>
+                  <dateIssued encoding=\"marc\">1790</dateIssued>
+                </originInfo>
+              </mods>"
+      @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+      @solr_client.should_receive(:add).with(hash_including(:search_date_dtsim => '1790-01-01T00:00:00Z'))
+      @indexer.index(@fake_druid)
     end
     it "should remove trailing period" do
       pending "to be implemented"
@@ -95,16 +169,7 @@ describe BnfImagesIndexer do
     it "should remove preceding Anno" do
       pending "to be implemented"
       # Anno 1803 -> if no marc one  (also anno)
-    end
-    # [Entre 1789 et 1791] -> if no marc one
-    # [entre 1500 et 1599]
-    # [1782] -> if no marc one  (missing open bracket)
-    # [ca 1798]  -> if no marc one (missing open bracket)
-    it "should print a WARN error when it can't parse a date (and there isn't another one it CAN parse?)" do
-      pending "to be implemented"
-    end
-    it "should print a WARN when there is no originInfo date" do
-      pending "to be implemented"
     end    
-  end
+  end # date parsing oddities
+
 end

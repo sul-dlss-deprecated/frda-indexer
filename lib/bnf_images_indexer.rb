@@ -91,9 +91,27 @@ class BnfImagesIndexer < Harvestdor::Indexer
   # @param [Stanford::Mods::Record] smods_rec_obj (for a particular druid)
   # @param [String] druid e.g. ab123cd4567 (for error reporting)
   def get_date smods_rec_obj, druid
-    dates = smods_rec_obj.origin_info.dateIssued
-    d = Date.parse(dates.first) unless dates.empty?
-    d.strftime '%FT%TZ' if d
+    date_nodes = smods_rec_obj.origin_info.dateIssued
+    if date_nodes.empty?
+      logger.warn "#{druid} has no originInfo/dateIssued field"
+      return nil      
+    end
+    result = date_nodes.map { |dn|
+      begin
+        d = Date.parse(dn.text) if dn.text
+        d.strftime '%FT%TZ' if d
+      rescue => e
+        logger.warn "#{druid} has unparseable originInfo/dateIssued value: '#{dn.text}'"
+      end
+    }.compact.uniq
+#    result = []
+#    date_nodes.each { |dn|
+#      d = Date.parse(dn.text) if dn.text
+#      result << d.strftime '%FT%TZ' if d
+#    }
+#    result.empty? ? nil : result
+    
+    result && !result.empty? ? result : nil
   end
   
   # create a Hash of Solr fields based on MODS top level <name> fields
