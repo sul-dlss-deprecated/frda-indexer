@@ -104,7 +104,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
         d = Date.parse(raw_val) if raw_val
         result << d.strftime('%FT%TZ') if d
       rescue => e
-        if raw_val && raw_val.match(/^\[?(\d{4})\]?$/)
+        if raw_val && raw_val.match(/^\[?(?:ca )?(\d{4})\]?$/)
           year_only << $1
         else
           logger.warn "#{druid} has unparseable originInfo/dateIssued value: '#{dn.text}'"

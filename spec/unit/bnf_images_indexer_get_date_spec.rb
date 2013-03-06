@@ -50,7 +50,16 @@ describe BnfImagesIndexer do
       @smr.from_str(mods)
       @indexer.search_dates(@smr, @fake_druid).should == ['1781-01-01T00:00:00Z', '1782-01-01T00:00:00Z', '1783-01-01T00:00:00Z']
     end
-    
+    it "should work for [ca yyyy] pattern" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>[ca 1790]</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.search_dates(@smr, @fake_druid).should == ['1790-01-01T00:00:00Z']
+    end
+
     it "should not include duplicate dates" do
       mods = "<mods #{@ns_decl}>
                 <originInfo>
