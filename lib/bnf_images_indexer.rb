@@ -69,33 +69,31 @@ class BnfImagesIndexer < Harvestdor::Indexer
       end
     end
 
-    doc_hash.merge!(name_field_hash(smods_rec_obj, druid))
-    doc_hash.merge!(subject_field_hash(smods_rec_obj, druid))
-    
     pub_date = get_date(smods_rec_obj, druid)
     doc_hash[:search_date_dtsim] = pub_date if pub_date
     
-=begin
-      :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
-      :date_issued_dtsim
-      :search_date  YYYYMMDD   or dt or i?
-      :facet_date YYYYMM   i or s or ???
-          
-      :text_tiv => smods_rec_obj.text,  # anything else here?      
-=end
+    doc_hash.merge!(name_field_hash(smods_rec_obj, druid))
+    doc_hash.merge!(subject_field_hash(smods_rec_obj, druid))
+    
+#    :text_tiv => smods_rec_obj.text,  # anything else here?      
+
     doc_hash[:mods_xml] = smods_rec_obj.to_xml
     doc_hash
   end
   
-  # NAOMI_MUST_COMMENT_THIS_METHOD
+  # get dates from originInfo/dateIssued in iso8601 zed format (YYYY-MM-DDThh:mm:ssZ), 
+  #  log warnings for no dateIssued field, for no parseable dates, and for each unparseable dates
   # @param [Stanford::Mods::Record] smods_rec_obj (for a particular druid)
   # @param [String] druid e.g. ab123cd4567 (for error reporting)
+  # @return [Array<String>] originInfo/dateIssued values in iso8601 zed format (YYYY-MM-DDThh:mm:ssZ), 
+  #   or nil if there are none that can be parsed into Date objects
   def get_date smods_rec_obj, druid
     date_nodes = smods_rec_obj.origin_info.dateIssued
     if date_nodes.empty?
       logger.warn "#{druid} has no originInfo/dateIssued field"
       return nil      
     end
+
     result = date_nodes.map { |dn|
       begin
         d = Date.parse(dn.text) if dn.text
@@ -104,12 +102,6 @@ class BnfImagesIndexer < Harvestdor::Indexer
         logger.warn "#{druid} has unparseable originInfo/dateIssued value: '#{dn.text}'"
       end
     }.compact.uniq
-#    result = []
-#    date_nodes.each { |dn|
-#      d = Date.parse(dn.text) if dn.text
-#      result << d.strftime '%FT%TZ' if d
-#    }
-#    result.empty? ? nil : result
     if result.empty?
       logger.warn "#{druid} has no parseable originInfo/dateIssued value"
       nil
@@ -151,7 +143,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
   
   # @param [Nokogiri::XML::Node] name_node - a MODS <name> node
   # @return [String] the "[family], [given]" form of a name if  nameParts of type "family" and/or "given" are indicated; 
-  #  otherwise returns all nameParts that are not of type "date" or "termsOfAddress"
+  #  otherwise returns all nameParts that are not of type "date" or "termsOfAddress", or nil if none
   def name_no_dates name_node
     if !name_node.family_name.empty?
       return name_node.given_name.empty? ? name_node.family_name.text : "#{name_node.family_name.text}, #{name_node.given_name.text}"
@@ -165,7 +157,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
   
   # @param [Nokogiri::XML::Node] name_node - a MODS <name> node
   # @return [String] the "[family], [given] ([date])" form of a name if nameParts of type "family" and/or "given" (and "date") are indicated; 
-  #  otherwise returns all plain nameParts followed by " ([date])" if there is a namePart of type "date"
+  #  otherwise returns all plain nameParts followed by " ([date])" if there is a namePart of type "date", or nil if none
   def name_with_dates name_node
     dates = name_node.namePart.map { |npn| npn.text if npn.type_at == 'date' }.compact
     date_str = ' (' + dates.first + ')' unless dates.empty?
@@ -226,7 +218,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
   # Retrieve the image file ids from the contentMetadata: xpath  contentMetadata/resource[@type='image']/file/@id
   #  but with jp2 file extension stripped off.
   # @param [String] druid e.g. ab123cd4567
-  # @return [Array<String>] the ids of the image files, without file type extension (e.g. 'W188_000002_300')
+  # @return [Array<String>] the ids of the image files, without file type extension (e.g. 'W188_000002_300') or nil if none
   def image_ids druid
     ids = []
     cntmd = harvestdor_client.content_metadata druid

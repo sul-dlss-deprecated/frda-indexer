@@ -90,7 +90,7 @@ describe BnfImagesIndexer do
                 </originInfo>
               </mods>"
       @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-      @solr_client.should_receive(:add).with(hash_including(:search_date_dtsim => '1797-04-01T00:00:00Z'))
+      @solr_client.should_receive(:add).with(hash_including(:search_date_dtsim => ['1797-04-01T00:00:00Z']))
       @indexer.index(@fake_druid)
     end
     it "should choose the most granular date even if it's not marc encoding" do
@@ -101,7 +101,7 @@ describe BnfImagesIndexer do
                 </originInfo>
               </mods>"
       @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-      @solr_client.should_receive(:add).with(hash_including(:search_date_dtsim => '1797-04-01T00:00:00Z'))
+      @solr_client.should_receive(:add).with(hash_including(:search_date_dtsim => ['1797-04-01T00:00:00Z']))
       @indexer.index(@fake_druid)
     end
 
