@@ -110,8 +110,12 @@ class BnfImagesIndexer < Harvestdor::Indexer
 #      result << d.strftime '%FT%TZ' if d
 #    }
 #    result.empty? ? nil : result
-    
-    result && !result.empty? ? result : nil
+    if result.empty?
+      logger.warn "#{druid} has no parseable originInfo/dateIssued value"
+      nil
+    else
+      result
+    end
   end
   
   # create a Hash of Solr fields based on MODS top level <name> fields
