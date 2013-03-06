@@ -154,6 +154,7 @@ describe BnfImagesIndexer do
                       <extent>two</extent>
                     </physicalDescription></mods>"
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} has no originInfo.dateIssued field/)
           @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} did not retrieve any contentMetadata/)
           @indexer.logger.should_receive(:warn).with("#{@fake_druid} unexpectedly has multiple <physicalDescription><extent> fields; using first only for :medium_ssi")
           @solr_client.should_receive(:add).with(hash_including(:medium_ssi))
@@ -165,6 +166,7 @@ describe BnfImagesIndexer do
                       <extent>one</extent>
                     </physicalDescription></mods>"
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} has no originInfo.dateIssued field/)
           @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} did not retrieve any contentMetadata/)
           @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no :medium_ssi; MODS <physicalDescription><extent> has unexpected format: 'one'")
           @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
@@ -239,6 +241,7 @@ describe BnfImagesIndexer do
                         <topic>one</topic>
                       </subject></mods>"
             @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+            @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} has no originInfo.dateIssued field/)
             @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} did not retrieve any contentMetadata/)
             @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} has subject with @displayLabel 'Catalog heading' but @lang not 'fre' or 'eng': '/)
             @solr_client.should_receive(:add).with(hash_not_including(:catalog_heading_ftsimv, :catalog_heading_etsimv))
