@@ -100,6 +100,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
         d.strftime '%FT%TZ' if d
       rescue => e
         logger.warn "#{druid} has unparseable originInfo/dateIssued value: '#{dn.text}'"
+        nil
       end
     }.compact.uniq
     if result.empty?
