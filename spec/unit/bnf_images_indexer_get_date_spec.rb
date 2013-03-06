@@ -29,14 +29,27 @@ describe BnfImagesIndexer do
       @smr.from_str(mods)
       @indexer.get_date(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z']
     end
-    it "should have a value for each non-duplicated value in MODS" do
-      pending "to be implemented"
-    end
     it "should not include duplicate dates" do
-      pending "to be implemented"
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>April 1 1797</dateIssued>
+                  <dateIssued>April 1 1797</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.get_date(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z']
     end
-    it "should include every parseable non-duplicate date" do
-      pending "to be implemented"
+    it "should have a value for every parseable non-duplicated value in MODS" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>April 1 1797</dateIssued>
+                  <dateIssued encoding=\"marc\">1797</dateIssued>
+                  <dateIssued>April 1 1797</dateIssued>
+                  <dateIssued>Feb.y 5 1793</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.get_date(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z', '1793-02-05T00:00:00Z']
     end
     it "should return nil if there are no values" do
       mods = "<mods #{@ns_decl}><note>hi</note></mods>"
@@ -82,7 +95,6 @@ describe BnfImagesIndexer do
       @hdor_client.should_receive(:content_metadata).and_return(nil)
     end
     
-    # search_date_dtsim    1791-12-11T00:00:00Z
     it "search_date_dtsim should be in iso8601 zed format (YYYY-MM-DDThh:mm:ssZ)" do
       mods = "<mods #{@ns_decl}>
                 <originInfo>
