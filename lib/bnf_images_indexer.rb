@@ -72,8 +72,8 @@ class BnfImagesIndexer < Harvestdor::Indexer
     doc_hash.merge!(name_field_hash(smods_rec_obj, druid))
     doc_hash.merge!(subject_field_hash(smods_rec_obj, druid))
     
-#    pub_date = get_date(smods_rec_obj, druid)
-#    doc_hash[:search_date_dtsim] = pub_date if pub_date
+    pub_date = get_date(smods_rec_obj, druid)
+    doc_hash[:search_date_dtsim] = pub_date if pub_date
     
 =begin
       :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
