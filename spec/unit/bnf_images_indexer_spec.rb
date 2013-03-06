@@ -42,6 +42,11 @@ describe BnfImagesIndexer do
       end
     end
     
+    it ":text_tiv" do
+      @solr_client.should_receive(:add).with(hash_including(:text_tiv => 'hi'))
+      @indexer.index(@fake_druid)
+    end
+
   end # index method
 
   context ":image_id_ssm field" do
@@ -513,18 +518,7 @@ describe BnfImagesIndexer do
         end  # :artist_ssim
       end # names
        
-=begin
-      :date_issued_ssim  #  originInfo_dateIssued_sim,    subject_temporal_sim  ?  <note>Date de creation??
-      :date_issued_dtsim
-      :search_date  YYYYMMDD   or dt or i?
-      :facet_date YYYYMM   i or s or ???
-
-      :text_tiv => smods_rec.text  # anything else here?
-=end
     end # fields from MODS
-
-# FIXME:  adjust solrconfig facets, qf and pf lists;  schema copyfields
-
   end # doc_hash_from_mods
   
   context "image_ids method" do

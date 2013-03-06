@@ -10,7 +10,6 @@ class BnfImagesIndexer < Harvestdor::Indexer
   # value used in rails app for choosing correct object type display 
   TYPE_VAL = "image"
 
-
   # create Solr doc for the druid and add it to Solr, unless it is on the blacklist.  
   #  NOTE: don't forget to send commit to Solr, either once at end (already in harvest_and_index), or for each add, or ...
   # @param [String] druid e.g. ab123cd4567
@@ -35,8 +34,8 @@ class BnfImagesIndexer < Harvestdor::Indexer
         logger.info("Added doc for #{druid} to Solr")
         # TODO: provide call to code to update DOR object's workflow datastream??
       rescue => e
-        p e.backtrace
         logger.error "Failed to index #{druid}: #{e.message}"
+        p e.backtrace
       end
     end
   end
@@ -69,45 +68,63 @@ class BnfImagesIndexer < Harvestdor::Indexer
       end
     end
 
-    pub_date = get_date(smods_rec_obj, druid)
+    pub_date = search_dates(smods_rec_obj, druid)
     doc_hash[:search_date_dtsim] = pub_date if pub_date
     
     doc_hash.merge!(name_field_hash(smods_rec_obj, druid))
+    
     doc_hash.merge!(subject_field_hash(smods_rec_obj, druid))
     
-#    :text_tiv => smods_rec_obj.text,  # anything else here?      
+    all_text = smods_rec_obj.text.strip
+    doc_hash[:text_tiv] = all_text.gsub(/\s+/, ' ') unless all_text.empty?
 
     doc_hash[:mods_xml] = smods_rec_obj.to_xml
     doc_hash
   end
   
   # get dates from originInfo/dateIssued in iso8601 zed format (YYYY-MM-DDThh:mm:ssZ), 
-  #  log warnings for no dateIssued field, for no parseable dates, and for each unparseable dates
+  #  log warnings for no dateIssued field, for no parseable dates, and for each unparseable date
+  #  we count YYYY and [YYYY] (and [YYYY  and YYYY] as parseable)
   # @param [Stanford::Mods::Record] smods_rec_obj (for a particular druid)
   # @param [String] druid e.g. ab123cd4567 (for error reporting)
   # @return [Array<String>] originInfo/dateIssued values in iso8601 zed format (YYYY-MM-DDThh:mm:ssZ), 
   #   or nil if there are none that can be parsed into Date objects
-  def get_date smods_rec_obj, druid
+  def search_dates smods_rec_obj, druid
     date_nodes = smods_rec_obj.origin_info.dateIssued
     if date_nodes.empty?
       logger.warn "#{druid} has no originInfo/dateIssued field"
       return nil      
     end
 
-    result = date_nodes.map { |dn|
+    result = []
+    year_only = []
+    date_nodes.each { |dn|
+      raw_val = dn.text
       begin
-        d = Date.parse(dn.text) if dn.text
-        d.strftime '%FT%TZ' if d
+        d = Date.parse(raw_val) if raw_val
+        result << d.strftime('%FT%TZ') if d
       rescue => e
-        logger.warn "#{druid} has unparseable originInfo/dateIssued value: '#{dn.text}'"
-        nil
+        if raw_val && raw_val.match(/^\[?(\d{4})\]?$/)
+          year_only << $1
+        else
+          logger.warn "#{druid} has unparseable originInfo/dateIssued value: '#{dn.text}'"
+          nil
+        end
       end
-    }.compact.uniq
-    if result.empty?
+    }
+    results = result.compact.uniq
+
+    year_only.compact.uniq.each { |year|
+      if !results.detect { |date| date.match(Regexp.new("^#{year}")) }
+        results << "#{year}-01-01T00:00:00Z"
+      end
+    }
+
+    if results.empty?
       logger.warn "#{druid} has no parseable originInfo/dateIssued value"
       nil
     else
-      result
+      results
     end
   end
   

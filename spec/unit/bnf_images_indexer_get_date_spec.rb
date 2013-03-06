@@ -19,7 +19,7 @@ describe BnfImagesIndexer do
     @smr = Stanford::Mods::Record.new
   end
   
-  context "get_date" do
+  context "search_dates" do
     it "date should be in iso8601 zed format (YYYY-MM-DDThh:mm:ssZ)" do
       mods = "<mods #{@ns_decl}>
                 <originInfo>
@@ -27,8 +27,30 @@ describe BnfImagesIndexer do
                 </originInfo>
               </mods>"
       @smr.from_str(mods)
-      @indexer.get_date(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z']
+      @indexer.search_dates(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z']
     end
+    it "should work for 4 digit year values" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued encoding=\"marc\">1799</dateIssued>
+                  <dateIssued>1797</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.search_dates(@smr, @fake_druid).should == ['1799-01-01T00:00:00Z', '1797-01-01T00:00:00Z']
+    end
+    it "should work for 4 digit year values with brackets" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>[1781]</dateIssued>
+                  <dateIssued>[1782</dateIssued>
+                  <dateIssued>1783]</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.search_dates(@smr, @fake_druid).should == ['1781-01-01T00:00:00Z', '1782-01-01T00:00:00Z', '1783-01-01T00:00:00Z']
+    end
+    
     it "should not include duplicate dates" do
       mods = "<mods #{@ns_decl}>
                 <originInfo>
@@ -37,7 +59,7 @@ describe BnfImagesIndexer do
                 </originInfo>
               </mods>"
       @smr.from_str(mods)
-      @indexer.get_date(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z']
+      @indexer.search_dates(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z']
     end
     it "should have a value for every parseable non-duplicated value in MODS" do
       mods = "<mods #{@ns_decl}>
@@ -49,13 +71,13 @@ describe BnfImagesIndexer do
                 </originInfo>
               </mods>"
       @smr.from_str(mods)
-      @indexer.get_date(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z', '1793-02-05T00:00:00Z']
+      @indexer.search_dates(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z', '1793-02-05T00:00:00Z']
     end
     it "should return nil if there are no values" do
       mods = "<mods #{@ns_decl}><note>hi</note></mods>"
       @smr.from_str(mods)
       @indexer.logger.should_receive(:warn)
-      @indexer.get_date(@smr, @fake_druid).should == nil
+      @indexer.search_dates(@smr, @fake_druid).should == nil
     end
 
     context "log messages" do
@@ -68,7 +90,7 @@ describe BnfImagesIndexer do
                 </mods>"
         @smr.from_str(mods)
         @indexer.logger.should_receive(:warn).with("#{@fake_druid} has unparseable originInfo/dateIssued value: '#{@unparseable_date}'")
-        @indexer.get_date(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z']
+        @indexer.search_dates(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z']
       end
       it "should print a WARN when none of the originInfo/dateIssued values are parseable" do
         mods = "<mods #{@ns_decl}>
@@ -79,13 +101,13 @@ describe BnfImagesIndexer do
         @smr.from_str(mods)
         @indexer.logger.should_receive(:warn).with("#{@fake_druid} has unparseable originInfo/dateIssued value: '#{@unparseable_date}'")
         @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no parseable originInfo/dateIssued value")
-        @indexer.get_date(@smr, @fake_druid).should == nil
+        @indexer.search_dates(@smr, @fake_druid).should == nil
       end
       it "should print a WARN when there is no originInfo date" do
         mods = "<mods #{@ns_decl}><note>hi</note></mods>"
         @smr.from_str(mods)
         @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no originInfo/dateIssued field")
-        @indexer.get_date(@smr, @fake_druid).should == nil
+        @indexer.search_dates(@smr, @fake_druid).should == nil
       end
     end # log messages
   end
