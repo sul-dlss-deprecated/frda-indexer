@@ -1,6 +1,5 @@
 # encoding: utf-8
 require 'spec_helper'
-require 'stanford-mods'
 
 describe BnfImagesIndexer do
   
@@ -67,7 +66,6 @@ describe BnfImagesIndexer do
     # [entre 1500 et 1599]
     # entre 1745 et 1796]
     # '[1793 ou 1794]'       1400
-    # [Ca 1790]'             262
     #'[1795 ?]'              45
     # '[1720-1738]
     # 'agosto 1799'
