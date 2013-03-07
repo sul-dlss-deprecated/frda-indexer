@@ -55,9 +55,12 @@ describe BnfImagesIndexer do
                 <originInfo>
                   <dateIssued>[ca 1790]</dateIssued>
                 </originInfo>
+                <originInfo>
+                  <dateIssued>[Ca 1791]</dateIssued>
+                </originInfo>
               </mods>"
       @smr.from_str(mods)
-      @indexer.search_dates(@smr, @fake_druid).should == ['1790-01-01T00:00:00Z']
+      @indexer.search_dates(@smr, @fake_druid).should == ['1790-01-01T00:00:00Z', '1791-01-01T00:00:00Z']
     end
     
     # [Entre 1789 et 1791]   4500

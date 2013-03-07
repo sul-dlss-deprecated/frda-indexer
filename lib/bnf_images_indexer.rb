@@ -104,7 +104,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
         d = Date.parse(raw_val) if raw_val
         result << d.strftime('%FT%TZ') if d
       rescue => e
-        if raw_val && raw_val.match(/^\[?(?:ca )?(\d{4})\]?$/)
+        if raw_val && raw_val.match(/^\[?(?:ca )?(\d{4})\]?$/i)
           year_only << $1
         else
           logger.warn "#{druid} has unparseable originInfo/dateIssued value: '#{dn.text}'"
@@ -234,7 +234,6 @@ class BnfImagesIndexer < Harvestdor::Indexer
   end
   
   # Retrieve the image file ids from the contentMetadata: xpath  contentMetadata/resource[@type='image']/file/@id
-  #  but with jp2 file extension stripped off.
   # @param [String] druid e.g. ab123cd4567
   # @return [Array<String>] the ids of the image files, without file type extension (e.g. 'W188_000002_300') or nil if none
   def image_ids druid
