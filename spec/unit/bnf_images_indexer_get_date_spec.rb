@@ -59,6 +59,16 @@ describe BnfImagesIndexer do
       @smr.from_str(mods)
       @indexer.search_dates(@smr, @fake_druid).should == ['1790-01-01T00:00:00Z']
     end
+    
+    # [Entre 1789 et 1791]   4500
+    # [entre 1500 et 1599]
+    # entre 1745 et 1796]
+    # '[1793 ou 1794]'       1400
+    # [Ca 1790]'             262
+    #'[1795 ?]'              45
+    # '[1720-1738]
+    # 'agosto 1799'
+    # Anno 1803 anno 1803    14
 
     it "should not include duplicate dates" do
       mods = "<mods #{@ns_decl}>
@@ -149,70 +159,5 @@ describe BnfImagesIndexer do
     end
 
   end # in doc hash
-  
-  context "date parsing oddities" do
-    before(:all) do
-      @mods_sub_cat_head = "<mods #{@ns_decl}>
-                    <originInfo>
-                        <dateIssued>[ca 1799]</dateIssued>
-                        <dateIssued encoding=\"marc\">1799</dateIssued>
-                        <dateIssued encoding=\"marc\">1799</dateIssued>
-                      </originInfo>
-                      <originInfo>
-                          <dateIssued>[1790]</dateIssued>
-                          <dateIssued encoding=\"marc\">1790</dateIssued>
-                        </originInfo>
-                        <originInfo>
-                            <dateIssued>April 1 1797</dateIssued>
-                            <dateIssued encoding=\"marc\">1797</dateIssued>
-                          </originInfo>
-                          <originInfo>
-                              <dateIssued>May 9, 1795</dateIssued>
-                              <dateIssued encoding=\"marc\">1795</dateIssued>
-                            </originInfo>
-                      <originInfo>
-                      </originInfo>
-                  </mods>"
-    end
-    # [Entre 1789 et 1791] -> if no marc one
-    # [entre 1500 et 1599]
-    # [1782] -> if no marc one  (missing open bracket)
-    # [ca 1798]  -> if no marc one (missing open bracket)
-    it "should deal with year only (no month or day) if that's the best we've got" do
-      pending "to be implemented"
-    end
-    it "should choose the marc date for the year only?" do
-      pending "to be implemented"
-      # marc – This value identifies formatted according to MARC 21 rules in field 008/07-14 for dates of publication/issuance. 
-      # Thus, this would only apply to the attribute in <dateIssued>. 
-      # Examples include: YYYY (for year), MMDD (for month and day), 
-      # 19uu (MARC convention showing unknown digits in a year date), 
-      # 9999 (MARC convention showing that the end year date has not occurred or is not known). 
-      # See Legal Characters section under field 008/06 of MARC Bibliographic
-      #  (from http://www.loc.gov/standards/mods/userguide/generalapp.html#list)
-    end
-
-    # parses!
-    # le 1er septembre 1791
-    it "should remove square brackets" do
-      pending "to be implemented"
-      mods = "<mods #{@ns_decl}>
-                <originInfo>
-                  <dateIssued>[1790]</dateIssued>
-                  <dateIssued encoding=\"marc\">1790</dateIssued>
-                </originInfo>
-              </mods>"
-      @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-      @solr_client.should_receive(:add).with(hash_including(:search_date_dtsim => '1790-01-01T00:00:00Z'))
-      @indexer.index(@fake_druid)
-    end
-    it "should remove trailing period" do
-      pending "to be implemented"
-    end
-    it "should remove preceding Anno" do
-      pending "to be implemented"
-      # Anno 1803 -> if no marc one  (also anno)
-    end    
-  end # date parsing oddities
 
 end
