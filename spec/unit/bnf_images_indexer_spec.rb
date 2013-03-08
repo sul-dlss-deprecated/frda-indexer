@@ -523,7 +523,7 @@ describe BnfImagesIndexer do
   
   context "image_ids method" do
     it "needs to be refactored to use identity_metadata method in harvestdor-indexer gem" do
-      pending "also get rid of public_xml file in lib??"
+      pending "refactor needed"
     end
     
     it "should be nil if there are no <resource> elements in the contentMetadata" do
