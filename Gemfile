@@ -18,9 +18,9 @@ end
 
 # testing
 group :test do
-  gem 'jettywrapper'
 	gem 'rspec'
 #	gem 'ruby-debug19'
 	gem 'simplecov', :require => false
 	gem 'simplecov-rcov', :require => false
+	gem 'equivalent-xml'
 end
