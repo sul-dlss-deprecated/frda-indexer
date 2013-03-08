@@ -522,6 +522,10 @@ describe BnfImagesIndexer do
   end # doc_hash_from_mods
   
   context "image_ids method" do
+    it "needs to be refactored to use identity_metadata method in harvestdor-indexer gem" do
+      pending "also get rid of public_xml file in lib??"
+    end
+    
     it "should be nil if there are no <resource> elements in the contentMetadata" do
       ng_xml = Nokogiri::XML("#{@content_md_start}#{@content_md_end}")
       @hdor_client.should_receive(:content_metadata).with(@fake_druid).and_return(ng_xml)
