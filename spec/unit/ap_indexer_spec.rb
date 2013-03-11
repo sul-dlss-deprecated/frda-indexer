@@ -14,7 +14,7 @@ describe ApIndexer do
   
   context "index method" do
     before(:all) do
-      @atd = ApTeiDocument.new(@indexer.solr_client, @fake_client, @vol_str, @indexer.logger)
+      @atd = ApTeiDocument.new(@indexer.solr_client, @fake_client, @vol_str, {}, @indexer.logger)
       @parser = Nokogiri::XML::SAX::Parser.new(@atd)
       @ng_pub_xml = Nokogiri::XML("<publicObject>
                                     <contentMetadata>
@@ -166,7 +166,7 @@ describe ApIndexer do
         @result_hash[:vol_tei_size_is].should == @tei_size
       end
       it "should populate :total_pages_is field" do
-        @result_hash[:total_pages_is].should == @last_page_num
+        @result_hash[:vol_total_pages_is].should == @last_page_num
       end
       it "should log warning if an expected value is missing" do
         pending "spec to be implemented"

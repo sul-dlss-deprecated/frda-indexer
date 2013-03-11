@@ -13,12 +13,12 @@ class ApIndexer < Harvestdor::Indexer
       logger.info("AP Druid #{druid} is on the blacklist and will have no Solr doc created")
     else
       pub_xml_ng_doc = public_xml druid      
+      vol = volume pub_xml_ng_doc
       content_md_doc = content_metadata pub_xml_ng_doc
       page_id_hash = page_id_hash content_md_doc
       vol_constants_hash = vol_constants_hash content_md_doc      
-      vol = volume pub_xml_ng_doc
       
-      saxdoc = ApTeiDocument.new(solr_client, druid, vol, logger)
+      saxdoc = ApTeiDocument.new(solr_client, druid, vol, vol_constants_hash, logger)
       parser = Nokogiri::XML::SAX::Parser.new(saxdoc)
       tei_xml = tei(druid)
       logger.info("About to parse #{druid} (#{vol})")
@@ -97,7 +97,7 @@ class ApIndexer < Harvestdor::Indexer
     page_resource_nodes = content_md_doc.root.xpath('/contentMetadata/resource[@type="page"]')
     if page_resource_nodes.size > 0
       last_page_node = page_resource_nodes.last
-      doc_hash[:total_pages_is] = page_num last_page_node
+      doc_hash[:vol_total_pages_is] = page_num last_page_node
     else
       logger.warn("no page <resource> elements found in contentMetadata: #{content_md_doc.to_xml}")
     end

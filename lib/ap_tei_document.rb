@@ -14,12 +14,14 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [RSolr::Client] rsolr_client used to write the Solr documents as we build them
   # @param [String] druid the druid for the DOR object that contains this TEI doc
   # @param [String] volume the volume number (it might not be a strict number string, e.g. '71B')
+  # @param [Hash<Symbol, String>] vol_constants_hash Solr fields to be included in each Solr doc for this volume
   # @param [Logger] logger to receive output
-  def initialize (rsolr_client, druid, volume, logger)
+  def initialize (rsolr_client, druid, volume, vol_constants_hash, logger)
     @rsolr_client = rsolr_client
     @druid = druid
     @volume = volume.sub(/^Volume /i, '')
     @logger = logger
+    @vol_constants_hash = vol_constants_hash
   end
   
   def start_document
@@ -217,6 +219,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @doc_hash[:collection_ssi] = COLL_VAL
     @doc_hash[:druid_ssi] = @druid
     @doc_hash[:vol_num_ssi] = @volume
+    @doc_hash.merge!(@vol_constants_hash)
     @doc_hash[:vol_title_ssi] = VOL_TITLES[@volume]
     @doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
     @doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
