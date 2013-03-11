@@ -15,13 +15,15 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] druid the druid for the DOR object that contains this TEI doc
   # @param [String] volume the volume number (it might not be a strict number string, e.g. '71B')
   # @param [Hash<Symbol, String>] vol_constants_hash Solr fields to be included in each Solr doc for this volume
+  # @param [Hash<String, String>] key page id (e.g. "bg262qk2288_00_0003"), value Page sequence number (e.g. "3")
   # @param [Logger] logger to receive output
-  def initialize (rsolr_client, druid, volume, vol_constants_hash, logger)
+  def initialize (rsolr_client, druid, volume, vol_constants_hash, page_id_hash, logger)
     @rsolr_client = rsolr_client
     @druid = druid
     @volume = volume.sub(/^Volume /i, '')
     @logger = logger
     @vol_constants_hash = vol_constants_hash
+    @page_id_hash = page_id_hash
   end
   
   def start_document
@@ -183,6 +185,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     add_value_to_doc_hash(:id, new_page_id)
     page_num = get_attribute_val('n', attributes)
     add_value_to_doc_hash(:page_num_ssi,  page_num) if page_num
+    add_value_to_doc_hash(:page_sequence_isi, @page_id_hash[new_page_id]) if @page_id_hash[new_page_id]
     add_value_to_doc_hash(:image_id_ssm, new_page_id + ".jp2")
     add_value_to_doc_hash(:ocr_id_ss, new_page_id.sub(/_00_/, '_99_') + ".txt")
   end

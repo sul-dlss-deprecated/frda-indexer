@@ -18,7 +18,7 @@ describe ApTeiDocument do
                       'aa222bb4444_00_0806' => '806'}
     @rsolr_client = RSolr::Client.new('http://somewhere.org')
     @logger = Logger.new(STDOUT)
-    @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, @vol_constants_hash, @logger)
+    @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, @vol_constants_hash, @page_id_hash, @logger)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
     @start_tei_body_div1 = "<TEI.2><text><body><div1 type=\"volume\" n=\"36\">"
     @start_tei_body_div2_session = @start_tei_body_div1 + "<div2 type=\"session\">"
@@ -271,6 +271,30 @@ describe ApTeiDocument do
         @parser.parse(x)
       end
     end # page_num_ssi
+    context "page_sequence_isi" do
+      before(:all) do
+        @page_id_hash = { 'aa222bb4444_00_0001' => '1', 
+                          'aa222bb4444_00_0005' => '7', 
+                          'aa222bb4444_00_0805' => '805', 
+                          'aa222bb4444_00_0806' => '806'}
+        @atd2 = ApTeiDocument.new(@rsolr_client, @druid, @volume, @vol_constants_hash, @page_id_hash, @logger)
+        @parser2 = Nokogiri::XML::SAX::Parser.new(@atd2)
+      end
+      it "should be derived from the page_id_hash passed in" do
+        x = @start_tei_body_div2_session + 
+              "<pb n=\"1\" id=\"aa222bb4444_00_0005\"/>
+               <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:page_sequence_isi => '7'))
+        @parser2.parse(x)
+      end
+      it "should not be present when page_id_hash has no matching value" do
+        x = @start_tei_body_div2_session + 
+              "<pb n=\"1\" id=\"aa222bb4444_00_0002\"/>
+               <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_not_including(:page_sequence_isi))
+        @parser2.parse(x)
+      end
+    end
     it "image_id_ssm should be same as <pb> id attrib with .jp2 extension" do
       @rsolr_client.should_receive(:add).with(hash_including(:image_id_ssm => ["#{@page_id}.jp2"]))
       @parser.parse(@x)

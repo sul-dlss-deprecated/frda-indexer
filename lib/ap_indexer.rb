@@ -15,10 +15,10 @@ class ApIndexer < Harvestdor::Indexer
       pub_xml_ng_doc = public_xml druid      
       vol = volume pub_xml_ng_doc
       content_md_doc = content_metadata pub_xml_ng_doc
-      page_id_hash = page_id_hash content_md_doc
       vol_constants_hash = vol_constants_hash content_md_doc      
+      page_id_hash = page_id_hash content_md_doc
       
-      saxdoc = ApTeiDocument.new(solr_client, druid, vol, vol_constants_hash, logger)
+      saxdoc = ApTeiDocument.new(solr_client, druid, vol, vol_constants_hash, page_id_hash, logger)
       parser = Nokogiri::XML::SAX::Parser.new(saxdoc)
       tei_xml = tei(druid)
       logger.info("About to parse #{druid} (#{vol})")

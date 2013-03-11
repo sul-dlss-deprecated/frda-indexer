@@ -14,7 +14,7 @@ describe ApIndexer do
   
   context "index method" do
     before(:all) do
-      @atd = ApTeiDocument.new(@indexer.solr_client, @fake_client, @vol_str, {}, @indexer.logger)
+      @atd = ApTeiDocument.new(@indexer.solr_client, @fake_client, @vol_str, {}, {}, @indexer.logger)
       @parser = Nokogiri::XML::SAX::Parser.new(@atd)
       @ng_pub_xml = Nokogiri::XML("<publicObject>
                                     <contentMetadata>
