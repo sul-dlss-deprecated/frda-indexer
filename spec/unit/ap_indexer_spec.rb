@@ -25,14 +25,16 @@ describe ApIndexer do
     end
 
     it "should initialize an ApTeiDocument and do SAX parse of TEI for each druid" do
-      OpenURI.should_receive(:open_uri).with(any_args).exactly(3).times.and_return('<TEI.2/>') 
+      OpenURI.should_receive(:open_uri).with(any_args).at_least(3).times.and_return('<TEI.2>fa</TEI.2>') 
+      @indexer.should_receive(:content_md_hash).exactly(3).times
       Nokogiri::XML::SAX::Parser.should_receive(:new).with(an_instance_of(ApTeiDocument)).exactly(3).times.and_return(@parser)
       @parser.should_receive(:parse).at_least(3).times
       @indexer.solr_client.should_receive(:commit).at_least(3).times
       @indexer.harvest_and_index
     end
     it "should call :commit on solr_client for each druid" do
-      OpenURI.should_receive(:open_uri).with(any_args).exactly(3).times.and_return('<TEI.2/>')
+      OpenURI.should_receive(:open_uri).with(any_args).at_least(3).times.and_return('<TEI.2>la</TEI.2>')
+      @indexer.should_receive(:content_md_hash).exactly(3).times
       @indexer.solr_client.should_receive(:commit).at_least(3).times
       @indexer.harvest_and_index
     end    
@@ -84,5 +86,80 @@ describe ApIndexer do
       @indexer.tei(@fake_druid).should == "<TEI.2/>"
     end
   end
+  
+  context "public_xml - fields from it and methods pertaining to it" do
+    before(:all) do
+      @id_md_xml = "<identityMetadata><objectId>druid:#{@fake_druid}</objectId></identityMetadata>"
+      @cntnt_md_xml = "<contentMetadata type='book' objectId='#{@fake_druid}'>ffft</contentMetadata>"
+      @pub_xml = "<publicObject id='druid:#{@fake_druid}'>#{@id_md_xml}#{@cntnt_md_xml}</publicObject>"
+      @ng_pub_xml = Nokogiri::XML(@pub_xml)
+    end
+    context "#content_md_hash" do
+      before(:all) do
+        @pdf_name = "bg262qk2288.pdf"
+        @pdf_size = "2218576614"
+        @tei_name = "bg262qk2288.xml"
+        @tei_size = "6885841"
+        @last_page_num = "806"
+        @cntnt_md_xml = "<contentMetadata type=\"book\" objectId=\"bg262qk2288\">
+                          <resource type=\"object\" sequence=\"1\" id=\"bg262qk2288_1\">
+                            <label>Object 1</label>
+                            <file id=\"#{@pdf_name}\" mimetype=\"application/pdf\" size=\"#{@pdf_size}\"> </file>
+                            <file id=\"bg262qk2288.rtf\" mimetype=\"text/rtf\" size=\"13093220\"> </file>
+                            <file id=\"#{@tei_name}\" mimetype=\"application/xml\" size=\"#{@tei_size}\">  </file>
+                          </resource>
+                          <resource type=\"page\" sequence=\"2\" id=\"bg262qk2288_2\">
+                            <label>Page 1</label>
+                            <file id=\"bg262qk2288_99_0001.txt\" mimetype=\"text/plain\" size=\"27\">  </file>
+                            <file id=\"bg262qk2288_00_0001.jp2\" mimetype=\"image/jp2\" size=\"2037015\">
+                              <imageData width=\"2645\" height=\"4063\"/>
+                            </file>
+                          </resource>
+                          <resource type=\"page\" sequence=\"3\" id=\"bg262qk2288_3\">
+                            <label>Page 2</label>
+                            <file id=\"bg262qk2288_99_0002.txt\" mimetype=\"text/plain\" size=\"77\"> </file>
+                            <file id=\"bg262qk2288_00_0002.jp2\" mimetype=\"image/jp2\" size=\"2037227\">
+                              <imageData width=\"2645\" height=\"4063\"/>
+                            </file>
+                          </resource>
+                          <resource type=\"page\" sequence=\"806\" id=\"bg262qk2288_806\">
+                            <label>Page 805</label>
+                            <file id=\"bg262qk2288_99_0805.txt\" mimetype=\"text/plain\" size=\"6367\"> </file>
+                            <file id=\"bg262qk2288_00_0805.jp2\" mimetype=\"image/jp2\" size=\"2037621\">
+                              <imageData width=\"2645\" height=\"4063\"/>
+                            </file>
+                          </resource>
+                          <resource type=\"page\" sequence=\"807\" id=\"bg262qk2288_807\">
+                            <label>Page #{@last_page_num}</label>
+                            <file id=\"bg262qk2288_99_0806.txt\" mimetype=\"text/plain\" size=\"1011\"> </file>
+                            <file id=\"bg262qk2288_00_0806.jp2\" mimetype=\"image/jp2\" size=\"2037375\">
+                              <imageData width=\"2645\" height=\"4063\"/>
+                            </file>
+                          </resource>
+                        </contentMetadata>"
+        pub_xml = "<publicObject id='druid:#{@fake_druid}'>#{@cntnt_md_xml}</publicObject>"
+        @result_hash = @indexer.content_md_hash Nokogiri::XML(pub_xml) 
+      end
+      it "should populate :vol_pdf_name_ss field" do
+        @result_hash[:vol_pdf_name_ss].should == @pdf_name
+      end
+      it "should populate :vol_pdf_size_is field" do
+        @result_hash[:vol_pdf_size_is].should == @pdf_size
+      end
+      it "should populate :vol_tei_name_ss field" do
+        @result_hash[:vol_tei_name_ss].should == @tei_name
+      end
+      it "should populate :vol_tei_size_is field" do
+        @result_hash[:vol_tei_size_is].should == @tei_size
+      end
+      it "should populate :total_pages_is field" do
+        @result_hash[:total_pages_is].should == @last_page_num
+      end
+      it "should log warning if an expected value is missing" do
+        pending "spec to be implemented"
+      end
+    end # content_md_hash
+    
+  end # public_xml
   
 end
