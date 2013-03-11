@@ -14,10 +14,10 @@ class ApIndexer < Harvestdor::Indexer
     else
       pub_xml_ng_doc = public_xml druid      
       content_md_doc = content_metadata pub_xml_ng_doc
-      page_id_hash = page_id_hash content_md_doc  
-      vol_constants_hash = vol_constants_hash content_md_doc
-      
+      page_id_hash = page_id_hash content_md_doc
+      vol_constants_hash = vol_constants_hash content_md_doc      
       vol = volume(druid)
+      
       saxdoc = ApTeiDocument.new(solr_client, druid, vol, logger)
       parser = Nokogiri::XML::SAX::Parser.new(saxdoc)
       tei_xml = tei(druid)
@@ -50,21 +50,22 @@ class ApIndexer < Harvestdor::Indexer
     "<TEI.2/>"
   end
   
-  # NAOMI_MUST_COMMENT_THIS_METHOD
-  # @param [Nokogiri::XML::Document] the contentMetadata for a DOR object
+  # creates a Hash mapping each page_id to its Page number
+  # @param [Nokogiri::XML::Document] content_md_doc the contentMetadata for a DOR object
+  # @return [Hash<String, String>] key page id (e.g. "bg262qk2288_00_0003"), value Page sequence number (e.g. "3")
   def page_id_hash content_md_doc
     page_id_hash = {}
     page_resource_nodes = content_md_doc.root.xpath('/contentMetadata/resource[@type="page"]')
     logger.warn("no page <resource> elements found in contentMetadata: #{content_md_doc.to_xml}") if page_resource_nodes.empty?
     page_resource_nodes.each { |p_node|
       # for each resource, get the id and the page number
-      page_id_hash[page_num(p_node)] = page_id(p_node)
+      page_id_hash[page_id(p_node)] = page_num(p_node)
     }
     page_id_hash
   end
   
   # create a Hash of Solr fields based on contentMetadata in public xml
-  # @param [Nokogiri::XML::Document] the contentMetadata for a DOR object
+  # @param [Nokogiri::XML::Document] content_md_doc the contentMetadata for a DOR object
   # @return [Hash<String, String>] with the Solr fields derived from the contentMetadata
   def vol_constants_hash content_md_doc
     doc_hash = {}
@@ -127,23 +128,26 @@ class ApIndexer < Harvestdor::Indexer
     nil
   end 
 
-  # NAOMI_MUST_COMMENT_THIS_METHOD
+  # the id of the page image file, without the .jp2 extension
+  # @param [Nokogiri::XML::Node] page_resource_node a representation of a <resource> from contentMetadata with type="page"
+  # @return [String] the id of the page, derived from <file> id attribute (e.g. "bg262qk2288_00_0003" from "bg262qk2288_00_0003.jp2")
   def page_id page_resource_node
-    image_id_nodes = page_resource_node.xpath('file[@mimetype="image/jp2"]')
-      page_label = image_id_nodes.first.text
-      if page_label && !page_label.strip.empty?
-        t = page_label.strip.gsub(/\s+/, ' ')
-        if t.match(/^Page (\d+)$/i)
-          page_num = $1
+    image_id_nodes = page_resource_node.xpath('file[@mimetype="image/jp2"]/@id')
+    if image_id_nodes.size == 1
+      full_id = image_id_nodes.first.text
+      if full_id && !full_id.strip.empty?
+        t = full_id.strip.gsub(/\s+/, ' ')
+        if t.match(/^(.+).jp2$/i)
+          return $1
         else
-          logger.warn("unable to parse page number from <resource><label> in contentMetadata: #{page_label}")
+          logger.warn("unable to parse page id from <file> in contentMetadata: #{full_id}")
         end
       else
-        logger.warn("no <label> value found for page <resource> in contentMetadata: #{page_resource_node.to_xml}")
+        logger.warn("no @id attribute found for page <file> in contentMetadata: #{image_id_nodes.first.to_xml}")
       end
-#    else
-#      logger.warn("couldn't find <label> element in <resource> for page in contentMetadata: #{page_resource_node.to_xml}")
-
+    else
+      logger.warn("couldn't find jp2 <file> element in <resource> for page in contentMetadata: #{page_resource_node.to_xml}")
+    end
     nil
   end
 

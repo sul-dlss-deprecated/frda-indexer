@@ -146,8 +146,6 @@ describe ApIndexer do
         @page_id_hash = @indexer.page_id_hash(Nokogiri::XML(@cntnt_md_xml))
       end
       it "should be populated properly" do
-        pending
-#        @page_id_hash = @indexer.page_id_hash Nokogiri::XML(@cntnt_md_xml)
         @page_id_hash.size.should == 4
         @page_id_hash.should == {'bg262qk2288_00_0001' => '1', 'bg262qk2288_00_0002' => '2', 'bg262qk2288_00_0805' => '805', 'bg262qk2288_00_0806' => '806'}
       end
