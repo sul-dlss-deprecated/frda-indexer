@@ -100,7 +100,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_back = false
     when 'div2'
       @in_div2 = false
-      @@div2_doc_type = nil
+      @div2_doc_type = nil
       @in_session = false
     when 'head'
       add_session_govt_ssim(@element_buffer.strip) if @in_session && @need_session_govt
