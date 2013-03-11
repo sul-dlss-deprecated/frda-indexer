@@ -12,11 +12,12 @@ class ApIndexer < Harvestdor::Indexer
     if blacklist.include?(druid)
       logger.info("AP Druid #{druid} is on the blacklist and will have no Solr doc created")
     else
-      pub_xml_ng_doc = public_xml druid
+      pub_xml_ng_doc = public_xml druid      
+      content_md_doc = content_metadata pub_xml_ng_doc
+      page_id_hash = page_id_hash content_md_doc  
+      vol_constants_hash = vol_constants_hash content_md_doc
       
       vol = volume(druid)
-      constants_hash = content_md_hash pub_xml_ng_doc
-      
       saxdoc = ApTeiDocument.new(solr_client, druid, vol, logger)
       parser = Nokogiri::XML::SAX::Parser.new(saxdoc)
       tei_xml = tei(druid)
@@ -49,12 +50,24 @@ class ApIndexer < Harvestdor::Indexer
     "<TEI.2/>"
   end
   
+  # NAOMI_MUST_COMMENT_THIS_METHOD
+  # @param [Nokogiri::XML::Document] the contentMetadata for a DOR object
+  def page_id_hash content_md_doc
+    page_id_hash = {}
+    page_resource_nodes = content_md_doc.root.xpath('/contentMetadata/resource[@type="page"]')
+    logger.warn("no page <resource> elements found in contentMetadata: #{content_md_doc.to_xml}") if page_resource_nodes.empty?
+    page_resource_nodes.each { |p_node|
+      # for each resource, get the id and the page number
+      page_id_hash[page_num(p_node)] = page_id(p_node)
+    }
+    page_id_hash
+  end
+  
   # create a Hash of Solr fields based on contentMetadata in public xml
-  # @param [Nokogiri::XML::Document] the public xml for a DOR object
+  # @param [Nokogiri::XML::Document] the contentMetadata for a DOR object
   # @return [Hash<String, String>] with the Solr fields derived from the contentMetadata
-  def content_md_hash pub_xml_ng_doc
+  def vol_constants_hash content_md_doc
     doc_hash = {}
-    content_md_doc = content_metadata pub_xml_ng_doc
     obj_resource_nodes = content_md_doc.root.xpath('/contentMetadata/resource[@type="object"][@sequence="1"][label="Object 1"]')
     raise "content_md didn't have single object node" if obj_resource_nodes.size != 1
     obj_node = obj_resource_nodes.first
@@ -82,28 +95,56 @@ class ApIndexer < Harvestdor::Indexer
     end
 
     page_resource_nodes = content_md_doc.root.xpath('/contentMetadata/resource[@type="page"]')
-    if page_resource_nodes.size == 0
-      logger.warn("no page <resource> elements found in contentMetadata: #{content_md_doc.to_xml}")
-    else
+    if page_resource_nodes.size > 0
       last_page_node = page_resource_nodes.last
-      page_label_nodes = page_resource_nodes.last.xpath('label')
-      if page_label_nodes.size == 1
-        page_label = page_label_nodes.first.text
-        if page_label && !page_label.strip.empty?
-          t = page_label.strip.gsub(/\s+/, ' ') 
-          if t.match(/^Page (\d+)$/i)
-            doc_hash[:total_pages_is] = $1
-          else
-            logger.warn("unable to parse highest page number from last page <resource> in contentMetadata: #{page_label}")
-          end
-        else
-          logger.warn("no <label> value found for last page in contentMetadata: #{last_page_node.to_xml}")
-        end
-      else
-        logger.warn("couldn't find <label> element in <resource> for highest page number in contentMetadata: #{last_page_node.to_xml}")
-      end
+      doc_hash[:total_pages_is] = page_num last_page_node
+    else
+      logger.warn("no page <resource> elements found in contentMetadata: #{content_md_doc.to_xml}")
     end
     doc_hash    
   end # content_md_hash
+   
+  # Given a <resource> element for a page from contentMetadata, return the page sequence number as parsed from <label>
+  # @param [Nokogiri::XML::Node] page_resource_node a representation of a <resource> from contentMetadata with type="page"
+  # @return [String] the number of the page, derived from <label> child element of <resource>
+  def page_num page_resource_node
+    page_label_nodes = page_resource_node.xpath('label')
+    if page_label_nodes.size == 1
+      page_label_val = page_label_nodes.first.text
+      if page_label_val && !page_label_val.strip.empty?
+        t = page_label_val.strip.gsub(/\s+/, ' ')
+        if t.match(/^Page (\d+)$/i)
+          return $1
+        else
+          logger.warn("unable to parse page number from <resource><label> in contentMetadata: #{page_label_val}")
+        end
+      else
+        logger.warn("no <label> value found for page <resource> in contentMetadata: #{page_resource_node.to_xml}")
+      end
+    else
+      logger.warn("couldn't find <label> element in <resource> for page in contentMetadata: #{page_resource_node.to_xml}")
+    end
+    nil
+  end 
+
+  # NAOMI_MUST_COMMENT_THIS_METHOD
+  def page_id page_resource_node
+    image_id_nodes = page_resource_node.xpath('file[@mimetype="image/jp2"]')
+      page_label = image_id_nodes.first.text
+      if page_label && !page_label.strip.empty?
+        t = page_label.strip.gsub(/\s+/, ' ')
+        if t.match(/^Page (\d+)$/i)
+          page_num = $1
+        else
+          logger.warn("unable to parse page number from <resource><label> in contentMetadata: #{page_label}")
+        end
+      else
+        logger.warn("no <label> value found for page <resource> in contentMetadata: #{page_resource_node.to_xml}")
+      end
+#    else
+#      logger.warn("couldn't find <label> element in <resource> for page in contentMetadata: #{page_resource_node.to_xml}")
+
+    nil
+  end
 
 end
