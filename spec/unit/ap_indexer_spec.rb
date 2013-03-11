@@ -26,22 +26,21 @@ describe ApIndexer do
     end
     before(:each) do
       @indexer.should_receive(:druids).and_return(['1', '2', '3'])
-      @hdor_client.should_receive(:identity_metadata).with('1').and_return(@im_ng)
-      @hdor_client.should_receive(:identity_metadata).with('2').and_return(@im_ng)
-      @hdor_client.should_receive(:identity_metadata).with('3').and_return(@im_ng)
     end
 
     it "should initialize an ApTeiDocument and do SAX parse of TEI for each druid" do
       OpenURI.should_receive(:open_uri).with(any_args).at_least(3).times.and_return('<TEI.2>fa</TEI.2>') 
-      @indexer.should_receive(:public_xml).exactly(3).times.and_return(@ng_pub_xml)
       Nokogiri::XML::SAX::Parser.should_receive(:new).with(an_instance_of(ApTeiDocument)).exactly(3).times.and_return(@parser)
       @parser.should_receive(:parse).at_least(3).times
+      @indexer.should_receive(:public_xml).exactly(3).times.and_return(@ng_pub_xml)
+      @indexer.should_receive(:volume).at_least(3).times.and_return("1")
       @indexer.solr_client.should_receive(:commit).at_least(3).times
       @indexer.harvest_and_index
     end
     it "should call :commit on solr_client for each druid" do
       OpenURI.should_receive(:open_uri).with(any_args).at_least(3).times.and_return('<TEI.2>la</TEI.2>')
       @indexer.should_receive(:public_xml).exactly(3).times.and_return(@ng_pub_xml)
+      @indexer.should_receive(:volume).at_least(3).times.and_return("1")
       @indexer.solr_client.should_receive(:commit).at_least(3).times
       @indexer.harvest_and_index
     end    

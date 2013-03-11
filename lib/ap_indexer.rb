@@ -16,7 +16,7 @@ class ApIndexer < Harvestdor::Indexer
       content_md_doc = content_metadata pub_xml_ng_doc
       page_id_hash = page_id_hash content_md_doc
       vol_constants_hash = vol_constants_hash content_md_doc      
-      vol = volume(druid)
+      vol = volume pub_xml_ng_doc
       
       saxdoc = ApTeiDocument.new(solr_client, druid, vol, logger)
       parser = Nokogiri::XML::SAX::Parser.new(saxdoc)
@@ -33,9 +33,8 @@ class ApIndexer < Harvestdor::Indexer
   # get the AP volume "number" from the identityMetadata in the public_xml for the druid
   # @param [String] druid we are seeking the volume number for this druid, e.g. ab123cd4567
   # @return [String] the volume number for the druid, per the identity from the public_xml
-  def volume druid
-# FIXME: refactor to get identityMeatdata from public_xml
-    idmd = harvestdor_client.identity_metadata(druid)
+  def volume pub_xml_ng_doc
+    idmd = identity_metadata pub_xml_ng_doc
     idmd.root.xpath('objectLabel').text.strip
   end
   
