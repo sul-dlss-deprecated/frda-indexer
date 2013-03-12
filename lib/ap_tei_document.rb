@@ -15,7 +15,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] druid the druid for the DOR object that contains this TEI doc
   # @param [String] volume the volume number (it might not be a strict number string, e.g. '71B')
   # @param [Hash<Symbol, String>] vol_constants_hash Solr fields to be included in each Solr doc for this volume
-  # @param [Hash<String, String>] key page id (e.g. "bg262qk2288_00_0003"), value Page sequence number (e.g. "3")
+  # @param [Hash<String, String>] page_id_hash key page id (e.g. "bg262qk2288_00_0003"), value Page sequence number (e.g. "3")
   # @param [Logger] logger to receive output
   def initialize (rsolr_client, druid, volume, vol_constants_hash, page_id_hash, logger)
     @rsolr_client = rsolr_client

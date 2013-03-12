@@ -31,7 +31,7 @@ class ApIndexer < Harvestdor::Indexer
   end
   
   # get the AP volume "number" from the identityMetadata in the public_xml for the druid
-  # @param [String] druid we are seeking the volume number for this druid, e.g. ab123cd4567
+  # @param [Nokogiri::XML::Document] pub_xml_ng_doc the public xml for a DOR object
   # @return [String] the volume number for the druid, per the identity from the public_xml
   def volume pub_xml_ng_doc
     idmd = identity_metadata pub_xml_ng_doc
