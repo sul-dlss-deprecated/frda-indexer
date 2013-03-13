@@ -271,7 +271,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
 
   # remove some cruft in speaker names
   def clean_speaker(name)
-    name.gsub('M.','').gsub('m.','').strip
+    name.slice!(0..2) if name[0..2].downcase == 'm. ' # lop off beginning m. or M.
+    name.chop! if name.end_with? '.'  # lop off ending .
+    return name.strip
   end
   
 end # ApTeiDocument class

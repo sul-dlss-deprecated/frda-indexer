@@ -509,10 +509,10 @@ describe ApTeiDocument do
             </sp>
             <p>hoo hah</p>
             <sp>
-              <speaker>M. McRae</speaker>
+              <speaker>M. M.cRae.</speaker>
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet', 'McRae']))
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet', 'M.cRae']))
         @parser.parse(x)
       end
       it "should not be present if there is an empty <speaker> element" do
@@ -540,7 +540,7 @@ describe ApTeiDocument do
             "<p>before</p>
             <p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
-               <speaker>M. Guadet</speaker>
+               <speaker>M. Guadet.</speaker>
                <p>blah blah ... </p>
                <p>bleah bleah ... </p>
             </sp>
@@ -759,7 +759,7 @@ describe ApTeiDocument do
           "<pb n=\"2\" id=\"ns351vc7243_00_0001\"/>
           <p><date value=\"2013-01-01\">pretending to care</date></p>
           <sp>
-             <speaker>M. Guadet</speaker>
+             <speaker>M. Guadet.</speaker>
              <p>blah blah ... </p>
              mistake
           </sp>" + @end_div2_body_tei
