@@ -146,7 +146,7 @@ describe ApIndexer do
       end
       it "should be populated properly" do
         @page_id_hash.size.should == 4
-        @page_id_hash.should == {'bg262qk2288_00_0001' => '1', 'bg262qk2288_00_0002' => '2', 'bg262qk2288_00_0805' => '805', 'bg262qk2288_00_0806' => '806'}
+        @page_id_hash.should == {'bg262qk2288_00_0001' => 1, 'bg262qk2288_00_0002' => 2, 'bg262qk2288_00_0805' => 805, 'bg262qk2288_00_0806' => 806}
       end
     end
     context "#vol_constants_hash" do
@@ -157,19 +157,67 @@ describe ApIndexer do
         @result_hash[:vol_pdf_name_ss].should == @pdf_name
       end
       it "should populate :vol_pdf_size_is field" do
-        @result_hash[:vol_pdf_size_is].should == @pdf_size
+        @result_hash[:vol_pdf_size_is].should == @pdf_size.to_i
       end
       it "should populate :vol_tei_name_ss field" do
         @result_hash[:vol_tei_name_ss].should == @tei_name
       end
       it "should populate :vol_tei_size_is field" do
-        @result_hash[:vol_tei_size_is].should == @tei_size
+        @result_hash[:vol_tei_size_is].should == @tei_size.to_i
       end
       it "should populate :total_pages_is field" do
-        @result_hash[:vol_total_pages_is].should == @last_page_num
+        @result_hash[:vol_total_pages_is].should == @last_page_num.to_i
       end
       it "should log warning if an expected value is missing" do
         pending "spec to be implemented"
+      end
+      it "should log warning if pdf size doesn't have an integer value" do
+        cntnt_md_xml = "<contentMetadata type=\"book\" objectId=\"bg262qk2288\">
+                          <resource type=\"object\" sequence=\"1\" id=\"bg262qk2288_1\">
+                            <label>Object 1</label>
+                            <file id=\"#{@pdf_name}\" mimetype=\"application/pdf\" size=\"foo\"> </file>
+                            <file id=\"#{@tei_name}\" mimetype=\"application/xml\" size=\"#{@tei_size}\">  </file>
+                          </resource>
+                          <resource type=\"page\" sequence=\"2\" id=\"bg262qk2288_2\">
+                            <label>Page 1</label>
+                            <file id=\"bg262qk2288_00_0001.jp2\" mimetype=\"image/jp2\" size=\"2037015\" />
+                          </resource>
+                        </contentMetadata>"
+        @indexer.logger.should_receive(:warn).with('bad value for PDF size: \'foo\'')
+        @indexer.vol_constants_hash Nokogiri::XML(cntnt_md_xml)
+      end
+      it "should log warning if tei size doesn't have an integer value" do
+        cntnt_md_xml = "<contentMetadata type=\"book\" objectId=\"bg262qk2288\">
+                          <resource type=\"object\" sequence=\"1\" id=\"bg262qk2288_1\">
+                            <label>Object 1</label>
+                            <file id=\"#{@pdf_name}\" mimetype=\"application/pdf\" size=\"#{@pdf_size}\"> </file>
+                            <file id=\"#{@tei_name}\" mimetype=\"application/xml\" size=\"bar\">  </file>
+                          </resource>
+                          <resource type=\"page\" sequence=\"2\" id=\"bg262qk2288_2\">
+                            <label>Page 1</label>
+                            <file id=\"bg262qk2288_00_0001.jp2\" mimetype=\"image/jp2\" size=\"2037015\" />
+                          </resource>
+                        </contentMetadata>"
+        @indexer.logger.should_receive(:warn).with('bad value for TEI size: \'bar\'')
+        @indexer.vol_constants_hash Nokogiri::XML(cntnt_md_xml)
+      end
+      it "should log warning if pdf size doesn't have an integer value" do
+        cntnt_md_xml = "<contentMetadata type=\"book\" objectId=\"bg262qk2288\">
+                          <resource type=\"object\" sequence=\"1\" id=\"bg262qk2288_1\">
+                            <label>Object 1</label>
+                            <file id=\"#{@pdf_name}\" mimetype=\"application/pdf\" size=\"#{@pdf_size}\"> </file>
+                            <file id=\"#{@tei_name}\" mimetype=\"application/xml\" size=\"#{@tei_size}\">  </file>
+                          </resource>
+                          <resource type=\"page\" sequence=\"2\" id=\"bg262qk2288_2\">
+                            <label>Page i</label>
+                            <file id=\"bg262qk2288_99_0001.txt\" mimetype=\"text/plain\" size=\"27\">  </file>
+                            <file id=\"bg262qk2288_00_0001.jp2\" mimetype=\"image/jp2\" size=\"2037015\">
+                              <imageData width=\"2645\" height=\"4063\"/>
+                            </file>
+                          </resource>
+                        </contentMetadata>"
+        @indexer.logger.should_receive(:warn).with('Unable to parse integer page number from <resource><label> in contentMetadata: \'Page i\'')
+        @indexer.vol_constants_hash Nokogiri::XML(cntnt_md_xml)
       end
     end # content_md_hash
     

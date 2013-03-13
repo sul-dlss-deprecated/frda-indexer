@@ -77,8 +77,11 @@ class ApIndexer < Harvestdor::Indexer
       pdf_name = pdf_node.xpath('@id').text
       doc_hash[:vol_pdf_name_ss] = pdf_name.strip if pdf_name && pdf_name.strip
       pdf_size = pdf_node.xpath('@size').text
-      # TODO: ensure size is an integer?
-      doc_hash[:vol_pdf_size_is] = pdf_size.strip if pdf_size && pdf_size.strip
+      begin
+        doc_hash[:vol_pdf_size_is] = Integer(pdf_size.strip) if pdf_size && pdf_size.strip
+      rescue ArgumentError => e
+        logger.warn("bad value for PDF size: '#{pdf_size}'")
+      end
     else
       logger.warn("couldn't find pdf in contentMetadata object <resource> element: #{obj_node.to_xml}")
     end
@@ -88,8 +91,11 @@ class ApIndexer < Harvestdor::Indexer
       tei_name = tei_node.xpath('@id').text
       doc_hash[:vol_tei_name_ss] = tei_name.strip if tei_name && tei_name.strip
       tei_size = tei_node.xpath('@size').text
-      # TODO: ensure size is an integer?
-      doc_hash[:vol_tei_size_is] = tei_size.strip if tei_size && tei_size.strip
+      begin
+        doc_hash[:vol_tei_size_is] = Integer(tei_size.strip) if tei_size && tei_size.strip
+      rescue ArgumentError => e
+        logger.warn("bad value for TEI size: '#{tei_size}'")
+      end
     else
       logger.warn("couldn't find tei in contentMetadata object <resource> element: #{obj_node.to_xml}")
     end
@@ -114,9 +120,9 @@ class ApIndexer < Harvestdor::Indexer
       if page_label_val && !page_label_val.strip.empty?
         t = page_label_val.strip.gsub(/\s+/, ' ')
         if t.match(/^Page (\d+)$/i)
-          return $1
+          return $1.to_i
         else
-          logger.warn("unable to parse page number from <resource><label> in contentMetadata: #{page_label_val}")
+          logger.warn("Unable to parse integer page number from <resource><label> in contentMetadata: '#{page_label_val}'")
         end
       else
         logger.warn("no <label> value found for page <resource> in contentMetadata: #{page_resource_node.to_xml}")
@@ -139,7 +145,7 @@ class ApIndexer < Harvestdor::Indexer
         if t.match(/^(.+).jp2$/i)
           return $1
         else
-          logger.warn("unable to parse page id from <file> in contentMetadata: #{full_id}")
+          logger.warn("Unable to parse page id from <file> in contentMetadata: #{full_id}")
         end
       else
         logger.warn("no @id attribute found for page <file> in contentMetadata: #{image_id_nodes.first.to_xml}")
