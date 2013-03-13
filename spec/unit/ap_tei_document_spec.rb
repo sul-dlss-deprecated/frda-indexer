@@ -197,7 +197,7 @@ describe ApTeiDocument do
             </sp>" + @end_div2_body_tei
       end
       it "should create field with Array [value] for a multivalued field - ending in m or mv" do
-        exp_flds = {:speaker_ssim => ['M. Guadet'], :spoken_text_timv => ['M. Guadet-|-blah blah']}
+        exp_flds = {:speaker_ssim => ['Guadet'], :spoken_text_timv => ['Guadet-|-blah blah']}
         @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
         @parser.parse(@x)
       end
@@ -220,7 +220,7 @@ describe ApTeiDocument do
             </sp>" + @end_div2_body_tei
       end
       it "should add the value to the doc_hash Array for the field for multivalued field - ending in m or mv" do
-        exp_flds = {:speaker_ssim => ['M. Guadet', 'M. McRae'], :spoken_text_timv => ['M. Guadet-|-blah blah', 'M. McRae-|-bleah bleah']}
+        exp_flds = {:speaker_ssim => ['Guadet', 'McRae'], :spoken_text_timv => ['Guadet-|-blah blah', 'McRae-|-bleah bleah']}
         @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
         @parser.parse(@x)
       end
@@ -494,17 +494,17 @@ describe ApTeiDocument do
         x = @start_tei_body_div2_session +
             "<p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
-               <speaker>M. Guadet</speaker>
+               <speaker>m. Guadet</speaker>
                <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
             </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet']))
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet']))
         @parser.parse(x)
       end
       it "should have multiple values for multiple speakers" do
         x = @start_tei_body_div2_session + 
             "<p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
-              <speaker>M. Guadet</speaker>
+              <speaker>m. Guadet</speaker>
               <p>blah blah</p>
             </sp>
             <p>hoo hah</p>
@@ -512,7 +512,7 @@ describe ApTeiDocument do
               <speaker>M. McRae</speaker>
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['M. Guadet', 'M. McRae']))
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet', 'McRae']))
         @parser.parse(x)
       end
       it "should not be present if there is an empty <speaker> element" do
@@ -555,7 +555,7 @@ describe ApTeiDocument do
             <p>after</p>" + @end_div2_body_tei
       end
       it "should have a separate value, starting with the speaker, for each <p> inside a single <sp>" do
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['M. Guadet-|-blah blah ...', 'M. Guadet-|-bleah bleah ...']))
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...']))
         @parser.parse(@x)
       end
       it "should not include <p> text outside an <sp>" do

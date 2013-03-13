@@ -114,7 +114,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @speaker = nil
       @in_sp = false
     when 'speaker'
-      @speaker = @element_buffer.strip if !@element_buffer.strip.empty?
+      @speaker = clean_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
       add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
       @in_speaker = false
     end # case name
@@ -269,4 +269,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
   end
 
+  # remove some cruft in speaker names
+  def clean_speaker(name)
+    name.gsub('M.','').gsub('m.','').strip
+  end
+  
 end # ApTeiDocument class
