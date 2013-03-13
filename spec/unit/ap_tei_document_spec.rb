@@ -197,7 +197,7 @@ describe ApTeiDocument do
             </sp>" + @end_div2_body_tei
       end
       it "should create field with Array [value] for a multivalued field - ending in m or mv" do
-        exp_flds = {:speaker_ssim => ['M. Guadet'], :spoken_text_timv => ['M. Guadet blah blah']}
+        exp_flds = {:speaker_ssim => ['M. Guadet'], :spoken_text_timv => ['M. Guadet-|-blah blah']}
         @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
         @parser.parse(@x)
       end
@@ -220,7 +220,7 @@ describe ApTeiDocument do
             </sp>" + @end_div2_body_tei
       end
       it "should add the value to the doc_hash Array for the field for multivalued field - ending in m or mv" do
-        exp_flds = {:speaker_ssim => ['M. Guadet', 'M. McRae'], :spoken_text_timv => ['M. Guadet blah blah', 'M. McRae bleah bleah']}
+        exp_flds = {:speaker_ssim => ['M. Guadet', 'M. McRae'], :spoken_text_timv => ['M. Guadet-|-blah blah', 'M. McRae-|-bleah bleah']}
         @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
         @parser.parse(@x)
       end
@@ -555,7 +555,7 @@ describe ApTeiDocument do
             <p>after</p>" + @end_div2_body_tei
       end
       it "should have a separate value, starting with the speaker, for each <p> inside a single <sp>" do
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['M. Guadet blah blah ...', 'M. Guadet bleah bleah ...']))
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['M. Guadet-|-blah blah ...', 'M. Guadet-|-bleah bleah ...']))
         @parser.parse(@x)
       end
       it "should not include <p> text outside an <sp>" do

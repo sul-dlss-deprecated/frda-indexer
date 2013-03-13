@@ -108,7 +108,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       text = @element_buffer.strip if !@element_buffer.strip.empty?
       add_session_govt_ssim(text) if @in_session && @need_session_govt && text && text == text.upcase
       if @in_sp && @speaker
-        add_value_to_doc_hash(:spoken_text_timv, "#{@speaker} #{text}") if text
+        add_value_to_doc_hash(:spoken_text_timv, "#{@speaker}-|-#{text}") if text
       end
     when 'sp'
       @speaker = nil
