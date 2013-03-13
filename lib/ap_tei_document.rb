@@ -240,7 +240,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def add_value_to_doc_hash(key, value)
     fname = key.to_s
     unless value.is_a?(String) && value.strip.empty?
-      val = value.strip.gsub(/\s+/, ' ') if value.is_a?(String)
+      if value.is_a?(String)
+        val = value.strip.gsub(/\s+/, ' ')
+      else
+        val = value
+      end
       if @doc_hash[key]
         if fname.end_with?('m') || fname.end_with?('mv')
           @doc_hash[key] << val
