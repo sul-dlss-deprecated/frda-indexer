@@ -78,7 +78,7 @@ class ApIndexer < Harvestdor::Indexer
       doc_hash[:vol_pdf_name_ss] = pdf_name.strip if pdf_name && pdf_name.strip
       pdf_size = pdf_node.xpath('@size').text
       begin
-        doc_hash[:vol_pdf_size_is] = Integer(pdf_size.strip) if pdf_size && pdf_size.strip
+        doc_hash[:vol_pdf_size_ls] = Integer(pdf_size.strip) if pdf_size && pdf_size.strip
       rescue ArgumentError => e
         logger.warn("bad value for PDF size: '#{pdf_size}'")
       end

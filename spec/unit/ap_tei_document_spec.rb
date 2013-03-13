@@ -8,7 +8,7 @@ describe ApTeiDocument do
     @volume = 'Volume 36'
     @druid = 'aa222bb4444'
     @vol_constants_hash = { :vol_pdf_name_ss => 'aa222bb4444.pdf',
-                            :vol_pdf_size_is => 2218576614,
+                            :vol_pdf_size_ls => 2218576614,
                             :vol_tei_name_ss => 'aa222bb4444.xml',
                             :vol_tei_size_is => 6885841,
                             :vol_total_pages_is => 806  }
@@ -68,7 +68,7 @@ describe ApTeiDocument do
     end
     it "should populate vol_pdf fields" do
       @atd.doc_hash[:vol_pdf_name_ss].should == 'aa222bb4444.pdf'
-      @atd.doc_hash[:vol_pdf_size_is].should == 2218576614
+      @atd.doc_hash[:vol_pdf_size_ls].should == 2218576614
     end
     it "should populate vol_tei fields" do
       @atd.doc_hash[:vol_tei_name_ss].should == 'aa222bb4444.xml'

@@ -156,8 +156,8 @@ describe ApIndexer do
       it "should populate :vol_pdf_name_ss field" do
         @result_hash[:vol_pdf_name_ss].should == @pdf_name
       end
-      it "should populate :vol_pdf_size_is field" do
-        @result_hash[:vol_pdf_size_is].should == @pdf_size.to_i
+      it "should populate :vol_pdf_size_ls field" do
+        @result_hash[:vol_pdf_size_ls].should == @pdf_size.to_i
       end
       it "should populate :vol_tei_name_ss field" do
         @result_hash[:vol_tei_name_ss].should == @tei_name
