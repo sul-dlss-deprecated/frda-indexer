@@ -239,8 +239,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] value the value to add to the doc_hash for the key
   def add_value_to_doc_hash(key, value)
     fname = key.to_s
-    unless value.strip.empty?
-      val = value.strip.gsub(/\s+/, ' ')
+    unless value.is_a?(String) && value.strip.empty?
+      val = value.strip.gsub(/\s+/, ' ') if value.is_a?(String)
       if @doc_hash[key]
         if fname.end_with?('m') || fname.end_with?('mv')
           @doc_hash[key] << val
