@@ -295,7 +295,7 @@ describe BnfImagesIndexer do
                         </subject>
                       </mods>"
               @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-              @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['family, given, plain']))
+              @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Family, Given, Plain']))
               @indexer.index(@fake_druid)
             end
             it "there should be none if there is no subject personal name" do
@@ -332,7 +332,7 @@ describe BnfImagesIndexer do
                         </subject>
                       </mods>"
               @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-              @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['plain1', 'plain2', 'plain3']))
+              @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Plain1', 'Plain2', 'Plain3']))
               @indexer.index(@fake_druid)
             end
             it "should normalize the name to match AP names" do

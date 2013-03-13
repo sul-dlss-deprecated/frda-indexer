@@ -2,9 +2,13 @@
 require 'harvestdor-indexer'
 require 'date'
 
+require 'speaker_helper'
+
 # Indexer for BnF Images data
 #  Harvest BnfImages from DOR via harvestdor-indexer gem, then index it 
 class BnfImagesIndexer < Harvestdor::Indexer
+
+  include SpeakerHelper
 
   COLL_VAL = "Images de la Révolution française"
   # value used in rails app for choosing correct object type display 
@@ -216,7 +220,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
           parts = []
           sub_name_node.namePart.each { |namePart|
             if namePart.type_at != 'date' && namePart.type_at != 'termsOfAddress'
-              parts << namePart.text unless namePart.text.empty?
+              parts << normalize_speaker(namePart.text) unless namePart.text.empty?
             end
           }
           doc_hash[:speaker_ssim] << parts.join(', ').strip unless parts.empty?

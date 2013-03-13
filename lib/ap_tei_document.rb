@@ -5,9 +5,13 @@ require 'nokogiri'
 require 'ap_vol_dates'
 require 'ap_vol_titles'
 
+require 'speaker_helper'
+
 # Subclass of Nokogiri::XML::SAX::Document for streaming parsing
 #  TEI xml corresponding to volumes of the Archives Parlementaires
 class ApTeiDocument < Nokogiri::XML::SAX::Document
+  
+  include SpeakerHelper
   
   attr_reader :doc_hash
 
@@ -114,7 +118,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @speaker = nil
       @in_sp = false
     when 'speaker'
-      @speaker = clean_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
+      @speaker = normalize_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
       add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
       @in_speaker = false
     end # case name
@@ -267,13 +271,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       add_value_to_doc_hash(:text_tiv, @page_buffer)
       @rsolr_client.add(@doc_hash)
     end
-  end
-
-  # remove some cruft in speaker names
-  def clean_speaker(name)
-    name.slice!(0..2) if name[0..2].downcase == 'm. ' # lop off beginning m. or M.
-    name.chop! if name.end_with? '.'  # lop off ending .
-    return name.strip
   end
   
 end # ApTeiDocument class

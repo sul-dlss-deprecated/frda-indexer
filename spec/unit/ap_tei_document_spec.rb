@@ -509,12 +509,191 @@ describe ApTeiDocument do
             </sp>
             <p>hoo hah</p>
             <sp>
-              <speaker>M. M.cRae.</speaker>
+              <speaker>M. McRae.</speaker>
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet', 'M.cRae']))
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet', 'McRae']))
         @parser.parse(x)
       end
+      it "should correctly normalize speaker names with M, MM, initial capitilization and ending periods" do
+        x = @start_tei_body_div2_session + 
+            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            <sp>
+              <speaker>M- McRae:: </speaker>
+              <p>bleah bleah</p>
+            </sp> 
+            <sp>
+              <speaker>Mm. McRae, </speaker>
+              <p>bleah bleah</p>
+            </sp>            
+            <sp>
+              <speaker>M .McRae. </speaker>
+              <p>bleah bleah</p>
+            </sp> 
+            <sp>
+              <speaker>M . McRae. </speaker>
+              <p>bleah bleah</p>
+            </sp>                       
+            <sp>
+              <speaker>M McRae. </speaker>
+              <p>bleah bleah</p>
+            </sp>             
+            <sp>
+              <speaker>M'. McRae. </speaker>
+              <p>bleah bleah</p>
+            </sp>             
+            <sp>
+              <speaker>'M' McRae. </speaker>
+              <p>bleah bleah</p>
+            </sp>
+            <sp>
+              <speaker>m. Guadet</speaker>
+              <p>blah blah</p>
+            </sp>
+            <sp>
+              <speaker>M. nametobeuppercased</speaker>
+              <p>blah blah</p>
+            </sp>
+            <sp>
+              <speaker>m.NoSpace</speaker>
+              <p>blah blah</p>
+            </sp>
+            <sp>
+              <speaker>m.GuM.NamewithPeriodAtEndandm.InMiddleadet.</speaker>
+              <p>blah blah</p>
+            </sp>
+            <p>hoo hah</p>
+            <sp>
+              <speaker>m. guadet</speaker>
+              <p>blah blah</p>
+            </sp>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => 
+             Array.new(7,"McRae")+['Guadet', 'Nametobeuppercased','NoSpace','GuM.NamewithPeriodAtEndandm.InMiddleadet','Guadet'])
+          )
+        @parser.parse(x)
+      end   
+      it "should correctly normalize speaker names by removing trailing and leading periods and other indicated characters" do
+        x = @start_tei_body_div2_session + 
+            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            <sp>
+              <speaker>«M- «.McRae. </speaker>
+              <p>bleah bleah</p>
+            </sp> 
+            <sp>
+              <speaker>«««M- ...McRae. </speaker>
+              <p>bleah bleah</p>
+            </sp>            
+            <sp>
+              <speaker>Mm. .McRae........ </speaker>
+              <p>bleah bleah</p>
+            </sp>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => 
+             Array.new(3,"McRae"))
+          )
+        @parser.parse(x)
+      end      
+      it "should correctly normalize speaker names by removing spaces around hypens and spaces after d'" do
+        x = @start_tei_body_div2_session + 
+            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            <sp>
+              <speaker>McRae - d' lac</speaker>
+              <p>bleah bleah</p>
+            </sp> 
+            <sp>
+              <speaker>M. McRae- d'   lac</speaker>
+              <p>bleah bleah</p>
+            </sp>            
+            <sp>
+              <speaker>McRae -d'lac...</speaker>
+              <p>bleah bleah</p>
+            </sp>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => 
+            Array.new(3,"McRae-d'lac"))
+          )
+        @parser.parse(x)
+      end       
+      it "should correctly normalize president speaker names alternates" do
+        x = @start_tei_body_div2_session + 
+            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+          <sp>
+             <speaker>M. le Pr ésident .</speaker>
+             <p>bleah bleah</p>
+           </sp>
+         <sp>
+            <speaker>M. le Pr ésident :</speaker>
+            <p>bleah bleah</p>
+          </sp>
+          <sp>
+             <speaker>M. le Pr ésident Sieyès</speaker>
+             <p>bleah bleah</p>
+           </sp>
+           <sp>
+              <speaker>M. le Pr ésident de La Houssaye</speaker>
+              <p>bleah bleah</p>
+            </sp>
+            <sp>
+               <speaker>M. le Pr ésident répond</speaker>
+               <p>bleah bleah</p>
+             </sp>
+             <sp>
+                <speaker>M. le Pr ésident,</speaker>
+                <p>bleah bleah</p>
+              </sp>
+      <sp>
+         <speaker>M. le Pr ésident.</speaker>
+         <p>bleah bleah</p>
+       </sp>
+       <sp>
+          <speaker> M. le Pr ésident..</speaker>
+          <p>bleah bleah</p>
+        </sp>
+        <sp>
+           <speaker>M. le Pr ésident...</speaker>
+           <p>bleah bleah</p>
+         </sp>
+         <sp>
+            <speaker>M. le Pr ésident....</speaker>
+            <p>bleah bleah</p>
+          </sp>
+          <sp>
+          <speaker>M. le Pr ésldent.</speaker>
+           <p>bleah bleah</p>
+         </sp>
+         <sp>
+            <speaker>M. le President.</speaker>
+            <p>bleah bleah</p>
+          </sp>
+          <sp>
+             <speaker>le Pr ésident</speaker>
+             <p>bleah bleah</p>
+           </sp>
+           <sp>
+              <speaker>le Pr ésident,</speaker>
+              <p>bleah bleah</p>
+           </sp>
+            <sp>
+               <speaker>M. le pr ésident</speaker>
+               <p>bleah bleah</p>
+             </sp>
+          <sp>
+              <speaker>le Pr ésident.</speaker>
+              <p>bleah bleah</p>
+            </sp>                                                                                                                                                                                                                                                                              
+           <sp>
+              <speaker>le pr ésident</speaker>
+              <p>bleah bleah</p>
+            </sp> 
+            <sp>
+              <speaker>M. le pr ésident.</speaker>
+              <p>bleah bleah</p>
+            </sp>            
+            <sp>
+              <speaker>M. le Pr ésident</speaker>
+              <p>bleah bleah</p>
+            </sp>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => Array.new(19,'Le Président')))
+        @parser.parse(x)
+      end        
       it "should not be present if there is an empty <speaker> element" do
         x = @start_tei_body_div2_session + 
             "<p><date value=\"2013-01-01\">pretending to care</date></p>
