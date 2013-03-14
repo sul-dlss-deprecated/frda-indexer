@@ -1,7 +1,7 @@
 # encoding: UTF-8
 require 'spec_helper'
 
-describe SpeakerHelper do
+describe NormalizationHelper do
   
   before(:all) do
     @volume = 'Volume 36'

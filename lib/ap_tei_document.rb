@@ -5,13 +5,13 @@ require 'nokogiri'
 require 'ap_vol_dates'
 require 'ap_vol_titles'
 
-require 'speaker_helper'
+require 'normalization_helper'
 
 # Subclass of Nokogiri::XML::SAX::Document for streaming parsing
 #  TEI xml corresponding to volumes of the Archives Parlementaires
 class ApTeiDocument < Nokogiri::XML::SAX::Document
   
-  include SpeakerHelper
+  include NormalizationHelper
   
   attr_reader :doc_hash
 
@@ -55,6 +55,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @in_session = true
         @need_session_govt = true
         @need_session_date = true
+        @need_session_date_text = true
+        @session_date_text_val = ''
       end
       if @in_body
         add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
@@ -63,7 +65,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       date_val_str = get_attribute_val('value', attributes)
       d = normalize_date(date_val_str)
       if @need_session_date && date_val_str
-        add_value_to_doc_hash(:session_date_val_ssim, date_val_str) 
+        add_value_to_doc_hash(:session_date_val_ssim, date_val_str)
         add_value_to_doc_hash(:session_date_dtsim, d.strftime('%Y-%m-%dT00:00:00Z')) if d
         @need_session_date = false
       end
@@ -102,6 +104,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
 #        init_doc_hash
 #      end
       @in_back = false
+    when 'date'
+      if @need_session_date_text 
+        @session_date_text_val << @element_buffer
+        @got_date = true
+      end
     when 'div2'
       @in_div2 = false
       @div2_doc_type = nil
@@ -114,6 +121,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if @in_sp && @speaker
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker}-|-#{text}") if text
       end
+      if @need_session_date_text && @got_date
+        @session_date_text_val << @element_buffer
+        add_value_to_doc_hash(:session_date_ftsimv, normalize_session_date_text(@session_date_text_val)) 
+        @need_session_date_text = false
+        @got_date = false
+      end
     when 'sp'
       @speaker = nil
       @in_sp = false
@@ -121,6 +134,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @speaker = normalize_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
       add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
       @in_speaker = false
+    else
+      if @need_session_date_text && @got_date
+        @session_date_text_val << @element_buffer
+        add_value_to_doc_hash(:session_date_ftsimv, normalize_session_date_text(@session_date_text_val)) 
+        @need_session_date_text = false
+        @got_date = false
+      end
     end # case name
     
     @element_just_ended = true
@@ -236,6 +256,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
     @element_buffer = ''
     @page_buffer = ''
+    @session_date_text_val = ''
   end
   
   # add the value to the doc_hash for the Solr field.

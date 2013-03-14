@@ -1,8 +1,8 @@
 # encoding: UTF-8
 
-module SpeakerHelper
+module NormalizationHelper
   
-  def normalize_speaker(name)
+  def normalize_speaker name
     remove_trailing_and_leading_characters(name) # first pass
     name.sub! /\A'?m{1,2}'?[. -]/i,'' # lop off beginning m and mm type cases (case insensitive)
     name.sub! /\s*[-]\s*/,'-' # remove spaces around hypens
@@ -25,6 +25,8 @@ module SpeakerHelper
         "Le Preésident",
         "Le président",
         "Le Président",
+        "Le Preésident",
+        "Le Préesident",                
         "Le Président Sieyès",
         "Le Président de La Houssaye",
         "Le Président répond",
@@ -32,11 +34,22 @@ module SpeakerHelper
       ]
   end
   
-  def remove_trailing_and_leading_characters(name)
+  # normalize the session date text by 
+  #  removing trailing and leading chars
+  #  changing any " , "  to ", "
+  #  changing "Stance" to "Séance"
+  #  changing "Seance" to "Séance"
+  def normalize_session_date_text date_text
+    remove_trailing_and_leading_characters date_text
+    date_text.gsub! /\s,\s/, ', '
+    date_text.sub /S[et]ance/, 'Séance'    
+  end
+  
+  def remove_trailing_and_leading_characters name
     name.strip! # strip leading and trailing spaces
     name.sub! /\A(«|\.|:|,)+/,'' # lop off any beginning periods, colons, commas and other special characters
     name.sub! /(\.|,|:)+\z/,'' # lop off any ending periods, colons or commas
-    return name
+    name
   end
   
 end

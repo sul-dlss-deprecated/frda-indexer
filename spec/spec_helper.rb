@@ -20,7 +20,6 @@ require 'ap_indexer'
 require 'ap_tei_document'
 require 'bnf_images_indexer'
 require 'equivalent-xml'
-require 'speaker_helper'
 
 #RSpec.configure do |config|
 #end
