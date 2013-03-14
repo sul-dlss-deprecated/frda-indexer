@@ -5,13 +5,13 @@ require 'nokogiri'
 require 'ap_vol_dates'
 require 'ap_vol_titles'
 
-require 'speaker_helper'
+require 'normalization_helper'
 
 # Subclass of Nokogiri::XML::SAX::Document for streaming parsing
 #  TEI xml corresponding to volumes of the Archives Parlementaires
 class ApTeiDocument < Nokogiri::XML::SAX::Document
   
-  include SpeakerHelper
+  include NormalizationHelper
   
   attr_reader :doc_hash
 

@@ -2,13 +2,13 @@
 require 'harvestdor-indexer'
 require 'date'
 
-require 'speaker_helper'
+require 'normalization_helper'
 
 # Indexer for BnF Images data
 #  Harvest BnfImages from DOR via harvestdor-indexer gem, then index it 
 class BnfImagesIndexer < Harvestdor::Indexer
 
-  include SpeakerHelper
+  include NormalizationHelper
 
   COLL_VAL = "Images de la Révolution française"
   # value used in rails app for choosing correct object type display 

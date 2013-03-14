@@ -1,6 +1,6 @@
 # encoding: UTF-8
 
-module SpeakerHelper
+module NormalizationHelper
   
   def normalize_speaker(name)
     remove_trailing_and_leading_characters(name) # first pass
