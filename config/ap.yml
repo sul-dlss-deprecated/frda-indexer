@@ -18,7 +18,8 @@ stacks: https://stacks.stanford.edu
 
 # name of file containing druids that WILL be profiled (all others will be ignored)
 #  either give absolute directory, or directory relative to where the command will be executed
-whitelist: config/ap_whitelist.txt
+#whitelist: config/ap_whitelist.txt
+whitelist: config/ap-druids.txt
 
 # ----------- SOLR index (that we're writing INTO) parameters ------------
 solr:
