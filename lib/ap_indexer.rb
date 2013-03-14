@@ -25,9 +25,9 @@ class ApIndexer < Harvestdor::Indexer
         tei_xml = tei(druid)
         logger.info("About to parse #{druid} (#{vol})")
         parser.parse(tei_xml)
-        logger.info("Finished parsing #{druid}, elapsed time: #{Time.now-start_time} seconds")
+        logger.info("Finished parsing #{druid}, total elapsed time: #{Time.now-start_time} seconds")
         solr_client.commit
-        logger.info("Sent commit to Solr, elapsed time: #{Time.now-start_time} seconds")
+        logger.info("Sent commit to Solr, total elapsed time: #{Time.now-start_time} seconds")
       rescue => e
         logger.error "Failed to index #{druid}: #{e.message}"
         p e.backtrace
