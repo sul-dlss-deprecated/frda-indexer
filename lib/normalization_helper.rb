@@ -22,6 +22,7 @@ module NormalizationHelper
         "Le Pr ésident répond",
         "Le Pr ésldent",
         "Le President",
+        "Le Preésident",
         "Le président",
         "Le Président",
         "Le Président Sieyès",
