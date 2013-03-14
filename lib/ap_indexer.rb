@@ -12,21 +12,26 @@ class ApIndexer < Harvestdor::Indexer
     if blacklist.include?(druid)
       logger.info("AP Druid #{druid} is on the blacklist and will have no Solr doc created")
     else
-      pub_xml_ng_doc = public_xml druid      
-      vol = volume pub_xml_ng_doc
-      content_md_doc = content_metadata pub_xml_ng_doc
-      vol_constants_hash = vol_constants_hash content_md_doc      
-      page_id_hash = page_id_hash content_md_doc
+      begin
+        logger.info("Beginning processing of #{druid} (#{vol})")
+        pub_xml_ng_doc = public_xml druid      
+        vol = volume pub_xml_ng_doc
+        content_md_doc = content_metadata pub_xml_ng_doc
+        vol_constants_hash = vol_constants_hash content_md_doc      
+        page_id_hash = page_id_hash content_md_doc
       
-      saxdoc = ApTeiDocument.new(solr_client, druid, vol, vol_constants_hash, page_id_hash, logger)
-      parser = Nokogiri::XML::SAX::Parser.new(saxdoc)
-      tei_xml = tei(druid)
-      logger.info("About to parse #{druid} (#{vol})")
-      parser.parse(tei_xml)
-      logger.info("Finished parsing #{druid}")
-      solr_client.commit
-      logger.info("Sent commit to Solr")
-      # TODO: update DOR object's workflow datastream??
+        saxdoc = ApTeiDocument.new(solr_client, druid, vol, vol_constants_hash, page_id_hash, logger)
+        parser = Nokogiri::XML::SAX::Parser.new(saxdoc)
+        tei_xml = tei(druid)
+        logger.info("About to parse #{druid} (#{vol})")
+        parser.parse(tei_xml)
+        logger.info("Finished parsing #{druid}")
+        solr_client.commit
+        logger.info("Sent commit to Solr")
+      rescue => e
+        logger.error "Failed to index #{druid}: #{e.message}"
+        p e.backtrace
+      end
     end
   end
   
