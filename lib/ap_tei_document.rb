@@ -56,7 +56,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @need_session_govt = true
         @need_session_date = true
         @need_session_date_text = true
-        @session_date_text_val = ""
+        @session_date_text_val = ''
       end
       if @in_body
         add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
@@ -107,6 +107,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'date'
       if @need_session_date_text 
         @session_date_text_val << @element_buffer
+        @got_date = true
       end
     when 'div2'
       @in_div2 = false
@@ -120,10 +121,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if @in_sp && @speaker
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker}-|-#{text}") if text
       end
-      if @need_session_date_text
+      if @need_session_date_text && @got_date
         @session_date_text_val << @element_buffer
         add_value_to_doc_hash(:session_date_ftsimv, normalize_session_date_text(@session_date_text_val)) 
         @need_session_date_text = false
+        @got_date = false
       end
     when 'sp'
       @speaker = nil
@@ -132,6 +134,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @speaker = normalize_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
       add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
       @in_speaker = false
+    else
+      if @need_session_date_text && @got_date
+        @session_date_text_val << @element_buffer
+        add_value_to_doc_hash(:session_date_ftsimv, normalize_session_date_text(@session_date_text_val)) 
+        @need_session_date_text = false
+        @got_date = false
+      end
     end # case name
     
     @element_just_ended = true
@@ -247,6 +256,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
     @element_buffer = ''
     @page_buffer = ''
+    @session_date_text_val = ''
   end
   
   # add the value to the doc_hash for the Solr field.

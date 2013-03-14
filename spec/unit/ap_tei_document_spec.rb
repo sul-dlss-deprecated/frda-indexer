@@ -365,6 +365,16 @@ describe ApTeiDocument do
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 5 octobre 1793"]))
             @parser.parse(@dx)
           end
+          it "should ignore text from other <p> elements" do
+            x = @start_tei_body_div2_session + 
+                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                <p>la</p>
+                <p>Séance du <date value=\"1792-04-19\">jeudi 19 avril 1792</date>, au soir, </p>
+                <p>gah</p>
+                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ['Séance du jeudi 19 avril 1792, au soir']))
+            @parser.parse(x)
+          end
           it "should only get the first date's surrounding text" do
             x = @start_tei_body_div2_session + 
                 "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
@@ -414,20 +424,30 @@ describe ApTeiDocument do
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 23 avril 1791, au soir"]))
             @parser.parse(x)
           end
+          it "should work for multiple sessions in a page" do
+            x = @start_tei_body_div2_session + 
+                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                <p>first <date value=\"1793-10-05\">one</date>. </p>
+                </div2>
+                <div2 type=\"session\">
+                  <p>another <date value=\"2013-01-01\">one</date></p>
+                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["first one", "another one"]))
+            @parser.parse(x)
+          end
 
           it "should get the text from a surrounding <head> element" do
-            # <head>Séance du <date value="1792-04-19">jeudi 19 avril 1792</date>, au soir, </head>
             # <head>SÉANCE DU VINGT-DEUXIÈME JOUR DU PREMIER MOIS DE L'AN II (DIMANCHE <date
             # <head>présidence de m. le franc de pompignaf, archevêque de vienne.Séance du <date
             pending "to be implemented"
+            x = @start_tei_body_div2_session + 
+                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                <head>Séance du <date value=\"1792-04-19\">jeudi 19 avril 1792</date>, au soir, </head>
+                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du jeudi 19 avril 1792, au soir"]))
+            @parser.parse(x)
           end
-
-          it "should log warnings when it can't find a value" do
-            pending "to be implemented"
-          end
-
-        end # date text
-        
+        end # full text value
       end # session date
       
       context "session_govt_ssim" do
