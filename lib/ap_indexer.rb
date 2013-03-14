@@ -13,7 +13,7 @@ class ApIndexer < Harvestdor::Indexer
       logger.info("AP Druid #{druid} is on the blacklist and will have no Solr doc created")
     else
       begin
-        logger.info("Beginning processing of #{druid} (#{vol})")
+        logger.info("Beginning processing of #{druid}")
         pub_xml_ng_doc = public_xml druid      
         vol = volume pub_xml_ng_doc
         content_md_doc = content_metadata pub_xml_ng_doc
