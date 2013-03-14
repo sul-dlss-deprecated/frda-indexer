@@ -122,7 +122,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
       if @need_session_date_text
         @session_date_text_val << @element_buffer
-        add_value_to_doc_hash(:session_date_ftsimv, remove_trailing_and_leading_characters(@session_date_text_val)) 
+        add_value_to_doc_hash(:session_date_ftsimv, normalize_session_date_text(@session_date_text_val)) 
         @need_session_date_text = false
       end
     when 'sp'

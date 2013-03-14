@@ -365,7 +365,7 @@ describe ApTeiDocument do
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 5 octobre 1793"]))
             @parser.parse(@dx)
           end
-          it "should only get the first date's surrounding text." do
+          it "should only get the first date's surrounding text" do
             x = @start_tei_body_div2_session + 
                 "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
                 <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
@@ -374,8 +374,7 @@ describe ApTeiDocument do
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 5 octobre 1793"]))
             @parser.parse(x)
           end
-          it "should get the text from a surrounding <p> element when there is no preceding text." do
-            pending "to be fixed"
+          it "should get the text from a surrounding <p> element when there is no preceding text" do
             x = @start_tei_body_div2_session + 
                 "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
                 <p><date value=\"1792-09-20\">Jeudi 20 septembre 1792</date>, au soir.</p>
@@ -392,33 +391,41 @@ describe ApTeiDocument do
             @parser.parse(x)
           end
           it "should normalize whitespace" do
-            # <p>Séance du  <date value="1792-03-31">samedi 31 mars 1792</date>, au matin. </p>
-            # <p> Séance du  <date value="1789-12-29">mardi 29 décembre 1789</date>, au matin (1). </p>
-            pending "to be implemented"
+            x = @start_tei_body_div2_session + 
+                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                <p> Séance du  <date value=\"1789-12-29\">mardi 29 décembre 1789</date>, au matin (1). </p>
+                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du mardi 29 décembre 1789, au matin (1)"]))
+            @parser.parse(x)
           end
           it "should correct Seance to Séance" do
-            # <p>Seance du <date value="1791-04-23">samedi 23 avril 1791</date>, au soir
-            pending "to be implemented"
+            x = @start_tei_body_div2_session + 
+                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                <p>Seance du <date value=\"1791-04-23\">samedi 23 avril 1791</date>, au soir</p>
+                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 23 avril 1791, au soir"]))
+            @parser.parse(x)
           end
           it "should correct Stance to Séance" do
-            # <p>Stance du <date value="1791-04-16">samedi 16 avril 1791</date> (1).</p>
-            pending "to be implemented"
+            x = @start_tei_body_div2_session + 
+                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                <p>Stance du <date value=\"1791-04-23\">samedi 23 avril 1791</date>, au soir</p>
+                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 23 avril 1791, au soir"]))
+            @parser.parse(x)
           end
-          it "should log warnings when it can't find one" do
-            pending "to be implemented"
-          end
-          
-          # <p><date value="1792-09-17">Lundi 17 septembre 1792</date>, au matin. Suite de la séance
-          # 
+
           it "should get the text from a surrounding <head> element" do
             # <head>Séance du <date value="1792-04-19">jeudi 19 avril 1792</date>, au soir, </head>
             # <head>SÉANCE DU VINGT-DEUXIÈME JOUR DU PREMIER MOIS DE L'AN II (DIMANCHE <date
             # <head>présidence de m. le franc de pompignaf, archevêque de vienne.Séance du <date
             pending "to be implemented"
           end
-          it "should remove trailing period?" do
+
+          it "should log warnings when it can't find a value" do
             pending "to be implemented"
           end
+
         end # date text
         
       end # session date
