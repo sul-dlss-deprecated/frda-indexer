@@ -21,7 +21,13 @@ module SpeakerHelper
         "Le Pr ésident de La Houssaye",
         "Le Pr ésident répond",
         "Le Pr ésldent",
-        "Le President"
+        "Le President",
+        "Le président",
+        "Le Président",
+        "Le Président Sieyès",
+        "Le Président de La Houssaye",
+        "Le Président répond",
+        "Le Présldent",
       ]
   end
   
