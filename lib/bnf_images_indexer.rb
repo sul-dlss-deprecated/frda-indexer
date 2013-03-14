@@ -22,6 +22,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
       logger.info("BnF Images Druid #{druid} is on the blacklist and will have no Solr doc created")
     else
       begin
+        start_time=Time.now
         logger.debug("About to prep #{druid}")
         doc_hash = {
           :id => druid, 

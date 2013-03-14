@@ -22,10 +22,12 @@ class ApIndexer < Harvestdor::Indexer
       parser = Nokogiri::XML::SAX::Parser.new(saxdoc)
       tei_xml = tei(druid)
       logger.info("About to parse #{druid} (#{vol})")
+      start_time=Time.now
       parser.parse(tei_xml)
-      logger.info("Finished parsing #{druid}")
+      logger.info("Finished parsing #{druid}, elapsed time: #{Time.now-start_time} seconds")
+      start_time=Time.now
       solr_client.commit
-      logger.info("Sent commit to Solr")
+      logger.info("Sent commit to Solr, elapsed time: #{Time.now-start_time} seconds")
       # TODO: update DOR object's workflow datastream??
     end
   end
