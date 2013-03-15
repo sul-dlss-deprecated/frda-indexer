@@ -9,7 +9,6 @@ require 'normalization_helper'
 class BnfImagesIndexer < Harvestdor::Indexer
 
   include NormalizationHelper  
-  attr_accessor :error_count, :success_count
 
   COLL_VAL = "Images de la Révolution française"
   # value used in rails app for choosing correct object type display 
@@ -37,9 +36,11 @@ class BnfImagesIndexer < Harvestdor::Indexer
         doc_hash.merge!(mods_doc_hash) if mods_doc_hash
       
         solr_client.add(doc_hash)
-        logger.info("Added doc for #{druid} to Solr, total elapsed time: #{Time.now-start_time} seconds")        
+        logger.info("Added doc for #{druid} to Solr, total elapsed time: #{Time.now-start_time} seconds")   
+        @success_count+=1
         # TODO: provide call to code to update DOR object's workflow datastream??
       rescue => e
+        @error_count+=1
         logger.error "Failed to index #{druid}: #{e.message}"
         p e.backtrace
       end

@@ -5,8 +5,6 @@ require 'ap_tei_document'
 #  Harvest AP info from DOR via harvestdor-indexer gem, then index it 
 class ApIndexer < Harvestdor::Indexer
 
-  attr_accessor :error_count, :success_count
-
   # create Solr doc for the druid and add it to Solr, unless it is on the blacklist.  
   #  NOTE: don't forget to send commit to Solr, either once at end (already in harvest_and_index), or for each add, or ...
   # @param [String] druid e.g. ab123cd4567
@@ -30,7 +28,9 @@ class ApIndexer < Harvestdor::Indexer
         logger.info("Finished parsing #{druid}, total elapsed time: #{Time.now-start_time} seconds")
         solr_client.commit
         logger.info("Sent commit to Solr, total elapsed time: #{Time.now-start_time} seconds")
+        @success_count+=1
       rescue => e
+        @error_count+=1
         logger.error "Failed to index #{druid}: #{e.message}"
         p e.backtrace
       end
