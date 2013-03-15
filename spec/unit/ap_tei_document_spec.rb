@@ -325,7 +325,6 @@ describe ApTeiDocument do
               <p>L'an II de la République Française une et indivisible </p>
               <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
         end
-        
         it "should log a warning if it doesn't find a <date> element before an <sp> element" do
           x = @start_tei_body_div2_session + 
               "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
@@ -500,7 +499,6 @@ describe ApTeiDocument do
           @parser.parse(x)
         end
         it "should not have leftover text from preceding elements" do
-          @start_tei_body_div2_session = @start_tei_body_div1 + 
           x = @start_tei_body_div1 + 
                 "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
                 <p>blah blah</p>
@@ -512,7 +510,23 @@ describe ApTeiDocument do
           @parser.parse(x)
         end
       end # session_govt_ssim
-    end
+      it "should put the session specific fields in every page in the session" do
+        x = @start_tei_body_div2_session + 
+              "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+              <head>CONVENTION NATIONALE</head>
+              <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
+              <p>blah</p>
+              <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>
+              <p>bleh</p>
+              <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>" + @end_div2_body_tei
+        exp_hash_fields = { :session_govt_ssim => ["CONVENTION NATIONALE"],
+                            :session_date_dtsim => ["1793-10-05T00:00:00Z"],
+                            :session_date_ftsimv => ["Séance du samedi 5 octobre 1793"] }
+        @rsolr_client.should_receive(:add).with(hash_including(exp_hash_fields)).twice
+        @parser.parse(x)
+      end
+    end # type session
+    
     context 'type="contents"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"contents\">

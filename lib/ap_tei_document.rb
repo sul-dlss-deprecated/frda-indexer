@@ -52,11 +52,14 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
       @div2_doc_type = DIV2_TYPE[div2_type] if div2_type
       if div2_type == 'session'
+        @session_fields ||= {} 
         @in_session = true
         @need_session_govt = true
         @need_session_date = true
         @need_session_date_text = true
         @session_date_text_val = ''
+      else
+        @session_fields = nil
       end
       if @in_body
         add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
@@ -65,8 +68,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       date_val_str = get_attribute_val('value', attributes)
       d = normalize_date(date_val_str)
       if @need_session_date && date_val_str
-        add_value_to_doc_hash(:session_date_val_ssim, date_val_str)
-        add_value_to_doc_hash(:session_date_dtsim, d.strftime('%Y-%m-%dT00:00:00Z')) if d
+        add_field_value_to_hash(:session_date_val_ssim, date_val_str, @session_fields)
+        add_field_value_to_hash(:session_date_dtsim, d.strftime('%Y-%m-%dT00:00:00Z'), @session_fields) if d
         @need_session_date = false
       end
     when 'pb'
@@ -123,7 +126,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
       if @need_session_date_text && @got_date
         @session_date_text_val << @element_buffer
-        add_value_to_doc_hash(:session_date_ftsimv, normalize_session_date_text(@session_date_text_val)) 
+        add_field_value_to_hash(:session_date_ftsimv, normalize_session_date_text(@session_date_text_val), @session_fields) 
         @need_session_date_text = false
         @got_date = false
       end
@@ -134,13 +137,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @speaker = normalize_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
       add_value_to_doc_hash(:speaker_ssim, @speaker.strip) if @speaker && !(@doc_hash[:speaker_ssim] && @doc_hash[:speaker_ssim].include?(@speaker.strip))
       @in_speaker = false
-    else
-      if @need_session_date_text && @got_date
-        @session_date_text_val << @element_buffer
-        add_value_to_doc_hash(:session_date_ftsimv, normalize_session_date_text(@session_date_text_val)) 
-        @need_session_date_text = false
-        @got_date = false
-      end
     end # case name
     
     @element_just_ended = true
@@ -197,7 +193,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # add :session_govt_ssim field to doc_hash, and reset appropriate vars
   def add_session_govt_ssim value
     value.strip if value
-    add_value_to_doc_hash(:session_govt_ssim, value.sub(/[[:punct:]]$/, '')) if value
+    add_field_value_to_hash(:session_govt_ssim, value.sub(/[[:punct:]]$/, ''), @session_fields) if value
     @need_session_govt = false
   end
   
@@ -241,6 +237,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   end
 
   # initialize instance variable @doc_hash with mappings appropriate for all docs in the volume
+  #  and reset variables
   def init_doc_hash
     @doc_hash = {}
     @doc_hash[:collection_ssi] = COLL_VAL
@@ -257,12 +254,21 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @element_buffer = ''
     @page_buffer = ''
     @session_date_text_val = ''
+    @session_fields = {} if !@in_session
   end
   
   # add the value to the doc_hash for the Solr field.
   # @param [Symbol] key the Solr field name 
   # @param [String] value the value to add to the doc_hash for the key
   def add_value_to_doc_hash(key, value)
+    add_field_value_to_hash(key, value, @doc_hash)
+  end
+  
+  # add the value to the hash for the Solr field.
+  # @param [Symbol] key the Solr field name 
+  # @param [String] value the value to add to the hash for the key
+  # @param [Hash<Symbol, String>] hash the hash to receive the field value
+  def add_field_value_to_hash(key, value, hash)
     fname = key.to_s
     unless value.is_a?(String) && value.strip.empty?
       if value.is_a?(String)
@@ -270,17 +276,17 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       else
         val = value
       end
-      if @doc_hash[key]
+      if hash[key]
         if fname.end_with?('m') || fname.end_with?('mv')
-          @doc_hash[key] << val
+          hash[key] << val if !hash[key].include?(val)
         else
-          @logger.warn("Solr field #{key} is single-valued (first value: #{@doc_hash[key]}), but got an IGNORED additional value: #{val}")
+          @logger.warn("Solr field #{key} is single-valued (first value: #{hash[key]}), but got an IGNORED additional value: #{val}")
         end
       else
         if fname.end_with?('m') || fname.end_with?('mv')
-          @doc_hash[key] = [val] 
+          hash[key] = [val] 
         else
-          @doc_hash[key] = val
+          hash[key] = val
         end
       end
     end
@@ -290,6 +296,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def add_doc_to_solr
     if !@page_buffer.strip.empty?
       add_value_to_doc_hash(:text_tiv, @page_buffer)
+      @doc_hash.merge!(@session_fields) if @session_fields
       @rsolr_client.add(@doc_hash)
     end
   end
