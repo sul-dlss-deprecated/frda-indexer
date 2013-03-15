@@ -235,7 +235,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       norm_date.concat('-01') if norm_date.match(/^\d{4}\-\d{2}$/)
       Date.parse(norm_date)
     rescue
-      @logger.warn("Found <date> tag with unparseable date value: '#{date_str}' in page #{doc_hash[:id]}")
+      @logger.warn("Found <date> tag with unparseable date value: '#{date_str}' in page #{doc_hash[:id]}") if @in_body || @in_back
       nil
     end
   end
