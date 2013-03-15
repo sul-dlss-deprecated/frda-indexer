@@ -4,7 +4,7 @@ require 'ap_tei_document'
 # Indexer for Archives Parlementaires data
 #  Harvest AP info from DOR via harvestdor-indexer gem, then index it 
 class ApIndexer < Harvestdor::Indexer
-
+  
   # create Solr doc for the druid and add it to Solr, unless it is on the blacklist.  
   #  NOTE: don't forget to send commit to Solr, either once at end (already in harvest_and_index), or for each add, or ...
   # @param [String] druid e.g. ab123cd4567
@@ -23,11 +23,18 @@ class ApIndexer < Harvestdor::Indexer
         saxdoc = ApTeiDocument.new(solr_client, druid, vol, vol_constants_hash, page_id_hash, logger)
         parser = Nokogiri::XML::SAX::Parser.new(saxdoc)
         tei_xml = tei(druid)
-        logger.info("About to parse #{druid} (#{vol})")
+        logger.info("Finished retrieving public metadata for #{druid}, elapsed time: #{elapsed_time(start_time)} seconds")
+        start_time_parse=Time.now
         parser.parse(tei_xml)
-        logger.info("Finished parsing #{druid}, total elapsed time: #{Time.now-start_time} seconds")
+        time_to_parse=elapsed_time(start_time_parse)
+        @total_time_to_parse+=time_to_parse
+        logger.info("Finished parsing #{druid}, elapsed time: #{time_to_parse} seconds")
+        start_time_solr=Time.now
         solr_client.commit
-        logger.info("Sent commit to Solr, total elapsed time: #{Time.now-start_time} seconds")
+        time_to_solr=elapsed_time(start_time_solr)
+        @total_time_to_solr+=time_to_solr
+        logger.info("Sent commit to Solr for #{druid}, elapsed time: #{time_to_solr} seconds")
+        logger.info("Total index time for druid #{druid}: elapsed time: #{elapsed_time(start_time)} seconds")
         @success_count+=1
       rescue => e
         @error_count+=1
