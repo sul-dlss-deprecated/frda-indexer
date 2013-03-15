@@ -224,18 +224,6 @@ describe ApTeiDocument do
         @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
         @parser.parse(@x)
       end
-      it "should log a warning if the field isn't multivalued" do
-        pending "do we have any single valued fields?"
-        x = @start_tei_body_div2_session + 
-            "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
-            <p>blah blah</p>
-          </div2>
-          <div2 type=\"table_alpha\">
-            <p>blah blah</p>
-          </div2>" + @end_div2_body_tei
-        @logger.should_receive(:warn).with("Solr field doc_type_ssim is single-valued (first value: séance), but got an IGNORED additional value: liste")
-        @parser.parse(x)
-      end
     end # field already exists
   end # add_value_to_doc_hash
 
@@ -438,7 +426,7 @@ describe ApTeiDocument do
           it "should get the text from a surrounding <head> element" do
             # <head>SÉANCE DU VINGT-DEUXIÈME JOUR DU PREMIER MOIS DE L'AN II (DIMANCHE <date
             # <head>présidence de m. le franc de pompignaf, archevêque de vienne.Séance du <date
-            pending "to be implemented"
+            pending "to be implemented if we have a lot of bad values due to this"
             x = @start_tei_body_div2_session + 
                 "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
                 <head>Séance du <date value=\"1792-04-19\">jeudi 19 avril 1792</date>, au soir, </head>
@@ -448,6 +436,45 @@ describe ApTeiDocument do
           end
         end # full text value
       end # session date
+      
+      context "session_seq_first_isim" do
+        before(:all) do
+          @page_id_hash = { 'tq360bc6948_00_0813' => 815, 
+                            'tq360bc6948_00_0814' => 888, 
+                            'tq360bc6948_00_0815' => 899}
+          @atd2 = ApTeiDocument.new(@rsolr_client, @druid, @volume, @vol_constants_hash, @page_id_hash, @logger)
+          @parser2 = Nokogiri::XML::SAX::Parser.new(@atd2)
+        end
+        it "should be the first page sequence number in the session, for all pages in the session" do
+          x = @start_tei_body_div2_session + 
+                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                <head>CONVENTION NATIONALE</head>
+                <p>blah blah</p>
+                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>
+                <p>blah blah</p>
+                <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:session_seq_first_isim => [815])).twice
+          @parser2.parse(x)
+        end
+        it "should change when the session changes" do
+          x = @start_tei_body_div2_session + 
+                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                <head>CONVENTION NATIONALE</head>
+                <p>first <date value=\"1793-10-05\">one</date>. </p>
+                <p>blah blah</p>
+                </div2>
+                <div2 type=\"session\">
+                <head>CONVENTION NATIONALE</head>
+                <p>second <date value=\"1793-10-06\">one</date>. </p>
+                <p>blah blah</p>
+                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>
+                <p>blah blah</p>
+                <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:session_seq_first_isim => [815]))
+          @rsolr_client.should_receive(:add).with(hash_including(:session_seq_first_isim => [815, 888]))
+          @parser2.parse(x)
+        end
+      end
       
       context "session_govt_ssim" do
         it "should take the value of the first <head> element after <div2>" do
@@ -745,22 +772,6 @@ describe ApTeiDocument do
                   <p>in body</p>
             #{@end_div2_body_tei}"
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in body'))
-      @parser.parse(x)
-    end
-    it "should get content from <body>" do
-      pending "to be implemented"
-    end
-    it "should get content from <back>" do
-      pending "to be implemented"
-      x = @start_tei_back_div1 +
-          "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
-          <div2 type=\"contents\">
-            <p>in back</p>
-          </div2>
-        </div1>
-        <div1 type=\"volume\" n=\"14\">
-          <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>" + @end_div1_back_tei
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in back'))
       @parser.parse(x)
     end
     it "should not include the contents of any attributes" do

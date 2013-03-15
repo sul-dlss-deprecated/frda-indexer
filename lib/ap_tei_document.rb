@@ -57,6 +57,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @need_session_govt = true
         @need_session_date = true
         @need_session_date_text = true
+        @need_session_first_page = true
         @session_date_text_val = ''
       else
         @session_fields = nil
@@ -208,6 +209,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     add_value_to_doc_hash(:page_sequence_isi, @page_id_hash[new_page_id]) if @page_id_hash[new_page_id]
     add_value_to_doc_hash(:image_id_ssm, new_page_id + ".jp2")
     add_value_to_doc_hash(:ocr_id_ss, new_page_id.sub(/_00_/, '_99_') + ".txt")
+    if @in_session && @need_session_first_page && @page_id_hash[new_page_id]
+      add_field_value_to_hash(:session_seq_first_isim, @page_id_hash[new_page_id], @session_fields)
+      @need_session_first_page = false
+    end
   end
 
   # @param [String] attr_name the name of the desired attribute
