@@ -615,6 +615,20 @@ describe ApTeiDocument do
         @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
         @parser.parse(x)
       end
+      it "should not have duplicate values" do
+        x = @start_tei_body_div2_session + 
+            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            <sp>
+              <speaker>M. McRae.</speaker>
+              <p>blah blah</p>
+            </sp>
+            <sp>
+              <speaker>M. McRae.</speaker>
+              <p>bleah bleah</p>
+            </sp>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['McRae']))
+        @parser.parse(x)
+      end
     end # speaker_ssim
 
     context "spoken_text_timv" do

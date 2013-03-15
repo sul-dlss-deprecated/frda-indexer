@@ -132,7 +132,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_sp = false
     when 'speaker'
       @speaker = normalize_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
-      add_value_to_doc_hash(:speaker_ssim, @speaker) if @speaker
+      add_value_to_doc_hash(:speaker_ssim, @speaker.strip) if @speaker && !(@doc_hash[:speaker_ssim] && @doc_hash[:speaker_ssim].include?(@speaker.strip))
       @in_speaker = false
     else
       if @need_session_date_text && @got_date

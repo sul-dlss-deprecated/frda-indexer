@@ -82,8 +82,7 @@ describe NormalizationHelper do
              <p>blah blah</p>
            </sp>" + @end_div2_body_tei
        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => 
-            Array.new(7,"McRae")+['Guadet', 'Nametobeuppercased','NoSpace','GuM.NamewithPeriodAtEndandm.InMiddleadet','Guadet'])
-         )
+            ['McRae', 'Guadet', 'Nametobeuppercased','NoSpace','GuM.NamewithPeriodAtEndandm.InMiddleadet']))
        @parser.parse(x)
      end   
      it "should correctly normalize speaker names by removing trailing and leading periods and other indicated characters" do
@@ -101,9 +100,7 @@ describe NormalizationHelper do
              <speaker>Mm. .McRae........ </speaker>
              <p>bleah bleah</p>
            </sp>" + @end_div2_body_tei
-       @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => 
-            Array.new(3,"McRae"))
-         )
+       @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['McRae']))
        @parser.parse(x)
      end      
      it "should correctly normalize speaker names by removing spaces around hypens and spaces after d'" do
@@ -121,9 +118,7 @@ describe NormalizationHelper do
              <speaker>McRae -d'lac...</speaker>
              <p>bleah bleah</p>
            </sp>" + @end_div2_body_tei
-       @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => 
-           Array.new(3,"McRae-d'lac"))
-         )
+       @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ["McRae-d'lac"]))
        @parser.parse(x)
      end       
      it "should correctly normalize president speaker names alternates" do
@@ -209,7 +204,7 @@ describe NormalizationHelper do
              <speaker>M. le Pr ésident</speaker>
              <p>bleah bleah</p>
            </sp>" + @end_div2_body_tei
-       @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => Array.new(20,'Le Président')))
+       @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Le Président']))
        @parser.parse(x)
      end
   end
