@@ -76,13 +76,20 @@ describe NormalizationHelper do
              <speaker>m.GuM.NamewithPeriodAtEndandm.InMiddleadet.</speaker>
              <p>blah blah</p>
            </sp>
+           <sp>
+              <speaker>' MM. ganltier-bianzat et de Choisenl-Praslin.</speaker>
            <p>hoo hah</p>
+           </sp>
+           <sp>
+              <speaker>(Jacob Dupont</speaker>
+           <p>hoo hah</p>
+           </sp>                          
            <sp>
              <speaker>m. guadet</speaker>
              <p>blah blah</p>
            </sp>" + @end_div2_body_tei
        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => 
-            ['McRae', 'Guadet', 'Nametobeuppercased','NoSpace','GuM.NamewithPeriodAtEndandm.InMiddleadet']))
+            ['McRae', 'Guadet', 'Nametobeuppercased','NoSpace','GuM.NamewithPeriodAtEndandm.InMiddleadet','Ganltier-bianzat et de Choisenl-Praslin','Jacob Dupont']))
        @parser.parse(x)
      end   
      it "should correctly normalize speaker names by removing trailing and leading periods and other indicated characters" do
@@ -107,6 +114,10 @@ describe NormalizationHelper do
        x = @start_tei_body_div2_session + 
            "<p><date value=\"2013-01-01\">pretending to care</date></p>
            <sp>
+             <speaker>1e comte Midrabeau</speaker>
+             <p>bleah bleah</p>
+           </sp> 
+           <sp>
              <speaker>McRae - d' lac</speaker>
              <p>bleah bleah</p>
            </sp> 
@@ -118,7 +129,7 @@ describe NormalizationHelper do
              <speaker>McRae -d'lac...</speaker>
              <p>bleah bleah</p>
            </sp>" + @end_div2_body_tei
-       @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ["McRae-d'lac"]))
+       @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ["Le comte Midrabeau","McRae-d'lac"]))
        @parser.parse(x)
      end       
      it "should correctly normalize president speaker names alternates" do
@@ -199,9 +210,13 @@ describe NormalizationHelper do
            <sp>
              <speaker>M. le pr ésident.</speaker>
              <p>bleah bleah</p>
-           </sp>                  
+           </sp>  
            <sp>
-             <speaker>M. le Pr ésident</speaker>
+             <speaker>M. le Président</speaker>
+             <p>bleah bleah</p>
+           </sp>           
+           <sp>
+             <speaker>&gt;M. le Pr ésident</speaker>
              <p>bleah bleah</p>
            </sp>" + @end_div2_body_tei
        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Le Président']))
