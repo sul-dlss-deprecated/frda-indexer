@@ -379,37 +379,10 @@ describe ApTeiDocument do
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Jeudi 20 septembre 1792, au soir"]))
             @parser.parse(x)
           end
-          it "should deal well with preceding commas" do
-            x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
-                <p>Séance du vendredi,<date value=\"1793-10-04\"> 4 octobre 1793,</date></p>
-                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du vendredi, 4 octobre 1793"]))
-            @parser.parse(x)
-          end
-          it "should normalize whitespace" do
-            x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
-                <p> Séance du  <date value=\"1789-12-29\">mardi 29 décembre 1789</date>, au matin (1). </p>
-                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du mardi 29 décembre 1789, au matin (1)"]))
-            @parser.parse(x)
-          end
-          it "should correct Seance to Séance" do
-            x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
-                <p>Seance du <date value=\"1791-04-23\">samedi 23 avril 1791</date>, au soir</p>
-                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 23 avril 1791, au soir"]))
-            @parser.parse(x)
-          end
-          it "should correct Stance to Séance" do
-            x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
-                <p>Stance du <date value=\"1791-04-23\">samedi 23 avril 1791</date>, au soir</p>
-                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 23 avril 1791, au soir"]))
-            @parser.parse(x)
+          it "should call normalize_session_title" do
+            @atd.should_receive(:normalize_session_title).and_call_original
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 5 octobre 1793"]))
+            @parser.parse(@dx)
           end
           it "should work for multiple sessions in a page" do
             x = @start_tei_body_div2_session + 
@@ -839,41 +812,6 @@ describe ApTeiDocument do
       @parser.parse(x)
     end
   end
-
-  context "normalize_date" do
-    before(:all) do
-    end
-    it "should log a warning for unparseable dates" do
-      x = @start_tei_body_div2_session + 
-          "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
-          <p>boo <date value=\"1792-999-02\">5 octobre 1793</date> ya</p>
-          <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-      @logger.should_receive(:warn).with("Found <date> tag with unparseable date value: '1792-999-02' in page tq360bc6948_00_0816")
-      @rsolr_client.should_receive(:add)
-      @parser.parse(x)
-    end
-    it "should cope with day of 00" do
-      @atd.normalize_date("1792-08-00").should == Date.parse('1792-08-01')
-    end
-    it "should cope with single digit days and months (no leading zero)" do
-      @atd.normalize_date("1792-8-1").should == Date.parse('1792-08-01')
-    end
-    it "should cope with year only" do
-      @atd.normalize_date("1792").should == Date.parse('1792-01-01')
-    end
-    it "should cope with year and month only" do
-      @atd.normalize_date("1792-08").should == Date.parse('1792-08-01')
-    end
-    it "should cope with slashes in days area (trying to representing a range)" do
-      @atd.normalize_date("1792-08-01/15/17").should == Date.parse('1792-08-01')
-    end
-    it "should cope with au in date" do
-      @atd.normalize_date("1793-05-17 au 1793-06-02").should == Date.parse('1793-05-17')
-    end
-    it "should cope with spaces preceding or following hyphens" do
-      @atd.normalize_date("1792 - 8 - 01").should == Date.parse('1792-08-01')
-    end
-  end # normalize_date
 
   context "parsing warnings" do
     it "should log a warning when it finds direct non-whitespace text content in a wrapper element" do

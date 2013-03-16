@@ -2,6 +2,44 @@
 
 module NormalizationHelper
   
+  # turns the String representation of the date to a Date object.  
+  #  Logs a warning message if it can't parse the date string.
+  # @param [String] date_str a String representation of a date
+  # @return [Date] a Date object
+  def normalize_date date_str
+    begin
+      norm_date = date_str.gsub(/ +\- +/, '-')
+      norm_date.gsub!(/-00$/, '-01')
+      norm_date.concat('-01-01') if norm_date.match(/^\d{4}$/)
+      norm_date.concat('-01') if norm_date.match(/^\d{4}\-\d{2}$/)
+      Date.parse(norm_date)
+    rescue
+      @logger.warn("Found <date> tag with unparseable date value: '#{date_str}' in page #{doc_hash[:id]}") if @in_body || @in_back
+      nil
+    end
+  end
+
+  # normalize the session title (date) text by 
+  #  removing trailing and leading chars
+  #  changing any " , "  to ", "
+  #  changing "Stance" to "Séance"
+  #  changing "Seance" to "Séance"
+  def normalize_session_title session_title
+    remove_trailing_and_leading_characters session_title
+    # outer parens
+    session_title.gsub! /\A\(/, ''
+    session_title.gsub!(/\)\z/, '') if !session_title.match(/\(\d\)\z/) 
+    remove_trailing_and_leading_characters session_title
+    session_title.gsub! /\A['-]/, ''   # more leading chars
+    session_title.gsub! /[*"]\z/, ''   # more trailing chars
+    remove_trailing_and_leading_characters session_title
+    session_title.gsub! /\s,\s/, ', '
+    session_title.gsub! /\AS[et]ance/, 'Séance'
+    session_title.gsub! /\As[eé]ance/, 'Séance'
+    session_title.gsub! /\s+/, ' '
+    session_title
+  end
+  
   def normalize_speaker name
     remove_trailing_and_leading_characters(name) # first pass
     name.sub! /\Am{1,2}'?[. -]/i,'' # lop off beginning m and mm type cases (case insensitive) and other random bits of characters
@@ -33,17 +71,6 @@ module NormalizationHelper
         "Le Président répond",
         "Le Présldent",
       ]
-  end
-  
-  # normalize the session date text by 
-  #  removing trailing and leading chars
-  #  changing any " , "  to ", "
-  #  changing "Stance" to "Séance"
-  #  changing "Seance" to "Séance"
-  def normalize_session_date_text date_text
-    remove_trailing_and_leading_characters date_text
-    date_text.gsub! /\s,\s/, ', '
-    date_text.sub /S[et]ance/, 'Séance'    
   end
   
   def remove_trailing_and_leading_characters name

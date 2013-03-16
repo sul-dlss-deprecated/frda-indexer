@@ -127,7 +127,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
       if @need_session_date_text && @got_date
         @session_date_text_val << @element_buffer
-        add_field_value_to_hash(:session_date_ftsimv, normalize_session_date_text(@session_date_text_val), @session_fields) 
+        add_field_value_to_hash(:session_date_ftsimv, normalize_session_title(@session_date_text_val), @session_fields) 
         @need_session_date_text = false
         @got_date = false
       end
@@ -224,23 +224,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     attr_val = attr_array.first.last if attr_array && !attr_array.empty? && !attr_array.first.last.empty?
   end
   
-  # turns the String representation of the date to a Date object.  
-  #  Logs a warning message if it can't parse the date string.
-  # @param [String] date_str a String representation of a date
-  # @return [Date] a Date object
-  def normalize_date date_str
-    begin
-      norm_date = date_str.gsub(/ +\- +/, '-')
-      norm_date.gsub!(/-00$/, '-01')
-      norm_date.concat('-01-01') if norm_date.match(/^\d{4}$/)
-      norm_date.concat('-01') if norm_date.match(/^\d{4}\-\d{2}$/)
-      Date.parse(norm_date)
-    rescue
-      @logger.warn("Found <date> tag with unparseable date value: '#{date_str}' in page #{doc_hash[:id]}") if @in_body || @in_back
-      nil
-    end
-  end
-
   # initialize instance variable @doc_hash with mappings appropriate for all docs in the volume
   #  and reset variables
   def init_doc_hash
