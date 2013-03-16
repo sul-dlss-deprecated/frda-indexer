@@ -48,6 +48,7 @@ module NormalizationHelper
     name.gsub! '1e','Le' # flip a 1e to Le
     remove_trailing_and_leading_characters(name) # second pass after other normalizations
     name[0]=name[0].capitalize # capitalize first letter
+    name.sub! /\AL\'abb[eé]/i, "L'abbé"
     name="Le Président" if president_alternates.include?(name) # this should come last so we complete all other normalization
     return name
   end
@@ -62,8 +63,13 @@ module NormalizationHelper
         "Le Président de La Houssaye",
         "Le Président répond",
         "Le Présldent",
+        "Le' Président",
+        "Le-Président",
+        "Le Présidant",
+        "Le Présiden",
+#        "Président",   # ask JV if she wants this?
       ]
-  end
+  end  
   
   def remove_trailing_and_leading_characters name
     name.strip! # strip leading and trailing spaces

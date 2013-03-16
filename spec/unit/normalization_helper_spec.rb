@@ -115,10 +115,13 @@ describe NormalizationHelper do
      end
      it "should remove leading open paren" do
        normalize_speaker("(Jacob Dupont").should == "Jacob Dupont"
+       normalize_speaker("(M. l'abbé Tridon").should == "L'abbé Tridon"
      end
      it "should remove leading « and other indicated characters" do
        normalize_speaker("«M- «.McRae. ").should == "McRae"
        normalize_speaker("«««M- ...McRae. ").should == "McRae"
+       normalize_speaker("«««M- ...McRae. ").should == "McRae"
+       normalize_speaker("'Tronchou").should == "Tronchou"
      end
      it "should remove spaces around hypens and spaces after d'" do
        normalize_speaker("McRae - d' lac").should == "McRae-d'lac"
@@ -149,6 +152,11 @@ describe NormalizationHelper do
        normalize_speaker("Le Preésident.").should == 'Le Président'
        normalize_speaker("M. le président.").should == 'Le Président'
        normalize_speaker(">M. le Président").should == 'Le Président'
+       normalize_speaker("Le' Président").should == 'Le Président'
+       normalize_speaker("Le-Président").should == 'Le Président'
+#       normalize_speaker("Président").should == 'Le Président'  # ask JV if she wants this
+       normalize_speaker("Le Présidant").should == 'Le Président'
+       normalize_speaker("Le Présiden").should == 'Le Président'
      end
      it "should remove leading M, or MM," do
        normalize_speaker("M, D'André").should == "D'André"
@@ -157,8 +165,12 @@ describe NormalizationHelper do
      it "should remove leading M*" do
        normalize_speaker("M* le Président").should == "Le Président"
      end
-     it "should remove leading M*" do
+     it "should remove leading M;" do
        normalize_speaker("M; Garat").should == "Garat"
+     end
+     it "should normalize to L'abbé" do
+       normalize_speaker("L'abbe Gouttes").should == "L'abbé Gouttes"
+       normalize_speaker("L'Abbé Sieyès").should == "L'abbé Sieyès"
      end
   end # normalize speaker
 
