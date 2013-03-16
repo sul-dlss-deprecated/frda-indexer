@@ -585,6 +585,16 @@ describe ApTeiDocument do
     end
   end # <div2> element
 
+  it "should log a warning for unparseable dates" do
+    x = @start_tei_body_div2_session + 
+        "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+        <p>boo <date value=\"1792-999-02\">5 octobre 1793</date> ya</p>
+        <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+    @logger.should_receive(:warn).with("Found <date> tag with unparseable date value: '1792-999-02' in page tq360bc6948_00_0816")
+    @rsolr_client.should_receive(:add)
+    @parser.parse(x)
+  end
+
   context "<sp> element" do
     context "speaker_ssim" do
       it "should be present if there is a non-empty <speaker> element" do
@@ -641,6 +651,17 @@ describe ApTeiDocument do
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['McRae']))
+        @parser.parse(x)
+      end
+      it "should call normalize_speaker" do
+        x = @start_tei_body_div2_session + 
+            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            <sp>
+              <speaker>&gt;M. le Pr ésident</speaker>
+              <p>bleah bleah</p>
+            </sp>" + @end_div2_body_tei
+        @atd.should_receive(:normalize_speaker).and_call_original
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Le Président']))
         @parser.parse(x)
       end
     end # speaker_ssim
