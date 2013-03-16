@@ -104,14 +104,14 @@ describe NormalizationHelper do
        normalize_speaker("m. Guadet").should == "Guadet"
        normalize_speaker("m.NoSpace").should == "NoSpace"
      end
-     it "should remove leading and trailing perios" do
-       normalize_speaker("m.GuM.NamewithPeriodAtEndandm.InMiddleadet.").should == "GuM.NamewithPeriodAtEndandm.InMiddleadet"
-       normalize_speaker("Mm. .McRae........ ").should == "McRae"
-     end
      it "should capitalize first letter after M and MM removed" do
        normalize_speaker("m. guadet").should == "Guadet"
        normalize_speaker("M. nametobeuppercased").should == "Nametobeuppercased"
        normalize_speaker("' MM. ganltier-bianzat et de Choisenl-Praslin.").should == "Ganltier-bianzat et de Choisenl-Praslin"
+     end
+     it "should remove leading and trailing periods" do
+       normalize_speaker("m.GuM.NamewithPeriodAtEndandm.InMiddleadet.").should == "GuM.NamewithPeriodAtEndandm.InMiddleadet"
+       normalize_speaker("Mm. .McRae........ ").should == "McRae"
      end
      it "should remove leading open paren" do
        normalize_speaker("(Jacob Dupont").should == "Jacob Dupont"
@@ -148,7 +148,6 @@ describe NormalizationHelper do
        normalize_speaker("le président").should == 'Le Président'
        normalize_speaker("Le Preésident.").should == 'Le Président'
        normalize_speaker("M. le président.").should == 'Le Président'
-       normalize_speaker("M. le Pr ésident").should == 'Le Président'
        normalize_speaker(">M. le Président").should == 'Le Président'
      end
      it "should remove leading M, or MM," do

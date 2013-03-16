@@ -657,7 +657,7 @@ describe ApTeiDocument do
         x = @start_tei_body_div2_session + 
             "<p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
-              <speaker>&gt;M. le Pr ésident</speaker>
+              <speaker>&gt;M. le Président</speaker>
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
         @atd.should_receive(:normalize_speaker).and_call_original

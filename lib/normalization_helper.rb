@@ -30,7 +30,7 @@ module NormalizationHelper
     session_title.gsub! /\A\(/, ''
     session_title.gsub!(/\)\z/, '') if !session_title.match(/\(\d\)\z/) 
     remove_trailing_and_leading_characters session_title
-    session_title.gsub! /\A['-]/, ''   # more leading chars
+    session_title.gsub! /\A[-]/, ''   # more leading chars
     session_title.gsub! /[*"]\z/, ''   # more trailing chars
     remove_trailing_and_leading_characters session_title
     session_title.gsub! /\s,\s/, ', '
@@ -42,8 +42,6 @@ module NormalizationHelper
   
   def normalize_speaker name
     remove_trailing_and_leading_characters(name) # first pass
-#    name.sub! /\Am{1,2}'?[. -]/i,'' # lop off beginning m and mm type cases (case insensitive) and other random bits of characters
-#    name.sub! /\Am{1,2}'?[. -,;*]/i,'' # lop off beginning m and mm type cases (case insensitive) and other random bits of characters
     name.sub! /\Am{1,2}'?[. -;]/i,'' # lop off beginning m and mm type cases (case insensitive) and other random bits of characters
     name.sub! /\s*[-]\s*/,'-' # remove spaces around hyphens
     name.sub! /[d][']\s+/,"d'" # remove spaces after d'
@@ -56,16 +54,8 @@ module NormalizationHelper
   
   def president_alternates
       [
-        "Le pr ésident",
-        "Le Pr ésident",
-        "Le Pr ésident Sieyès",
-        "Le Pr ésident de La Houssaye",
-        "Le Pr ésident répond",
-        "Le Pr ésldent",
         "Le President",
-        "Le Preésident",
         "Le président",
-        "Le Président",
         "Le Preésident",
         "Le Préesident",                
         "Le Président Sieyès",
@@ -77,8 +67,8 @@ module NormalizationHelper
   
   def remove_trailing_and_leading_characters name
     name.strip! # strip leading and trailing spaces
-    name.sub! /\A('|\(|\)|>|<|«|\.|:|,)+/,'' # lop off any beginning periods, colons, commas and other special characters
-    name.sub! /(\.|,|:)+\z/,'' # lop off any ending periods, colons or commas
+    name.sub! /\A['\(\)><«\.:,]+/, '' # lop off any beginning periods, colons, commas and other special characters
+    name.sub! /[\.,:]+\z/, '' # lop off any ending periods, colons or commas
     name.strip!
     name
   end
