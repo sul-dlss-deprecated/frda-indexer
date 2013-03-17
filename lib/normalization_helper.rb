@@ -67,6 +67,8 @@ module NormalizationHelper
         "Le-Président",
         "Le Présidant",
         "Le Présiden",
+        "Le Présidtent",
+        "Le Présidènt",
 #        "Président",   # ask JV if she wants this?
       ]
   end  
