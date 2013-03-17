@@ -34,21 +34,33 @@ module NormalizationHelper
     session_title.gsub! /[*"]\z/, ''   # more trailing chars
     remove_trailing_and_leading_characters session_title
     session_title.gsub! /\s,\s/, ', '
-    session_title.gsub! /\AS[et]ance/, 'Séance'
-    session_title.gsub! /\As[eé]ance/, 'Séance'
+    session_title.gsub! /\AS[éeèêdt][aâd][nm][cçdeèot][çeéèê]/i, 'Séance' # 6 letter variants
+    session_title.gsub! /\AS[eé]a?nc?[eèé]/i, 'Séance'  # 5 letter variants corrected
+    session_title.gsub! 'seanc', 'Séance'  # 5 letter variants corrected
+    session_title.gsub! 'Sèattdé', 'Séance'
+    session_title.gsub! 'Séan ce', 'Séance'
+    session_title.gsub! 'Sécthôè', 'Séance'
+    session_title.gsub! 'Séyripe', 'Séance'
+    session_title.gsub! /\ASéance,? d[uû]/, 'Séance du'
+    session_title.gsub! /\ASéance du[\.\-,] /, 'Séance du '
+    session_title.gsub! /\ASéance du \. /, 'Séance du '
     session_title.gsub! /\s+/, ' '
     session_title
   end
   
+=begin  
+  normalize_session_title('seanc.').should == "Séance"
+=end
+  
   def normalize_speaker name
     remove_trailing_and_leading_characters(name) # first pass
     name.sub! /\Am{1,2}'?[. -;]/i,'' # lop off beginning m and mm type cases (case insensitive) and other random bits of characters
-    name.sub! /\s*[-]\s*/,'-' # remove spaces around hyphens
+    name.sub! /\s*[\-]\s*/,'-' # remove spaces around hyphens
     name.sub! /[d][']\s+/,"d'" # remove spaces after d'
     name.gsub! '1e','Le' # flip a 1e to Le
     remove_trailing_and_leading_characters(name) # second pass after other normalizations
     name[0]=name[0].capitalize # capitalize first letter
-    name.sub! /\AL\'abb[eé]/i, "L'abbé"
+    name.sub! /\AL\'?abb[eé]/i, "L'abbé"
     name="Le Président" if president_alternates.include?(name) # this should come last so we complete all other normalization
     return name
   end
@@ -69,6 +81,7 @@ module NormalizationHelper
         "Le Présiden",
         "Le Présidtent",
         "Le Présidènt",
+        "La Président",
 #        "Président",   # ask JV if she wants this?
       ]
   end  
