@@ -51,20 +51,13 @@ describe NormalizationHelper do
       it "lundi" do
         normalize_session_title('Séance du Lundi').should == "Séance du lundi"
         normalize_session_title('Séance du luhdi').should == "Séance du lundi"
-#        normalize_session_title('Séance du lundi, 1').should == "Séance du lundi 1"
-#        normalize_session_title('Séance du lundi4').should == "Séance du lundi 4"
       end
       it "mardi" do
         normalize_session_title('Séance dumardi').should == "Séance du mardi"
         normalize_session_title('Séance du madi').should == "Séance du mardi"
-#        normalize_session_title('Séance du mardi, 25').should == "Séance du mardi 25"
-#        normalize_session_title('Séance du mardi10').should == "Séance du mardi 10"
-#        normalize_session_title('Séance du mardi17').should == "Séance du mardi 17"
         normalize_session_title('Séance du matdi').should == "Séance du mardi"
       end
       it "mercredi" do
-#        normalize_session_title('Séance du Mercredi, ').should == "Séance du mercredi"
-#        normalize_session_title('Séance du mercredi, ').should == "Séance du mercredi"
         normalize_session_title('Séance du Mercredi').should == "Séance du mercredi"
         normalize_session_title('Séance du mercrredi').should == "Séance du mercredi"
         normalize_session_title('Séance du mereredi').should == "Séance du mercredi"
@@ -72,34 +65,46 @@ describe NormalizationHelper do
       it "jeudi" do
         normalize_session_title('Séance du hindi').should == "Séance du jeudi"
         normalize_session_title('Séance du ieudi').should == "Séance du jeudi"
-#        normalize_session_title('Séance du jeudi, 3').should == "Séance du jeudi 3"
         normalize_session_title('Séance du jeudis').should == "Séance du jeudi"
         normalize_session_title('Séance du jèudi').should == "Séance du jeudi"
       end
       it "vendredi" do
         normalize_session_title('Séance du Vendredi').should == "Séance du vendredi"
         normalize_session_title('Séance du vendrcedi').should == "Séance du vendredi"
-#        normalize_session_title('Séance du vendredi, 11').should == "Séance du vendredi 11"
-#        normalize_session_title('Séance du vendredi. 1').should == "Séance du vendredi 1"
         normalize_session_title('Séance du vendredia').should == "Séance du vendredi"
         normalize_session_title('Séance du vendrèdi').should == "Séance du vendredi"
       end
       it "samedi" do
         normalize_session_title('Séance du Samedi').should == "Séance du samedi"
         normalize_session_title('Séance du samed').should == "Séance du samedi"
-#        normalize_session_title('Séance du samedi,').should == "Séance du samedi"
-#        normalize_session_title('Séance du samedi3').should == "Séance du samedi 3"
         normalize_session_title('Séance du saniedi').should == "Séance du samedi"
         normalize_session_title('Séance du smaedi').should == "Séance du samedi"
         normalize_session_title('Séance du ssamedi').should == "Séance du samedi"
       end
       it "dimanche" do
         normalize_session_title('Séance du Dimanche').should == "Séance du dimanche"
-#        normalize_session_title('Séance du dimanche, 3').should == "Séance du dimanche 3"
-#        normalize_session_title('Séance du dimanche10').should == "Séance du dimanche 10"
-#        normalize_session_title('Séance du dimanche26').should == "Séance du dimanche 26"
         normalize_session_title('Séance du dimanphe').should == "Séance du dimanche"
         normalize_session_title('Séance du dirnanche').should == "Séance du dimanche"
+      end
+      it "should separate digits smashed against days of the week" do
+        normalize_session_title('Séance du lundi4').should == "Séance du lundi 4"
+        normalize_session_title('Séance du mardi10').should == "Séance du mardi 10"
+        normalize_session_title('Séance du mardi17').should == "Séance du mardi 17"
+        normalize_session_title('Séance du samedi3').should == "Séance du samedi 3"
+        normalize_session_title('Séance du dimanche10').should == "Séance du dimanche 10"
+        normalize_session_title('Séance du dimanche26').should == "Séance du dimanche 26"
+      end
+      it "should remove punctuation between day of week and number" do
+        pending "should this punctuation be removed?  Ask JV"
+        normalize_session_title('Séance du lundi, 1').should == "Séance du lundi 1"
+        normalize_session_title('Séance du mardi, 25').should == "Séance du mardi 25"
+        normalize_session_title('Séance du Mercredi, ').should == "Séance du mercredi"
+        normalize_session_title('Séance du mercredi, ').should == "Séance du mercredi"
+        normalize_session_title('Séance du jeudi, 3').should == "Séance du jeudi 3"
+        normalize_session_title('Séance du vendredi, 11').should == "Séance du vendredi 11"
+        normalize_session_title('Séance du vendredi. 1').should == "Séance du vendredi 1"
+        normalize_session_title('Séance du samedi, 8').should == "Séance du samedi 8"
+        normalize_session_title('Séance du dimanche, 3').should == "Séance du dimanche 3"
       end
     end # days of the week
     it "should deal well with preceding commas" do
