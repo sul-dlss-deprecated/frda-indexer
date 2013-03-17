@@ -44,12 +44,40 @@ module NormalizationHelper
     session_title.gsub! /\ASéance,? d[uû]/, 'Séance du'
     session_title.gsub! /\ASéance du[\.\-,] /, 'Séance du '
     session_title.gsub! /\ASéance du \. /, 'Séance du '
+    session_title.gsub! /\ASéance du lu[nh]di/i, 'Séance du lundi'
+    session_title.gsub! /\ASéance du ?ma[rt]?di/i, 'Séance du mardi'
+    session_title.gsub! /\ASéance du mer[ce]r?redi/i, 'Séance du mercredi'
+    session_title.gsub! /\ASéance du [hij][eèi][un]dis?/i, 'Séance du jeudi'
+    session_title.gsub! /\ASéance du vendrc?[eè]dia?/i, 'Séance du vendredi'
+    session_title.gsub! /\ASéance du samedi?/i, 'Séance du samedi'
+    session_title.gsub! 'Séance du saniedi', 'Séance du samedi'
+    session_title.gsub! 'Séance du smaedi', 'Séance du samedi'
+    session_title.gsub! 'Séance du ssamedi', 'Séance du samedi'
+    session_title.gsub! /\ASéance du di(rn|m)an[cp]he/i, 'Séance du dimanche'
     session_title.gsub! /\s+/, ' '
     session_title
   end
-  
 =begin  
-  normalize_session_title('seanc.').should == "Séance"
+  
+  normalize_session_title('Séance du lundi, 1').should == "Séance du lundi 1"
+  normalize_session_title('Séance du lundi4').should == "Séance du lundi 4"
+
+normalize_session_title('Séance du mardi, 25').should == "Séance du mardi 25"
+normalize_session_title('Séance du mardi10').should == "Séance du mardi 10"
+normalize_session_title('Séance du mardi17').should == "Séance du mardi 17"
+
+normalize_session_title('Séance du jeudi, 3').should == "Séance du jeudi 3"
+
+normalize_session_title('Séance du vendredi, 11').should == "Séance du vendredi 11"
+normalize_session_title('Séance du vendredi. 1').should == "Séance du vendredi 1"
+
+normalize_session_title('Séance du samedi,').should == "Séance du samedi"
+normalize_session_title('Séance du samedi3').should == "Séance du samedi 3"
+
+normalize_session_title('Séance du dimanche, 3').should == "Séance du dimanche 3"
+normalize_session_title('Séance du dimanche10').should == "Séance du dimanche 10"
+normalize_session_title('Séance du dimanche26').should == "Séance du dimanche 26"
+
 =end
   
   def normalize_speaker name
