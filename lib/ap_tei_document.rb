@@ -123,11 +123,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       text = @element_buffer.strip if !@element_buffer.strip.empty?
       add_session_govt_ssim(text) if @in_session && @need_session_govt && text && text == text.upcase
       if @in_sp && @speaker
-        add_value_to_doc_hash(:spoken_text_timv, "#{@speaker}-|-#{text}") if text
+        add_value_to_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}") if text
       end
       if @need_session_date_text && @got_date
         @session_date_text_val << @element_buffer
-        add_field_value_to_hash(:session_title_ftsim, normalize_session_title(@session_date_text_val), @session_fields) 
+        title = normalize_session_title(@session_date_text_val)
+        add_field_value_to_hash(:session_title_ftsim, title, @session_fields) 
+        add_field_value_to_hash(:session_date_title_ssim, "#{@session_fields[:session_date_val_ssim].last}#{SEP}#{title}", @session_fields) 
         @need_session_date_text = false
         @got_date = false
       end
@@ -177,6 +179,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   NO_TEXT_ELEMENTS = ['text', 'front', 'body', 'back', 'div', 'div1', 'div2', 'div3', 'list', 'sp', 'pb']
   # ignore the contents of these elements
   IGNORE_ELEMENTS = ['trailer']
+  SEP = '-|-'
 
   # @param [String] chars the characters to be concatenated to the buffer
   # @param [String] buffer the text buffer

@@ -409,9 +409,14 @@ describe ApTeiDocument do
           end
         end # full text value
          
-        context "session_date_title_sim" do
-          it "should be session_date_dtsim -|- session_title" do
-            pending "to be implemented"
+        context "session_date_title_ssim" do
+          it "should be (session_date_dtsim) -|- (session_title)" do
+            x = @start_tei_body_div2_session + 
+                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
+                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:session_date_title_ssim => ["1793-10-05-|-Séance du samedi 5 octobre 1793"]))
+            @parser.parse(x)
           end
         end
       end # session date
