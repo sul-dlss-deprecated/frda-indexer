@@ -277,7 +277,7 @@
       <str name="facet.query">search_date_dtsim:[1797-09-04T00:00:00Z TO 1799-06-19T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1799-06-08T00:00:00Z TO 1799-11-12T00:00:00Z]</str>
 
-      <str name="group">true</str>
+      <str name="group">false</str>
       <str name="group.ngroups">true</str>
       <str name="group.limit">10</str>
       <str name="group.field">result_group_ssi</str>
@@ -347,7 +347,7 @@
       <str name="facet.query">search_date_dtsim:[1797-09-04T00:00:00Z TO 1799-06-19T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1799-06-08T00:00:00Z TO 1799-11-12T00:00:00Z]</str>
       
-      <str name="group">true</str>
+      <str name="group">false</str>
       <str name="group.ngroups">true</str>
       <str name="group.limit">10</str>
       <str name="group.field">result_group_ssi</str>
