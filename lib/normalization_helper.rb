@@ -90,7 +90,7 @@ module NormalizationHelper
         "Le Présidtent",
         "Le Présidènt",
         "La Président",
-#        "Président",   # ask JV if she wants this?
+        "Président",
       ]
   end  
   

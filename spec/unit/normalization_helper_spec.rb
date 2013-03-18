@@ -94,18 +94,6 @@ describe NormalizationHelper do
         normalize_session_title('Séance du dimanche10').should == "Séance du dimanche 10"
         normalize_session_title('Séance du dimanche26').should == "Séance du dimanche 26"
       end
-      it "should remove punctuation between day of week and number" do
-        pending "should this punctuation be removed?  Ask JV"
-        normalize_session_title('Séance du lundi, 1').should == "Séance du lundi 1"
-        normalize_session_title('Séance du mardi, 25').should == "Séance du mardi 25"
-        normalize_session_title('Séance du Mercredi, ').should == "Séance du mercredi"
-        normalize_session_title('Séance du mercredi, ').should == "Séance du mercredi"
-        normalize_session_title('Séance du jeudi, 3').should == "Séance du jeudi 3"
-        normalize_session_title('Séance du vendredi, 11').should == "Séance du vendredi 11"
-        normalize_session_title('Séance du vendredi. 1').should == "Séance du vendredi 1"
-        normalize_session_title('Séance du samedi, 8').should == "Séance du samedi 8"
-        normalize_session_title('Séance du dimanche, 3').should == "Séance du dimanche 3"
-      end
     end # days of the week
     it "should deal well with preceding commas" do
       normalize_session_title('Séance du vendredi, 4 octobre 1793,').should == "Séance du vendredi, 4 octobre 1793"
@@ -252,7 +240,7 @@ describe NormalizationHelper do
        normalize_speaker("Le Présidtent").should == 'Le Président'
        normalize_speaker("Le Présidènt").should == 'Le Président'
        normalize_speaker("La Président").should == 'Le Président'
-#       normalize_speaker("Président").should == 'Le Président'  # ask JV if she wants this
+       normalize_speaker("Président").should == 'Le Président'
      end
      it "should remove leading M, or MM," do
        normalize_speaker("M, D'André").should == "D'André"
