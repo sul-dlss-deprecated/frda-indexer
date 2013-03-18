@@ -349,7 +349,7 @@ describe ApTeiDocument do
         context "full text value of date from surrounding element" do
           it "should get the text from a surrounding <p> element" do
             # <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 5 octobre 1793"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du samedi 5 octobre 1793"]))
             @parser.parse(@dx)
           end
           it "should ignore text from other <p> elements" do
@@ -359,7 +359,7 @@ describe ApTeiDocument do
                 <p>Séance du <date value=\"1792-04-19\">jeudi 19 avril 1792</date>, au soir, </p>
                 <p>gah</p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ['Séance du jeudi 19 avril 1792, au soir']))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ['Séance du jeudi 19 avril 1792, au soir']))
             @parser.parse(x)
           end
           it "should only get the first date's surrounding text" do
@@ -368,7 +368,7 @@ describe ApTeiDocument do
                 <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p><date value=\"2013-01-01\">pretending to care</date></p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 5 octobre 1793"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du samedi 5 octobre 1793"]))
             @parser.parse(x)
           end
           it "should get the text from a surrounding <p> element when there is no preceding text" do
@@ -376,12 +376,12 @@ describe ApTeiDocument do
                 "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
                 <p><date value=\"1792-09-20\">Jeudi 20 septembre 1792</date>, au soir.</p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Jeudi 20 septembre 1792, au soir"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Jeudi 20 septembre 1792, au soir"]))
             @parser.parse(x)
           end
           it "should call normalize_session_title" do
             @atd.should_receive(:normalize_session_title).and_call_original
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du samedi 5 octobre 1793"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du samedi 5 octobre 1793"]))
             @parser.parse(@dx)
           end
           it "should work for multiple sessions in a page" do
@@ -392,7 +392,7 @@ describe ApTeiDocument do
                 <div2 type=\"session\">
                   <p>another <date value=\"2013-01-01\">one</date></p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["first one", "another one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["first one", "another one"]))
             @parser.parse(x)
           end
 
@@ -404,10 +404,16 @@ describe ApTeiDocument do
                 "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
                 <head>Séance du <date value=\"1792-04-19\">jeudi 19 avril 1792</date>, au soir, </head>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_date_ftsimv => ["Séance du jeudi 19 avril 1792, au soir"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du jeudi 19 avril 1792, au soir"]))
             @parser.parse(x)
           end
         end # full text value
+         
+        context "session_date_title_sim" do
+          it "should be session_date_dtsim -|- session_title" do
+            pending "to be implemented"
+          end
+        end
       end # session date
       
       context "session_seq_first_isim" do
@@ -521,7 +527,7 @@ describe ApTeiDocument do
               <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>" + @end_div2_body_tei
         exp_hash_fields = { :session_govt_ssim => ["CONVENTION NATIONALE"],
                             :session_date_dtsim => ["1793-10-05T00:00:00Z"],
-                            :session_date_ftsimv => ["Séance du samedi 5 octobre 1793"] }
+                            :session_title_ftsim => ["Séance du samedi 5 octobre 1793"] }
         @rsolr_client.should_receive(:add).with(hash_including(exp_hash_fields)).twice
         @parser.parse(x)
       end

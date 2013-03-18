@@ -127,7 +127,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
       if @need_session_date_text && @got_date
         @session_date_text_val << @element_buffer
-        add_field_value_to_hash(:session_date_ftsimv, normalize_session_title(@session_date_text_val), @session_fields) 
+        add_field_value_to_hash(:session_title_ftsim, normalize_session_title(@session_date_text_val), @session_fields) 
         @need_session_date_text = false
         @got_date = false
       end
