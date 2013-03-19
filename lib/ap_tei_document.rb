@@ -249,7 +249,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @session_title = ''
     if @in_session
       @session_fields.each { |k, v|  
-        @session_fields[k] = [v.last]
+        @session_fields[k] = [v.last] if v && v.size > 1
       }
     else
       @session_fields = {}
