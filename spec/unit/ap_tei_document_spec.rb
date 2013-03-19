@@ -374,22 +374,6 @@ describe ApTeiDocument do
             @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0821', :session_title_ftsim => ["fourth one"]))
             @parser.parse(x)
           end
-          it "should deal with page break between div2 and session date" do
-            pending "not fixed yet, but only one such case?"
-            x = @start_tei_body_div2_session + 
-                "<pb id=\"tq360bc6948_00_0816\"/>
-                <p>first <date value=\"1793-10-05\">one</date></p>
-                <p>blah</p>
-                </div2>
-                <div2 type=\"session\">
-                <pb id=\"tq360bc6948_00_0818\"/>
-                <p>second <date value=\"1793-10-06\">one</date></p>
-                <p>bleah</p>
-                <pb id=\"tq360bc6948_00_0865\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816', :session_title_ftsim => ["first one"]))
-            @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0818', :session_title_ftsim => ["second one"]))
-            @parser.parse(x)
-          end
         end # date value
         
         context "session_title is text from element surrounding date (+ date text)" do
