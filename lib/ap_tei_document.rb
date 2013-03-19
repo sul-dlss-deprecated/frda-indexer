@@ -52,13 +52,15 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
       @div2_doc_type = DIV2_TYPE[div2_type] if div2_type
       if div2_type == 'session'
-        @session_fields ||= {} 
+        if @page_buffer.empty? || !@session_fields
+          @session_fields = {}
+        end
         @in_session = true
         @need_session_govt = true
         @need_session_date = true
-        @need_session_date_text = true
+        @need_session_title = true
         @need_session_first_page = true
-        @session_date_text_val = ''
+        @session_title = ''
       else
         @session_fields = nil
       end
@@ -109,8 +111,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
 #      end
       @in_back = false
     when 'date'
-      if @need_session_date_text 
-        @session_date_text_val << @element_buffer
+      if @need_session_title 
+        @session_title << @element_buffer
         @got_date = true
       end
     when 'div2'
@@ -125,12 +127,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if @in_sp && @speaker
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}") if text
       end
-      if @need_session_date_text && @got_date
-        @session_date_text_val << @element_buffer
-        title = normalize_session_title(@session_date_text_val)
+      if @need_session_title && @got_date
+        @session_title << @element_buffer
+        title = normalize_session_title(@session_title)
         add_field_value_to_hash(:session_title_ftsim, title, @session_fields) 
         add_field_value_to_hash(:session_date_title_ssim, "#{@session_fields[:session_date_val_ssim].last}#{SEP}#{title}", @session_fields) 
-        @need_session_date_text = false
+        @need_session_title = false
         @got_date = false
       end
     when 'sp'
@@ -244,8 +246,14 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
     @element_buffer = ''
     @page_buffer = ''
-    @session_date_text_val = ''
-    @session_fields = {} if !@in_session
+    @session_title = ''
+    if @in_session
+      @session_fields.each { |k, v|  
+        @session_fields[k] = [v.last]
+      }
+    else
+      @session_fields = {}
+    end
   end
   
   # add the value to the doc_hash for the Solr field.
