@@ -21,7 +21,7 @@ describe ApTeiDocument do
     @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, @vol_constants_hash, @page_id_hash, @logger)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
     @start_tei_body_div1 = "<TEI.2><text><body><div1 type=\"volume\" n=\"36\">"
-    @start_tei_body_div2_session = @start_tei_body_div1 + "<div2 type=\"session\">"
+    @start_tei_body_div2_session = "#{@start_tei_body_div1}<div2 type=\"session\">"
     @end_div1_body_tei = "</div1></body></text></TEI.2>"
     @end_div2_body_tei = "</div2>#{@end_div1_body_tei}"
     @start_tei_back_div1 = "<TEI.2><text><back><div1 type=\"volume\" n=\"44\">"
@@ -32,9 +32,10 @@ describe ApTeiDocument do
   context "<div2> element" do
     context 'type="alpha"' do
       before(:all) do
-        @x = @start_tei_body_div1 + "<div2 type=\"alpha\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>" + @end_div2_body_tei
+        @start_tei_back_div2_alpha = "#{@start_tei_back_div1}<div2 type=\"alpha\">"
+        @x = @start_tei_back_div2_alpha +
+                "<pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+                <p>blah blah</p>" + @end_div2_back_tei
       end
       it "should have a doc_type_si of 'liste'" do
         @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste']))
@@ -170,12 +171,12 @@ describe ApTeiDocument do
         @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0815'))
         @parser.parse(x)
       end
-      it "blank page at beginning of <back> should not go to Solr" do
+      it "blank page at beginning of <back> should go to Solr" do
         x = @start_tei_back_div1 +
                 "<pb n=\"\" id=\"pz516hw4711_00_0004\"/>
                 <head>blah</head>
                 <pb n=\"1\" id=\"pz516hw4711_00_0005\"/>" + @end_div1_back_tei
-        @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'pz516hw4711_00_0004'))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => 'pz516hw4711_00_0004'))
         @parser.parse(x)
       end
       it "blank pages at end of <back> should not go to Solr" do
@@ -210,7 +211,7 @@ describe ApTeiDocument do
         end
       end # in <body>
       context "in <back>" do
-        it "pages in <back> section should NOT write the doc to Solr" do
+        it "pages in <back> section should write the doc to Solr" do
           x = @start_tei_back_div1 +
               "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
               <div2 type=\"contents\">
@@ -220,10 +221,10 @@ describe ApTeiDocument do
             </div1>
             <div1 type=\"volume\" n=\"14\">
               <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>" + @end_div1_back_tei
-          @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
           @parser.parse(x)
         end
-        it "last page in <back> section should NOT write the doc to Solr" do
+        it "last page in <back> section should write the doc to Solr" do
           x = @start_tei_back_div1 +
             "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
               <div2 type=\"contents\">
@@ -237,8 +238,8 @@ describe ApTeiDocument do
                 <head>TABLE CHRONOLOGIQUE</head>
                 <p>blah blah</p>
               </div2>" + @end_div1_back_tei
-          @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
-          @rsolr_client.should_not_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0817'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0817'))
           @parser.parse(x)
         end        
       end # in <back>

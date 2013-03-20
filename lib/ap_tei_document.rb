@@ -64,7 +64,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       else
         @session_fields = nil
       end
-      if @in_body
+      if @in_body || @in_back
         add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
       end
     when 'date'
@@ -76,7 +76,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @need_session_date = false
       end
     when 'pb'
-      if !@page_buffer.empty? && @in_body
+      if !@page_buffer.empty? && (@in_body || @in_back)
         add_doc_to_solr
       end
       init_doc_hash
@@ -105,10 +105,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
       @in_body = false
     when 'back'
-#      if !@page_buffer.empty?
-#        add_doc_to_solr
-#        init_doc_hash
-#      end
+      add_doc_to_solr
+      init_doc_hash
       @in_back = false
     when 'date'
       if @need_session_title 
@@ -241,7 +239,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
     @doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
     @doc_hash[:type_ssi] = PAGE_TYPE
-    if @in_body && @in_div2
+    if (@in_body || @in_back) && @in_div2
       add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
     end
     @element_buffer = ''
