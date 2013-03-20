@@ -29,6 +29,65 @@ describe ApTeiDocument do
     @end_div2_back_tei = "</div2>#{@end_div1_back_tei}"
   end
   
+  context "<div2> element" do
+    context 'type="alpha"' do
+      before(:all) do
+        @x = @start_tei_body_div1 + "<div2 type=\"alpha\">
+                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+                <p>blah blah</p>" + @end_div2_body_tei
+      end
+      it "should have a doc_type_si of 'liste'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste']))
+        @parser.parse(@x)
+      end
+    end
+    context 'type="contents"' do
+      before(:all) do
+        @x = @start_tei_body_div1 + "<div2 type=\"contents\">
+                <pb n=\"5\" id=\"ns351vc7243_00_0008\"/>
+                <p>blah blah</p>
+                <pb n=\"6\" id=\"ns351vc7243_00_0009\"/>" + @end_div2_body_tei
+      end
+      it "should have a doc_type_si of 'table des matières'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['table des matières']))
+        @parser.parse(@x)
+      end
+    end
+    context 'type="other"' do
+      before(:all) do
+        @x = @start_tei_body_div1 + "<div2 type=\"other\">
+                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+                <p>blah blah</p>" + @end_div2_body_tei
+      end
+      it "should have a doc_type_si of 'errata, rapport, cahier, etc.'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['errata, rapport, cahier, etc.']))
+        @parser.parse(@x)
+      end
+    end
+    context 'type="table_alpha"' do
+      before(:all) do
+        @x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
+                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+                <p>blah blah</p>" + @end_div2_body_tei
+      end
+      it "should have a doc_type_si of 'liste'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste']))
+        @parser.parse(@x)
+      end
+    end
+    context 'type="introduction"' do
+      before(:all) do
+        @x = @start_tei_body_div1 + "<div2 type=\"introduction\">
+                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+                <p>blah blah</p>" + @end_div2_body_tei
+      end
+      it "should have a doc_type_si of 'introduction'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['introduction']))
+        @parser.parse(@x)
+      end
+    end
+  end # <div2> element
+
   context "start_document" do
     it "should call init_doc_hash" do
       @atd.should_receive(:init_doc_hash).and_call_original
@@ -293,187 +352,6 @@ describe ApTeiDocument do
     end
   end # <pb> element
 
-  context "<div2> element" do
-    context 'type="contents"' do
-      before(:all) do
-        @x = @start_tei_body_div1 + "<div2 type=\"contents\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0008\"/>
-                <p>blah blah</p>
-                <pb n=\"6\" id=\"ns351vc7243_00_0009\"/>" + @end_div2_body_tei
-      end
-      it "should have a doc_type_si of 'table des matières'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['table des matières']))
-        @parser.parse(@x)
-      end
-    end
-    context 'type="other"' do
-      before(:all) do
-        @x = @start_tei_body_div1 + "<div2 type=\"other\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>" + @end_div2_body_tei
-      end
-      it "should have a doc_type_si of 'errata, rapport, cahier, etc.'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['errata, rapport, cahier, etc.']))
-        @parser.parse(@x)
-      end
-    end
-    context 'type="table_alpha"' do
-      before(:all) do
-        @x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>" + @end_div2_body_tei
-      end
-      it "should have a doc_type_si of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste']))
-        @parser.parse(@x)
-      end
-    end
-    context 'type="alpha"' do
-      before(:all) do
-        @x = @start_tei_body_div1 + "<div2 type=\"alpha\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>" + @end_div2_body_tei
-      end
-      it "should have a doc_type_si of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste']))
-        @parser.parse(@x)
-      end
-    end
-    context 'type="introduction"' do
-      before(:all) do
-        @x = @start_tei_body_div1 + "<div2 type=\"introduction\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>" + @end_div2_body_tei
-      end
-      it "should have a doc_type_si of 'introduction'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['introduction']))
-        @parser.parse(@x)
-      end
-    end
-  end # <div2> element
-
-  it "should log a warning for unparseable dates" do
-    x = @start_tei_body_div2_session + 
-        "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
-        <p>boo <date value=\"1792-999-02\">5 octobre 1793</date> ya</p>
-        <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-    @logger.should_receive(:warn).with("Found <date> tag with unparseable date value: '1792-999-02' in page tq360bc6948_00_0816")
-    @rsolr_client.should_receive(:add)
-    @parser.parse(x)
-  end
-
-  context "<sp> element" do
-    context "speaker_ssim" do
-      it "should be present if there is a non-empty <speaker> element" do
-        x = @start_tei_body_div2_session +
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
-            <sp>
-               <speaker>m. Guadet</speaker>
-               <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
-            </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet']))
-        @parser.parse(x)
-      end
-      it "should have multiple values for multiple speakers" do
-        x = @start_tei_body_div2_session + 
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
-            <sp>
-              <speaker>m. Guadet</speaker>
-              <p>blah blah</p>
-            </sp>
-            <p>hoo hah</p>
-            <sp>
-              <speaker>M. McRae.</speaker>
-              <p>bleah bleah</p>
-            </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet', 'McRae']))
-        @parser.parse(x)
-      end     
-      it "should not be present if there is an empty <speaker> element" do
-        x = @start_tei_body_div2_session + 
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
-            <sp>
-               <speaker></speaker>
-               <speaker/>
-               <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
-             </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
-        @parser.parse(x)
-      end
-      it "should not be present if there is no <speaker> element" do
-        x = @start_tei_body_div2_session + 
-            "<p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
-        @parser.parse(x)
-      end
-      it "should not have duplicate values" do
-        x = @start_tei_body_div2_session + 
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
-            <sp>
-              <speaker>M. McRae.</speaker>
-              <p>blah blah</p>
-            </sp>
-            <sp>
-              <speaker>M. McRae.</speaker>
-              <p>bleah bleah</p>
-            </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['McRae']))
-        @parser.parse(x)
-      end
-      it "should call normalize_speaker" do
-        x = @start_tei_body_div2_session + 
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
-            <sp>
-              <speaker>&gt;M. le Président</speaker>
-              <p>bleah bleah</p>
-            </sp>" + @end_div2_body_tei
-        @atd.should_receive(:normalize_speaker).and_call_original
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Le Président']))
-        @parser.parse(x)
-      end
-    end # speaker_ssim
-
-    context "spoken_text_timv" do
-      before(:each) do
-        @x = @start_tei_body_div2_session +
-            "<p>before</p>
-            <p><date value=\"2013-01-01\">pretending to care</date></p>
-            <sp>
-               <speaker>M. Guadet.</speaker>
-               <p>blah blah ... </p>
-               <p>bleah bleah ... </p>
-            </sp>
-            <p>middle</p>
-            <sp>
-              <p>no speaker</p>
-            </sp>
-            <sp>
-              <speaker/>
-              <p>also no speaker</p>
-            </sp>
-            <p>after</p>" + @end_div2_body_tei
-      end
-      it "should have a separate value, starting with the speaker, for each <p> inside a single <sp>" do
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...']))
-        @parser.parse(@x)
-      end
-      it "should not include <p> text outside an <sp>" do
-        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['before']))
-        @parser.parse(@x)
-        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['middle']))
-        @parser.parse(@x)
-        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['after']))
-        @parser.parse(@x)
-      end
-      it "should not include <p> text when there is no speaker " do
-        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['no speaker']))
-        @parser.parse(@x)
-        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['also no speaker']))
-        @parser.parse(@x)
-      end
-    end # spoken_text_timv
-  end # <sp> element
-    
   context "text_tiv (catchall field)" do
     before(:all) do
       @begin_body = @start_tei_body_div1 + "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>"
