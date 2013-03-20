@@ -127,7 +127,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if @in_sp && @speaker
         add_value_to_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}") if text
       end
-      if @need_session_title && @got_date
+      if @in_session && @need_session_title && @got_date
         @session_title << @element_buffer
         title = normalize_session_title(@session_title)
         add_field_value_to_hash(:session_title_ftsim, title, @session_fields) 
