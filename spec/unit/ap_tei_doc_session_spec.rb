@@ -298,64 +298,7 @@ describe ApTeiDocument do
         @rsolr_client.should_receive(:add).with(hash_including(exp_hash_fields)).twice
         @parser.parse(x)
       end
-    end # type session
-    
-    context 'type="contents"' do
-      before(:all) do
-        @x = @start_tei_body_div1 + "<div2 type=\"contents\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0008\"/>
-                <p>blah blah</p>
-                <pb n=\"6\" id=\"ns351vc7243_00_0009\"/>" + @end_div2_body_tei
-      end
-      it "should have a doc_type_si of 'table des matières'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['table des matières']))
-        @parser.parse(@x)
-      end
-    end
-    context 'type="other"' do
-      before(:all) do
-        @x = @start_tei_body_div1 + "<div2 type=\"other\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>" + @end_div2_body_tei
-      end
-      it "should have a doc_type_si of 'errata, rapport, cahier, etc.'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['errata, rapport, cahier, etc.']))
-        @parser.parse(@x)
-      end
-    end
-    context 'type="table_alpha"' do
-      before(:all) do
-        @x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>" + @end_div2_body_tei
-      end
-      it "should have a doc_type_si of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste']))
-        @parser.parse(@x)
-      end
-    end
-    context 'type="alpha"' do
-      before(:all) do
-        @x = @start_tei_body_div1 + "<div2 type=\"alpha\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>" + @end_div2_body_tei
-      end
-      it "should have a doc_type_si of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste']))
-        @parser.parse(@x)
-      end
-    end
-    context 'type="introduction"' do
-      before(:all) do
-        @x = @start_tei_body_div1 + "<div2 type=\"introduction\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
-                <p>blah blah</p>" + @end_div2_body_tei
-      end
-      it "should have a doc_type_si of 'introduction'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['introduction']))
-        @parser.parse(@x)
-      end
-    end
+    end # type session    
   end # <div2> element
 
   it "should log a warning for unparseable dates" do
