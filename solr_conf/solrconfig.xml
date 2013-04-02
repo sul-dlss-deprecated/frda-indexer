@@ -316,7 +316,7 @@
     <lst name="defaults">
       <str name="defType">lucene</str>
       <str name="echoParams">explicit</str>
-      <str name="df">text_tiv</str>
+      <str name="df">text_ftsiv</str>
       <str name="q.op">AND</str>
       <str name="sort">vol_date_end_dti asc,vol_num_ssi asc,score desc</str>
       <int name="rows">20</int>
