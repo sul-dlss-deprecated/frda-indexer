@@ -13,7 +13,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   include NormalizationHelper
   
-  attr_reader :doc_hash
+  attr_reader :page_doc_hash
 
   # @param [RSolr::Client] rsolr_client used to write the Solr documents as we build them
   # @param [String] druid the druid for the DOR object that contains this TEI doc
@@ -84,7 +84,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'sp'
       @in_sp = true
       if @need_session_date
-        @logger.warn("Didn't find <date> tag before <sp> for session in page #{doc_hash[:id]}")
+        @logger.warn("Didn't find <date> tag before <sp> for session in page #{page_doc_hash[:id]}")
         @need_session_date = false
       end
     when 'speaker'
@@ -138,7 +138,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_sp = false
     when 'speaker'
       @speaker = normalize_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
-      add_value_to_doc_hash(:speaker_ssim, @speaker.strip) if @speaker && !(@doc_hash[:speaker_ssim] && @doc_hash[:speaker_ssim].include?(@speaker.strip))
+      add_value_to_doc_hash(:speaker_ssim, @speaker.strip) if @speaker && !(@page_doc_hash[:speaker_ssim] && @page_doc_hash[:speaker_ssim].include?(@speaker.strip))
       @in_speaker = false
     end # case name
     
@@ -156,7 +156,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
 
     if NO_TEXT_ELEMENTS.include?(@element_name_stack.last) 
       if !@element_buffer.strip.empty?
-        @logger.warn("Found <#{@element_name_stack.last}> tag with direct text content: '#{@element_buffer.strip}' in page #{@doc_hash[:id]}")
+        @logger.warn("Found <#{@element_name_stack.last}> tag with direct text content: '#{@element_buffer.strip}' in page #{@page_doc_hash[:id]}")
       end
     end
     @page_buffer = add_chars_to_buffer(chars, @page_buffer) if (@in_body || @in_back) && !IGNORE_ELEMENTS.include?(@element_name_stack.last)
@@ -227,18 +227,18 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     attr_val = attr_array.first.last if attr_array && !attr_array.empty? && !attr_array.first.last.empty?
   end
   
-  # initialize instance variable @doc_hash with mappings appropriate for all docs in the volume
+  # initialize instance variable @page_doc_hash with mappings appropriate for all docs in the volume
   #  and reset variables
   def init_doc_hash
-    @doc_hash = {}
-    @doc_hash[:collection_ssi] = COLL_VAL
-    @doc_hash[:druid_ssi] = @druid
-    @doc_hash[:vol_num_ssi] = @volume
-    @doc_hash.merge!(@vol_constants_hash)
-    @doc_hash[:vol_title_ssi] = VOL_TITLES[@volume]
-    @doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
-    @doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
-    @doc_hash[:type_ssi] = PAGE_TYPE
+    @page_doc_hash = {}
+    @page_doc_hash[:collection_ssi] = COLL_VAL
+    @page_doc_hash[:druid_ssi] = @druid
+    @page_doc_hash[:vol_num_ssi] = @volume
+    @page_doc_hash.merge!(@vol_constants_hash)
+    @page_doc_hash[:vol_title_ssi] = VOL_TITLES[@volume]
+    @page_doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
+    @page_doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
+    @page_doc_hash[:type_ssi] = PAGE_TYPE
     if (@in_body || @in_back) && @in_div2
       add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
     end
@@ -258,7 +258,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [Symbol] key the Solr field name 
   # @param [String] value the value to add to the doc_hash for the key
   def add_value_to_doc_hash(key, value)
-    add_field_value_to_hash(key, value, @doc_hash)
+    add_field_value_to_hash(key, value, @page_doc_hash)
   end
   
   # add the value to the hash for the Solr field.
@@ -289,12 +289,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
   end
 
-  # write @doc_hash to Solr and reinitialize @doc_hash, but only if the current page has content
+  # write @page_doc_hash to Solr and reinitialize @page_doc_hash, but only if the current page has content
   def add_doc_to_solr
     if !@page_buffer.strip.empty?
       add_value_to_doc_hash(:text_tiv, @page_buffer)
-      @doc_hash.merge!(@session_fields) if @session_fields
-      @rsolr_client.add(@doc_hash)
+      @page_doc_hash.merge!(@session_fields) if @session_fields
+      @rsolr_client.add(@page_doc_hash)
     end
   end
   

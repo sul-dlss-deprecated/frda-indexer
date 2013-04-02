@@ -103,39 +103,39 @@ describe ApTeiDocument do
       @parser.parse(x)
     end
     it "should populate druid_ssi field" do
-      @atd.doc_hash[:druid_ssi].should == @druid
+      @atd.page_doc_hash[:druid_ssi].should == @druid
     end
     it "should populate collection_ssi field" do
-      @atd.doc_hash[:collection_ssi].should == ApTeiDocument::COLL_VAL
+      @atd.page_doc_hash[:collection_ssi].should == ApTeiDocument::COLL_VAL
     end
     it "should populate vol_num_ssi field" do
-      @atd.doc_hash[:vol_num_ssi].should == @volume.sub(/^Volume /i, '')
-      @atd.doc_hash[:vol_num_ssi].should == '36'
+      @atd.page_doc_hash[:vol_num_ssi].should == @volume.sub(/^Volume /i, '')
+      @atd.page_doc_hash[:vol_num_ssi].should == '36'
     end
     it "should populate vol_title_ssi" do
-      @atd.doc_hash[:vol_title_ssi].should == VOL_TITLES[@volume.sub(/^Volume /i, '')]
+      @atd.page_doc_hash[:vol_title_ssi].should == VOL_TITLES[@volume.sub(/^Volume /i, '')]
     end
     it "should get volume date fields in UTC form (1995-12-31T23:59:59Z)" do
-      val = @atd.doc_hash[:vol_date_start_dti]
+      val = @atd.page_doc_hash[:vol_date_start_dti]
       val.should end_with 'Z'
       Time.xmlschema(val).xmlschema.should == val # also ensures it doesn't throw parsing error
-      val = @atd.doc_hash[:vol_date_end_dti]
+      val = @atd.page_doc_hash[:vol_date_end_dti]
       val.should end_with 'Z'
       Time.xmlschema(val).xmlschema.should == val
     end
     it "should populate type_ssi field" do
-      @atd.doc_hash[:type_ssi].should == ApTeiDocument::PAGE_TYPE
+      @atd.page_doc_hash[:type_ssi].should == ApTeiDocument::PAGE_TYPE
     end
     it "should populate vol_pdf fields" do
-      @atd.doc_hash[:vol_pdf_name_ss].should == 'aa222bb4444.pdf'
-      @atd.doc_hash[:vol_pdf_size_ls].should == 2218576614
+      @atd.page_doc_hash[:vol_pdf_name_ss].should == 'aa222bb4444.pdf'
+      @atd.page_doc_hash[:vol_pdf_size_ls].should == 2218576614
     end
     it "should populate vol_tei fields" do
-      @atd.doc_hash[:vol_tei_name_ss].should == 'aa222bb4444.xml'
-      @atd.doc_hash[:vol_tei_size_is].should == 6885841
+      @atd.page_doc_hash[:vol_tei_name_ss].should == 'aa222bb4444.xml'
+      @atd.page_doc_hash[:vol_tei_size_is].should == 6885841
     end
     it "should populate vol_total_pages_is field" do
-      @atd.doc_hash[:vol_total_pages_is].should == 806
+      @atd.page_doc_hash[:vol_total_pages_is].should == 806
     end
   end # init_doc_hash
   
