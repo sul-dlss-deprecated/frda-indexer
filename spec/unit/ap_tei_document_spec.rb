@@ -90,14 +90,14 @@ describe ApTeiDocument do
   end # <div2> element
 
   context "start_document" do
-    it "should call init_doc_hash" do
-      @atd.should_receive(:init_doc_hash).and_call_original
+    it "should call init_page_doc_hash" do
+      @atd.should_receive(:init_page_doc_hash).and_call_original
       x = "<TEI.2><teiHeader id='666'></TEI.2>"
       @parser.parse(x)
     end
   end
   
-  context "init_doc_hash" do
+  context "init_page_doc_hash" do
     before(:all) do
       x = "<TEI.2><teiHeader id='666'></teiHeader></TEI.2>"
       @parser.parse(x)
@@ -137,7 +137,7 @@ describe ApTeiDocument do
     it "should populate vol_total_pages_is field" do
       @atd.page_doc_hash[:vol_total_pages_is].should == 806
     end
-  end # init_doc_hash
+  end # init_page_doc_hash
   
   context "add_page_doc_to_solr" do
     context "when page has no indexed content (<p>)" do
@@ -204,8 +204,8 @@ describe ApTeiDocument do
           @rsolr_client.should_receive(:add).with(hash_including(:druid_ssi, :collection_ssi, :vol_num_ssi, :id => @id))
           @parser.parse(@x)
         end
-        it "should call init_doc_hash" do
-          @atd.should_receive(:init_doc_hash).at_least(2).times.and_call_original
+        it "should call init_page_doc_hash" do
+          @atd.should_receive(:init_page_doc_hash).at_least(2).times.and_call_original
           @rsolr_client.should_receive(:add)
           @parser.parse(@x)
         end

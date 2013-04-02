@@ -34,7 +34,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @element_name_stack = []
     @in_body = false
     @in_back = false
-    init_doc_hash
+    init_page_doc_hash
   end
     
   # @param [String] name the element tag
@@ -79,7 +79,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if !@page_buffer.empty? && (@in_body || @in_back)
         add_page_doc_to_solr
       end
-      init_doc_hash
+      init_page_doc_hash
       process_pb_attribs attributes
     when 'sp'
       @in_sp = true
@@ -101,12 +101,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'body'
       if !@page_buffer.empty?
         add_page_doc_to_solr
-        init_doc_hash
+        init_page_doc_hash
       end
       @in_body = false
     when 'back'
       add_page_doc_to_solr
-      init_doc_hash
+      init_page_doc_hash
       @in_back = false
     when 'date'
       if @need_session_title 
@@ -229,7 +229,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   # initialize instance variable @page_doc_hash with mappings appropriate for all docs in the volume
   #  and reset variables
-  def init_doc_hash
+  def init_page_doc_hash
     @page_doc_hash = {}
     @page_doc_hash[:collection_ssi] = COLL_VAL
     @page_doc_hash[:druid_ssi] = @druid
