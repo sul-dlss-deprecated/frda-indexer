@@ -65,7 +65,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @session_fields = nil
       end
       if @in_body || @in_back
-        add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
+        add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
       end
     when 'date'
       date_val_str = get_attribute_val('value', attributes)
@@ -123,7 +123,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       text = @element_buffer.strip if !@element_buffer.strip.empty?
       add_session_govt_ssim(text) if @in_session && @need_session_govt && text && text == text.upcase
       if @in_sp && @speaker
-        add_value_to_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}") if text
+        add_value_to_page_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}") if text
       end
       if @in_session && @need_session_title && @got_date
         @session_title << @element_buffer
@@ -138,7 +138,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_sp = false
     when 'speaker'
       @speaker = normalize_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
-      add_value_to_doc_hash(:speaker_ssim, @speaker.strip) if @speaker && !(@page_doc_hash[:speaker_ssim] && @page_doc_hash[:speaker_ssim].include?(@speaker.strip))
+      add_value_to_page_doc_hash(:speaker_ssim, @speaker.strip) if @speaker && !(@page_doc_hash[:speaker_ssim] && @page_doc_hash[:speaker_ssim].include?(@speaker.strip))
       @in_speaker = false
     end # case name
     
@@ -206,12 +206,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
   def process_pb_attribs attributes
     new_page_id = get_attribute_val('id', attributes)
-    add_value_to_doc_hash(:id, new_page_id)
+    add_value_to_page_doc_hash(:id, new_page_id)
     page_num = get_attribute_val('n', attributes)
-    add_value_to_doc_hash(:page_num_ssi,  page_num) if page_num
-    add_value_to_doc_hash(:page_sequence_isi, @page_id_hash[new_page_id]) if @page_id_hash[new_page_id]
-    add_value_to_doc_hash(:image_id_ssm, new_page_id + ".jp2")
-    add_value_to_doc_hash(:ocr_id_ss, new_page_id.sub(/_00_/, '_99_') + ".txt")
+    add_value_to_page_doc_hash(:page_num_ssi,  page_num) if page_num
+    add_value_to_page_doc_hash(:page_sequence_isi, @page_id_hash[new_page_id]) if @page_id_hash[new_page_id]
+    add_value_to_page_doc_hash(:image_id_ssm, new_page_id + ".jp2")
+    add_value_to_page_doc_hash(:ocr_id_ss, new_page_id.sub(/_00_/, '_99_') + ".txt")
     if @in_session && @need_session_first_page && @page_id_hash[new_page_id]
       add_field_value_to_hash(:session_seq_first_isim, @page_id_hash[new_page_id], @session_fields)
       @need_session_first_page = false
@@ -240,7 +240,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @page_doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
     @page_doc_hash[:type_ssi] = PAGE_TYPE
     if (@in_body || @in_back) && @in_div2
-      add_value_to_doc_hash(:doc_type_ssim, @div2_doc_type)
+      add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
     end
     @element_buffer = ''
     @page_buffer = ''
@@ -257,7 +257,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # add the value to the doc_hash for the Solr field.
   # @param [Symbol] key the Solr field name 
   # @param [String] value the value to add to the doc_hash for the key
-  def add_value_to_doc_hash(key, value)
+  def add_value_to_page_doc_hash(key, value)
     add_field_value_to_hash(key, value, @page_doc_hash)
   end
   
@@ -292,7 +292,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # write @page_doc_hash to Solr and reinitialize @page_doc_hash, but only if the current page has content
   def add_doc_to_solr
     if !@page_buffer.strip.empty?
-      add_value_to_doc_hash(:text_tiv, @page_buffer)
+      add_value_to_page_doc_hash(:text_tiv, @page_buffer)
       @page_doc_hash.merge!(@session_fields) if @session_fields
       @rsolr_client.add(@page_doc_hash)
     end

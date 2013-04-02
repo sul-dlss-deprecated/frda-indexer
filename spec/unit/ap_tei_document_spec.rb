@@ -246,7 +246,7 @@ describe ApTeiDocument do
     end # when indexed content
   end # add_doc_to_solr
   
-  context "add_value_to_doc_hash" do
+  context "add_value_to_page_doc_hash" do
     context "field doesn't exist in doc_hash yet" do
       before(:all) do
         @x = @start_tei_body_div2_session + 
@@ -285,7 +285,7 @@ describe ApTeiDocument do
         @parser.parse(@x)
       end
     end # field already exists
-  end # add_value_to_doc_hash
+  end # add_value_to__pagedoc_hash
 
   context "<pb> element" do
     before(:all) do
