@@ -420,6 +420,33 @@ describe ApTeiDocument do
         @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['also no speaker']))
         @parser.parse(@x)
       end
+      it "should not include <p> text past </sp> element" do
+        x = @start_tei_body_div2_session +
+            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            <sp>
+               <speaker>M. Guadet.</speaker>
+               <p>blah blah ... </p>
+               <p>bleah bleah ... </p>
+            </sp>
+            <p>after</p>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...']))
+        @parser.parse(@x)
+      end
+      it "should not include <p> text past </sp> element", :jira => 'FRDA-107' do
+        x = @start_tei_body_div2_session +
+            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            <sp>
+               <speaker>M. Guadet.</speaker>
+               <p>blah blah ... </p>
+               <p>bleah bleah ... </p>
+            </sp>
+            <div3 type=\"annexe\">
+              <head>PREMIÈRE ANNEXE (1)</head>
+                <p>after</p>
+            </div3>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...']))
+        @parser.parse(@x)
+      end
     end # spoken_text_timv
   end # <sp> element
   
