@@ -37,7 +37,7 @@ describe ApTeiDocument do
                 "<pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_back_tei
       end
-      it "should have a doc_type_si of 'liste'" do
+      it "should have a doc_type_ssim of 'liste'" do
         @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste']))
         @parser.parse(@x)
       end
@@ -49,7 +49,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"6\" id=\"ns351vc7243_00_0009\"/>" + @end_div2_body_tei
       end
-      it "should have a doc_type_si of 'table des matières'" do
+      it "should have a doc_type_ssim of 'table des matières'" do
         @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['table des matières']))
         @parser.parse(@x)
       end
@@ -60,7 +60,7 @@ describe ApTeiDocument do
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
-      it "should have a doc_type_si of 'errata, rapport, cahier, etc.'" do
+      it "should have a doc_type_ssim of 'errata, rapport, cahier, etc.'" do
         @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['errata, rapport, cahier, etc.']))
         @parser.parse(@x)
       end
@@ -71,7 +71,7 @@ describe ApTeiDocument do
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
-      it "should have a doc_type_si of 'liste'" do
+      it "should have a doc_type_ssim of 'liste'" do
         @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste']))
         @parser.parse(@x)
       end
@@ -82,7 +82,7 @@ describe ApTeiDocument do
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
-      it "should have a doc_type_si of 'introduction'" do
+      it "should have a doc_type_ssim of 'introduction'" do
         @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['introduction']))
         @parser.parse(@x)
       end
