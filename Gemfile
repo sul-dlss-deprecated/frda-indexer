@@ -19,7 +19,9 @@ end
 # testing
 group :test do
 	gem 'rspec'
-#	gem 'ruby-debug19'
+#  gem 'debugger'
+#  gem 'method_locator'
+#  gem 'awesome_print'
 	gem 'simplecov', :require => false
 	gem 'simplecov-rcov', :require => false
 	gem 'equivalent-xml'
