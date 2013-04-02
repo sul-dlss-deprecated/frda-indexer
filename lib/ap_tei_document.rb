@@ -77,7 +77,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
     when 'pb'
       if !@page_buffer.empty? && (@in_body || @in_back)
-        add_doc_to_solr
+        add_page_doc_to_solr
       end
       init_doc_hash
       process_pb_attribs attributes
@@ -100,12 +100,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     case name
     when 'body'
       if !@page_buffer.empty?
-        add_doc_to_solr
+        add_page_doc_to_solr
         init_doc_hash
       end
       @in_body = false
     when 'back'
-      add_doc_to_solr
+      add_page_doc_to_solr
       init_doc_hash
       @in_back = false
     when 'date'
@@ -290,7 +290,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   end
 
   # write @page_doc_hash to Solr and reinitialize @page_doc_hash, but only if the current page has content
-  def add_doc_to_solr
+  def add_page_doc_to_solr
     if !@page_buffer.strip.empty?
       add_value_to_page_doc_hash(:text_tiv, @page_buffer)
       @page_doc_hash.merge!(@session_fields) if @session_fields

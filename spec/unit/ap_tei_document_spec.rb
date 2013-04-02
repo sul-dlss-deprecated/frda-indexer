@@ -139,7 +139,7 @@ describe ApTeiDocument do
     end
   end # init_doc_hash
   
-  context "add_doc_to_solr" do
+  context "add_page_doc_to_solr" do
     context "when page has no indexed content (<p>)" do
       it "pages in <front> section should not go to Solr" do
         x = "<TEI.2><text><front>
@@ -244,7 +244,7 @@ describe ApTeiDocument do
         end        
       end # in <back>
     end # when indexed content
-  end # add_doc_to_solr
+  end # add_page_doc_to_solr
   
   context "add_value_to_page_doc_hash" do
     context "field doesn't exist in doc_hash yet" do
