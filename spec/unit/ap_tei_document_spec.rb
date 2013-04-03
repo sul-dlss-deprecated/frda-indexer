@@ -70,6 +70,43 @@ describe ApTeiDocument do
     end
   end # add_vol_fields_to_hash
   
+  context "add_field_value_to_hash" do
+    before(:each) do
+      @hash = {}
+    end
+    context "field doesn't exist in doc_hash" do
+      it "should create field with String value for a single valued field" do
+        @atd.add_field_value_to_hash(:foo_ssi, 'val', @hash)
+        @hash[:foo_ssi].should == 'val'
+      end
+      it "should create field with Array [value] for a field ending in m (multivalued)" do
+        @atd.add_field_value_to_hash(:foo_ssim, 'val', @hash)
+        @hash[:foo_ssim].should == ['val']
+      end
+      it "should create field with Array [value] for a field ending in mv (multivalued with term vector)" do
+        @atd.add_field_value_to_hash(:foo_timv, 'val', @hash)
+        @hash[:foo_timv].should == ['val']
+      end
+    end 
+    context "field already exists in doc_hash" do
+      it "should add the value to the Array of values for a field ending in m" do
+        @hash[:foo_tim] = ['val']
+        @atd.add_field_value_to_hash(:foo_tim, 'val2', @hash)
+        @hash[:foo_tim].should == ['val', 'val2']
+      end
+      it "should add the value to the Array of values for a field ending in mv" do
+        @hash[:foo_timv] = ['val']
+        @atd.add_field_value_to_hash(:foo_timv, 'val2', @hash)
+        @hash[:foo_timv].should == ['val', 'val2']
+      end
+      it "should log a warning when a single valued field gets another value" do
+        @hash[:foo_ti] = 'val'
+        @logger.should_receive(:warn).with("Solr field foo_ti is single-valued (first value: val), but got an IGNORED additional value: val2")
+        @atd.add_field_value_to_hash(:foo_ti, 'val2', @hash)
+      end
+    end 
+  end # add_field_value_to_hash
+  
   context "<div2> element" do
     context 'type="alpha"' do
       before(:all) do
