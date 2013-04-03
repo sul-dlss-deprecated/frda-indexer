@@ -117,6 +117,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @got_date = true
       end
     when 'div2'
+      add_div2_doc_to_solr
       @in_div2 = false
       @div2_doc_type = nil
       @in_session = false
@@ -318,13 +319,18 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
   end
 
-  # write @page_doc_hash to Solr and reinitialize @page_doc_hash, but only if the current page has content
+  # write @page_doc_hash to Solr, but only if the current page has content
   def add_page_doc_to_solr
     if !@page_buffer.strip.empty?
       add_value_to_page_doc_hash(:text_tiv, @page_buffer)
       @page_doc_hash.merge!(@page_session_fields) if @page_session_fields
       @rsolr_client.add(@page_doc_hash)
     end
+  end
+  
+  # write @div2_doc_hash to Solr
+  def add_div2_doc_to_solr
+    @rsolr_client.add(@div2_doc_hash)
   end
   
 end # ApTeiDocument class
