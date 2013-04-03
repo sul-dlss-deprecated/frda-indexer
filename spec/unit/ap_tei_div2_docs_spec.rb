@@ -1,8 +1,6 @@
 # encoding: UTF-8
 require 'spec_helper'
 
-require 'time'
-
 describe ApTeiDocument do
   before(:all) do
     @volume = 'Volume 36'
@@ -29,18 +27,47 @@ describe ApTeiDocument do
     @end_div2_back_tei = "</div2>#{@end_div1_back_tei}"
   end
 
+  context "init_div2_doc_hash" do
+    before(:all) do
+      @x = @start_tei_body_div2_session +
+          "<pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+          <p>actual content</p>
+          <pb n=\"5\" id=\"ns351vc7243_00_0002\"/>" + @end_div2_body_tei
+      @session_type = ApTeiDocument::DIV2_TYPE['session']
+    end
+    it "should populate type_ssi field" do
+      @rsolr_client.should_receive(:add)
+      @parser.parse(@x)
+      @atd.div2_doc_hash[:type_ssi].should == @session_type
+    end
+    it "should call add_vol_fields_to_hash for div2_doc_hash" do
+      @rsolr_client.should_receive(:add)
+      @atd.should_receive(:init_div2_doc_hash).and_call_original
+      @atd.should_receive(:add_vol_fields_to_hash).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE)).at_least(2).times
+      @atd.should_receive(:add_vol_fields_to_hash).with(hash_including(:type_ssi => @session_type, :doc_type_ssim => [@session_type]))
+      @parser.parse(@x)
+    end
+    it "should populate doc_type_ssim" do
+      @rsolr_client.should_receive(:add)
+      @parser.parse(@x)
+      @atd.div2_doc_hash[:doc_type_ssim].should == [@session_type]
+    end
+  end 
+
+  # FIXME:  do this with shared context
   context "<div2> element should create doc for div2 as well as for pages" do
     context 'type="session"' do
       before(:all) do
         @x = @start_tei_body_div2_session +
             "<p>actual content</p>" + @end_div2_body_tei
+        @doc_type = ApTeiDocument::DIV2_TYPE['session']
       end
       it "page doc should have doc_type_ssim of 'séance' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["séance"], :type_ssi => ApTeiDocument::PAGE_TYPE))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
         @parser.parse(@x)
       end
-      it "div2 doc should have doc_type_ssim of 'séance' and type_ssi of 'séance'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["séance"], :type_ssi => "séance"))
+      it "div2 doc should have doc_type_ssim and type_ssi of 'séance'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
         @parser.parse(@x)
       end
     end
@@ -50,13 +77,14 @@ describe ApTeiDocument do
         @x = "#{@start_tei_back_div1}<div2 type=\"alpha\">
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_back_tei
+        @doc_type = ApTeiDocument::DIV2_TYPE['alpha']
       end
       it "page doc should have a doc_type_ssim of 'liste' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste'], :type_ssi => ApTeiDocument::PAGE_TYPE))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
         @parser.parse(@x)
       end
-      it "div2 doc should have doc_type_ssim of 'liste' and type_ssi of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["liste"], :type_ssi => "liste"))
+      it "div2 doc should have doc_type_ssim and type_ssi of 'liste'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
         @parser.parse(@x)
       end
     end
@@ -66,13 +94,14 @@ describe ApTeiDocument do
                 <pb n=\"5\" id=\"ns351vc7243_00_0008\"/>
                 <p>blah blah</p>
                 <pb n=\"6\" id=\"ns351vc7243_00_0009\"/>" + @end_div2_body_tei
+        @doc_type = ApTeiDocument::DIV2_TYPE['contents']
       end
       it "page doc should have a doc_type_ssim of 'table des matières' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['table des matières'], :type_ssi => ApTeiDocument::PAGE_TYPE))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
         @parser.parse(@x)
       end
-      it "div2 doc should have doc_type_ssim of 'table des matières' and type_ssi of 'table des matières'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["table des matières"], :type_ssi => "table des matières"))
+      it "div2 doc should have doc_type_ssim and type_ssi of 'table des matières'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
         @parser.parse(@x)
       end
     end
@@ -81,13 +110,14 @@ describe ApTeiDocument do
         @x = @start_tei_body_div1 + "<div2 type=\"other\">
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
+        @doc_type = ApTeiDocument::DIV2_TYPE['other']
       end
       it "page doc should have a doc_type_ssim of 'errata, rapport, cahier, etc.' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['errata, rapport, cahier, etc.'], :type_ssi => ApTeiDocument::PAGE_TYPE))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
         @parser.parse(@x)
       end
-      it "div2 doc should have doc_type_ssim of 'errata, rapport, cahier, etc.' and type_ssi of 'errata, rapport, cahier, etc.'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["errata, rapport, cahier, etc."], :type_ssi => "errata, rapport, cahier, etc."))
+      it "div2 doc should have doc_type_ssim and type_ssi of 'errata, rapport, cahier, etc.'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
         @parser.parse(@x)
       end
     end
@@ -96,13 +126,14 @@ describe ApTeiDocument do
         @x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
+        @doc_type = ApTeiDocument::DIV2_TYPE['table_alpha']
       end
       it "page doc should have a doc_type_ssim of 'liste' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste'], :type_ssi => ApTeiDocument::PAGE_TYPE))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
         @parser.parse(@x)
       end
-      it "div2 doc should have doc_type_ssim of 'liste' and type_ssi of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["liste"], :type_ssi => "liste"))
+      it "div2 doc should have doc_type_ssim and type_ssi of 'liste'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
         @parser.parse(@x)
       end
     end
@@ -111,13 +142,14 @@ describe ApTeiDocument do
         @x = @start_tei_body_div1 + "<div2 type=\"introduction\">
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
+        @doc_type = ApTeiDocument::DIV2_TYPE['introduction']
       end
       it "page doc should have a doc_type_ssim of 'introduction' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['introduction'], :type_ssi => ApTeiDocument::PAGE_TYPE))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
         @parser.parse(@x)
       end
-      it "div2 doc should have doc_type_ssim of 'introduction' and type_ssi of 'introduction'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["introduction"], :type_ssi => "introduction"))
+      it "div2 doc should have doc_type_ssim and type_ssi of 'introduction'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
         @parser.parse(@x)
       end
     end

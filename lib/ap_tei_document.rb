@@ -67,6 +67,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if @in_body || @in_back
         add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
       end
+      init_div2_doc_hash
     when 'date'
       date_val_str = get_attribute_val('value', attributes)
       d = normalize_date(date_val_str)
@@ -102,11 +103,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if !@page_buffer.empty?
         add_page_doc_to_solr
         init_page_doc_hash
+        init_div2_doc_hash
       end
       @in_body = false
     when 'back'
       add_page_doc_to_solr
       init_page_doc_hash
+      init_div2_doc_hash
       @in_back = false
     when 'date'
       if @need_session_title 
@@ -255,7 +258,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def init_div2_doc_hash
     @div2_doc_hash = {}
     if (@in_body || @in_back) && @in_div2
-      add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
+      add_value_to_div2_doc_hash(:doc_type_ssim, @div2_doc_type)
       @div2_doc_hash[:type_ssi] = @div2_doc_type
     end
     add_vol_fields_to_hash(@div2_doc_hash)
@@ -273,11 +276,18 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     hash[:vol_date_end_dti] = VOL_DATES[@volume].last
   end
   
-  # add the value to the doc_hash for the Solr field.
+  # add the value to the page_doc_hash for the Solr field.
   # @param [Symbol] key the Solr field name 
-  # @param [String] value the value to add to the doc_hash for the key
+  # @param [String] value the value to add to the page_doc_hash for the key
   def add_value_to_page_doc_hash(key, value)
     add_field_value_to_hash(key, value, @page_doc_hash)
+  end
+  
+  # add the value to the div2_doc_hash for the Solr field.
+  # @param [Symbol] key the Solr field name 
+  # @param [String] value the value to add to the div2_doc_hash for the key
+  def add_value_to_div2_doc_hash(key, value)
+    add_field_value_to_hash(key, value, @div2_doc_hash)
   end
   
   # add the value to the hash for the Solr field.
