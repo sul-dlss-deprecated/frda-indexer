@@ -57,7 +57,7 @@ describe ApTeiDocument do
           "<pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
           <p>actual content</p>
           <pb n=\"5\" id=\"ns351vc7243_00_0002\"/>" + @end_div2_body_tei
-      @rsolr_client.should_receive(:add)
+      @rsolr_client.should_receive(:add).at_least(1).times
       @parser.parse(x)
       @atd.page_doc_hash[:doc_type_ssim].should == [ApTeiDocument::DIV2_TYPE['session']]
     end
@@ -126,11 +126,12 @@ describe ApTeiDocument do
         end
         it "should write the doc to Solr" do
           @rsolr_client.should_receive(:add).with(hash_including(:druid_ssi, :collection_ssi, :vol_num_ssi, :id => @id))
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(@x)
         end
         it "should call init_page_doc_hash" do
           @atd.should_receive(:init_page_doc_hash).at_least(2).times.and_call_original
-          @rsolr_client.should_receive(:add)
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(@x)
         end
       end # in <body>
@@ -146,6 +147,7 @@ describe ApTeiDocument do
             <div1 type=\"volume\" n=\"14\">
               <pb n=\"814\" id=\"tq360bc6948_00_0817\"/>" + @end_div1_back_tei
           @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
         it "last page in <back> section should write the doc to Solr" do
@@ -164,6 +166,7 @@ describe ApTeiDocument do
               </div2>" + @end_div1_back_tei
           @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816'))
           @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0817'))
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end        
       end # in <back>
@@ -183,6 +186,7 @@ describe ApTeiDocument do
               "<pb n=\"1\" id=\"something\"/>
                <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:page_num_ssi => '1'))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
       it "should not be present when <pb> has empty n attribute" do
@@ -191,6 +195,7 @@ describe ApTeiDocument do
                   <pb n=\"\" id=\"ns351vc7243_00_0001\"/>
                   <p>blah blah</p>" + @end_div2_body_tei 
         @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ssi))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
       it "should not be present when <pb> has no n attribute" do
@@ -199,6 +204,7 @@ describe ApTeiDocument do
                   <pb id=\"ns351vc7243_00_0001\"/>
                   <p>blah blah</p>" + @end_div2_body_tei 
         @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ssi))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
     end # page_num_ssi
@@ -216,6 +222,7 @@ describe ApTeiDocument do
               "<pb n=\"1\" id=\"aa222bb4444_00_0005\"/>
                <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:page_sequence_isi => 7))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser2.parse(x)
       end
       it "should not be present when page_id_hash has no matching value" do
@@ -223,15 +230,18 @@ describe ApTeiDocument do
               "<pb n=\"1\" id=\"aa222bb4444_00_0002\"/>
                <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_not_including(:page_sequence_isi))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser2.parse(x)
       end
     end
     it "image_id_ssm should be same as <pb> id attrib with .jp2 extension" do
       @rsolr_client.should_receive(:add).with(hash_including(:image_id_ssm => ["#{@page_id}.jp2"]))
+      @rsolr_client.should_receive(:add).at_least(1).times
       @parser.parse(@x)
     end
     it "ocr_id_ss should be same as <pb> id attrib with _99_ replacing middle _00_ and .txt extension" do
       @rsolr_client.should_receive(:add).with(hash_including(:ocr_id_ss => "tq360bc6948_99_0813.txt"))
+      @rsolr_client.should_receive(:add).at_least(1).times
       @parser.parse(@x)
     end
   end # <pb> element
@@ -274,6 +284,7 @@ describe ApTeiDocument do
             <p>in body</p>
       #{@end_div2_body_tei}"
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in body'))
+      @rsolr_client.should_receive(:add).at_least(1).times
       @parser.parse(x)
     end
     it "should not get content from <front>" do
@@ -295,6 +306,7 @@ describe ApTeiDocument do
                   <p>in body</p>
             #{@end_div2_body_tei}"
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in body'))
+      @rsolr_client.should_receive(:add).at_least(1).times
       @parser.parse(x)
     end
     it "should not include the contents of any attributes" do
@@ -363,7 +375,14 @@ describe ApTeiDocument do
     end
   end # text_tiv field
    
-  context "<div2> element should create doc for div2 as well as for pages" do
+  context "<div2> types in page docs" do
+    shared_examples_for "solr doc for page with div2" do | div2_type |
+      it "page doc should have doc_type_ssim of '#{div2_type}' and type_ssi of 'page'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [div2_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
+        @rsolr_client.should_receive(:add).at_least(1).times
+        @parser.parse(@x)
+      end
+    end
     context 'type="session"' do
       before(:all) do
         @x = @start_tei_body_div2_session +
@@ -371,10 +390,7 @@ describe ApTeiDocument do
             <p>actual content</p>
             <pb n=\"5\" id=\"ns351vc7243_00_0002\"/>" + @end_div2_body_tei
       end
-      it "page doc should have doc_type_ssim of 'séance' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["séance"], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "solr doc for page with div2", ApTeiDocument::DIV2_TYPE['session'] 
     end
     context 'type="alpha"' do
       before(:all) do
@@ -383,10 +399,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"5\" id=\"ns351vc7243_00_0002\"/>" + @end_div2_back_tei
       end
-      it "page doc should have a doc_type_ssim of 'liste' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste'], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "solr doc for page with div2", ApTeiDocument::DIV2_TYPE['alpha'] 
     end
     context 'type="contents"' do
       before(:all) do
@@ -395,10 +408,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"6\" id=\"ns351vc7243_00_0009\"/>" + @end_div2_body_tei
       end
-      it "page doc should have a doc_type_ssim of 'table des matières' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['table des matières'], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "solr doc for page with div2", ApTeiDocument::DIV2_TYPE['contents'] 
     end
     context 'type="other"' do
       before(:all) do
@@ -406,10 +416,7 @@ describe ApTeiDocument do
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
-      it "page doc should have a doc_type_ssim of 'errata, rapport, cahier, etc.' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['errata, rapport, cahier, etc.'], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "solr doc for page with div2", ApTeiDocument::DIV2_TYPE['other'] 
     end
     context 'type="table_alpha"' do
       before(:all) do
@@ -417,10 +424,7 @@ describe ApTeiDocument do
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
-      it "page doc should have a doc_type_ssim of 'liste' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['liste'], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "solr doc for page with div2", ApTeiDocument::DIV2_TYPE['table_alpha'] 
     end
     context 'type="introduction"' do
       before(:all) do
@@ -428,10 +432,7 @@ describe ApTeiDocument do
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
-      it "page doc should have a doc_type_ssim of 'introduction' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['introduction'], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "solr doc for page with div2", ApTeiDocument::DIV2_TYPE['introduction'] 
     end
   end # <div2> element
   
