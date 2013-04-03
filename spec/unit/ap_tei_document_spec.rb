@@ -74,7 +74,7 @@ describe ApTeiDocument do
     before(:each) do
       @hash = {}
     end
-    context "field doesn't exist in doc_hash" do
+    context "field doesn't exist in hash" do
       it "should create field with String value for a single valued field" do
         @atd.add_field_value_to_hash(:foo_ssi, 'val', @hash)
         @hash[:foo_ssi].should == 'val'
@@ -88,7 +88,7 @@ describe ApTeiDocument do
         @hash[:foo_timv].should == ['val']
       end
     end 
-    context "field already exists in doc_hash" do
+    context "field already exists in hash" do
       it "should add the value to the Array of values for a field ending in m" do
         @hash[:foo_tim] = ['val']
         @atd.add_field_value_to_hash(:foo_tim, 'val2', @hash)
