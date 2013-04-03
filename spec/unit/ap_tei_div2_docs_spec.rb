@@ -49,27 +49,29 @@ describe ApTeiDocument do
     end
     it "should populate doc_type_ssim" do
       @rsolr_client.should_receive(:add)
+      @atd.should_receive(:init_div2_doc_hash).and_call_original
       @parser.parse(@x)
       @atd.div2_doc_hash[:doc_type_ssim].should == [@session_type]
     end
   end 
 
-  # FIXME:  do this with shared context
   context "<div2> element should create doc for div2 as well as for pages" do
+    shared_examples_for "doc for div2 type" do | div2_type |
+      it "page doc should have doc_type_ssim of '#{div2_type}' and type_ssi of 'page'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [div2_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
+        @parser.parse(@x)
+      end
+      it "div2 doc should have doc_type_ssim and type_ssi of '#{div2_type}'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [div2_type], :type_ssi => div2_type))
+        @parser.parse(@x)
+      end
+    end
     context 'type="session"' do
       before(:all) do
         @x = @start_tei_body_div2_session +
             "<p>actual content</p>" + @end_div2_body_tei
-        @doc_type = ApTeiDocument::DIV2_TYPE['session']
       end
-      it "page doc should have doc_type_ssim of 'séance' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
-      it "div2 doc should have doc_type_ssim and type_ssi of 'séance'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['session'] 
     end
     
     context 'type="alpha"' do
@@ -77,16 +79,8 @@ describe ApTeiDocument do
         @x = "#{@start_tei_back_div1}<div2 type=\"alpha\">
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_back_tei
-        @doc_type = ApTeiDocument::DIV2_TYPE['alpha']
       end
-      it "page doc should have a doc_type_ssim of 'liste' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
-      it "div2 doc should have doc_type_ssim and type_ssi of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['alpha'] 
     end
     context 'type="contents"' do
       before(:all) do
@@ -94,64 +88,32 @@ describe ApTeiDocument do
                 <pb n=\"5\" id=\"ns351vc7243_00_0008\"/>
                 <p>blah blah</p>
                 <pb n=\"6\" id=\"ns351vc7243_00_0009\"/>" + @end_div2_body_tei
-        @doc_type = ApTeiDocument::DIV2_TYPE['contents']
       end
-      it "page doc should have a doc_type_ssim of 'table des matières' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
-      it "div2 doc should have doc_type_ssim and type_ssi of 'table des matières'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['contents'] 
     end
     context 'type="other"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"other\">
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
-        @doc_type = ApTeiDocument::DIV2_TYPE['other']
       end
-      it "page doc should have a doc_type_ssim of 'errata, rapport, cahier, etc.' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
-      it "div2 doc should have doc_type_ssim and type_ssi of 'errata, rapport, cahier, etc.'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['other'] 
     end
     context 'type="table_alpha"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
-        @doc_type = ApTeiDocument::DIV2_TYPE['table_alpha']
       end
-      it "page doc should have a doc_type_ssim of 'liste' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
-      it "div2 doc should have doc_type_ssim and type_ssi of 'liste'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['table_alpha'] 
     end
     context 'type="introduction"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"introduction\">
                 <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
-        @doc_type = ApTeiDocument::DIV2_TYPE['introduction']
       end
-      it "page doc should have a doc_type_ssim of 'introduction' and type_ssi of 'page'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
-        @parser.parse(@x)
-      end
-      it "div2 doc should have doc_type_ssim and type_ssi of 'introduction'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@doc_type], :type_ssi => @doc_type))
-        @parser.parse(@x)
-      end
+      it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['introduction'] 
     end
   end # <div2> element
   
