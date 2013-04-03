@@ -13,7 +13,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   include NormalizationHelper
   
-  attr_reader :page_doc_hash
+  attr_reader :page_doc_hash, :div2_doc_hash # exposed for tests
 
   # @param [RSolr::Client] rsolr_client used to write the Solr documents as we build them
   # @param [String] druid the druid for the DOR object that contains this TEI doc
@@ -52,8 +52,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
       @div2_doc_type = DIV2_TYPE[div2_type] if div2_type
       if div2_type == 'session'
-        if @page_buffer.empty? || !@session_fields
-          @session_fields = {}
+        if @page_buffer.empty? || !@page_session_fields
+          @page_session_fields = {}
         end
         @in_session = true
         @need_session_govt = true
@@ -62,7 +62,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @need_session_first_page = true
         @session_title = ''
       else
-        @session_fields = nil
+        @page_session_fields = nil
       end
       if @in_body || @in_back
         add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
@@ -71,8 +71,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       date_val_str = get_attribute_val('value', attributes)
       d = normalize_date(date_val_str)
       if @need_session_date && date_val_str
-        add_field_value_to_hash(:session_date_val_ssim, date_val_str, @session_fields)
-        add_field_value_to_hash(:session_date_dtsim, d.strftime('%Y-%m-%dT00:00:00Z'), @session_fields) if d
+        add_field_value_to_hash(:session_date_val_ssim, date_val_str, @page_session_fields)
+        add_field_value_to_hash(:session_date_dtsim, d.strftime('%Y-%m-%dT00:00:00Z'), @page_session_fields) if d
         @need_session_date = false
       end
     when 'pb'
@@ -125,13 +125,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if @in_sp && @speaker
         add_value_to_page_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}") if text
       end
-      if @in_session && @need_session_title && @got_date && @session_fields
+      if @in_session && @need_session_title && @got_date && @page_session_fields
         @session_title << @element_buffer
         title = normalize_session_title(@session_title)
-        add_field_value_to_hash(:session_title_ftsim, title, @session_fields) if title
-        add_field_value_to_hash(:session_date_title_ssim, 
-                              "#{@session_fields[:session_date_val_ssim].last}#{SEP}#{title}", 
-                              @session_fields) if @session_fields[:session_date_val_ssim]
+        add_field_value_to_hash(:session_title_ftsim, title, @page_session_fields) if title
+        add_field_value_to_hash(:session_date_title_ssim, "#{@page_session_fields[:session_date_val_ssim].last}#{SEP}#{title}", 
+                                @page_session_fields)   if @page_session_fields[:session_date_val_ssim]
         @need_session_title = false
         @got_date = false
       end
@@ -199,7 +198,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # add :session_govt_ssim field to doc_hash, and reset appropriate vars
   def add_session_govt_ssim value
     value.strip if value
-    add_field_value_to_hash(:session_govt_ssim, value.sub(/[[:punct:]]$/, ''), @session_fields) if value
+    add_field_value_to_hash(:session_govt_ssim, value.sub(/[[:punct:]]$/, ''), @page_session_fields) if value
     @need_session_govt = false
   end
   
@@ -215,7 +214,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     add_value_to_page_doc_hash(:image_id_ssm, new_page_id + ".jp2")
     add_value_to_page_doc_hash(:ocr_id_ss, new_page_id.sub(/_00_/, '_99_') + ".txt")
     if @in_session && @need_session_first_page && @page_id_hash[new_page_id]
-      add_field_value_to_hash(:session_seq_first_isim, @page_id_hash[new_page_id], @session_fields)
+      add_field_value_to_hash(:session_seq_first_isim, @page_id_hash[new_page_id], @page_session_fields)
       @need_session_first_page = false
     end
   end
@@ -246,14 +245,34 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
     @element_buffer = ''
     @page_buffer = ''
+    # ensure session information doesn't carry incorrectly across pages
     @session_title = ''
-    if @in_session && @session_fields
-      @session_fields.each { |k, v|  
-        @session_fields[k] = [v.last] if v && v.size > 1
+    if @in_session && @page_session_fields
+      @page_session_fields.each { |k, v|  
+        @page_session_fields[k] = [v.last] if v && v.size > 1
       }
     else
-      @session_fields = {}
+      @page_session_fields = {}
     end
+  end
+  
+  # initialize instance variable @page_doc_hash with mappings appropriate for all docs in the volume
+  #  and reset variables
+  def init_div2_doc_hash
+    @div2_doc_hash = {}
+    @div2_doc_hash[:collection_ssi] = COLL_VAL
+    @div2_doc_hash[:druid_ssi] = @druid
+    @div2_doc_hash[:vol_num_ssi] = @volume
+    @div2_doc_hash.merge!(@vol_constants_hash)
+    @div2_doc_hash[:vol_title_ssi] = VOL_TITLES[@volume]
+    @div2_doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
+    @div2_doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
+    if (@in_body || @in_back) && @in_div2
+      add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
+    end
+    @element_buffer = ''
+    @div2_buffer = ''
+    
   end
   
   # add the value to the doc_hash for the Solr field.
@@ -295,7 +314,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def add_page_doc_to_solr
     if !@page_buffer.strip.empty?
       add_value_to_page_doc_hash(:text_tiv, @page_buffer)
-      @page_doc_hash.merge!(@session_fields) if @session_fields
+      @page_doc_hash.merge!(@page_session_fields) if @page_session_fields
       @rsolr_client.add(@page_doc_hash)
     end
   end
