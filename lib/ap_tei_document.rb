@@ -125,11 +125,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if @in_sp && @speaker
         add_value_to_page_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}") if text
       end
-      if @in_session && @need_session_title && @got_date
+      if @in_session && @need_session_title && @got_date && @session_fields
         @session_title << @element_buffer
         title = normalize_session_title(@session_title)
-        add_field_value_to_hash(:session_title_ftsim, title, @session_fields) 
-        add_field_value_to_hash(:session_date_title_ssim, "#{@session_fields[:session_date_val_ssim].last}#{SEP}#{title}", @session_fields) 
+        add_field_value_to_hash(:session_title_ftsim, title, @session_fields) if title
+        add_field_value_to_hash(:session_date_title_ssim, 
+                              "#{@session_fields[:session_date_val_ssim].last}#{SEP}#{title}", 
+                              @session_fields) if @session_fields[:session_date_val_ssim]
         @need_session_title = false
         @got_date = false
       end
@@ -245,7 +247,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @element_buffer = ''
     @page_buffer = ''
     @session_title = ''
-    if @in_session
+    if @in_session && @session_fields
       @session_fields.each { |k, v|  
         @session_fields[k] = [v.last] if v && v.size > 1
       }
