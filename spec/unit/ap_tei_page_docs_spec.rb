@@ -170,47 +170,6 @@ describe ApTeiDocument do
     end # when indexed content
   end # add_page_doc_to_solr
 
-  context "add_value_to_page_doc_hash" do
-    context "field doesn't exist in doc_hash yet" do
-      before(:all) do
-        @x = @start_tei_body_div2_session + 
-            "<pb n=\"813\" id=\"tq360bc6948_00_0816\"/>
-            <sp>
-              <speaker>M. Guadet</speaker>
-              <p>blah blah</p>
-            </sp>" + @end_div2_body_tei
-      end
-      it "should create field with Array [value] for a multivalued field - ending in m or mv" do
-        exp_flds = {:speaker_ssim => ['Guadet'], :spoken_text_timv => ['Guadet-|-blah blah']}
-        @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
-        @parser.parse(@x)
-      end
-      it "should create field with String value for a single valued field" do
-        exp_flds = {:doc_type_ssim => ['séance']}
-        @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
-        @parser.parse(@x)
-      end
-    end # field doesn't exist yet
-    context "field already exists in doc_hash" do
-      before(:all) do
-        @x = @start_tei_body_div2_session + 
-            "<sp>
-              <speaker>M. Guadet</speaker>
-              <p>blah blah</p>
-            </sp>
-            <sp>
-              <speaker>M. McRae</speaker>
-              <p>bleah bleah</p>
-            </sp>" + @end_div2_body_tei
-      end
-      it "should add the value to the doc_hash Array for the field for multivalued field - ending in m or mv" do
-        exp_flds = {:speaker_ssim => ['Guadet', 'McRae'], :spoken_text_timv => ['Guadet-|-blah blah', 'McRae-|-bleah bleah']}
-        @rsolr_client.should_receive(:add).with(hash_including(exp_flds))
-        @parser.parse(@x)
-      end
-    end # field already exists
-  end # add_value_to__pagedoc_hash
-
   context "<pb> element" do
     before(:all) do
       @page_id = 'tq360bc6948_00_0813'
