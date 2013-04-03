@@ -34,6 +34,7 @@ describe ApTeiDocument do
       end
       it "should have doc_type_ssim of 'séance'" do
         @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["séance"]))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(@x)
       end
       
@@ -55,13 +56,14 @@ describe ApTeiDocument do
               </sp>
               <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
           @logger.should_receive(:warn).with("Didn't find <date> tag before <sp> for session in page tq360bc6948_00_0816")
-          @rsolr_client.should_receive(:add)
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
 
         context "value attribute" do
           it "should be the value attribute of the first <date> element after <div2>" do
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_val_ssim => ["1793-10-05"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(@dx)
           end
           it "should ignore subsequent <date> elements and log a warning" do
@@ -71,10 +73,12 @@ describe ApTeiDocument do
                 <p><date value=\"2013-01-01\">pretending to care</date></p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsim => ["1793-10-05T00:00:00Z"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
           it "should transform the value into UTC Zulu format" do
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsim => ["1793-10-05T00:00:00Z"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(@dx)
           end
           it "pages should only have their own session values" do
@@ -105,6 +109,7 @@ describe ApTeiDocument do
             @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0819', :session_title_ftsim => ["second one", "third one"]))
             @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0820', :session_title_ftsim => ["third one"]))
             @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0821', :session_title_ftsim => ["fourth one"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
         end # date value
@@ -113,6 +118,7 @@ describe ApTeiDocument do
           it "should get the text from a surrounding <p> element" do
             # <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du samedi 5 octobre 1793"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(@dx)
           end
           it "should ignore text from other <p> elements" do
@@ -123,6 +129,7 @@ describe ApTeiDocument do
                 <p>gah</p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ['Séance du jeudi 19 avril 1792, au soir']))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
           it "should only get the first date's surrounding text" do
@@ -132,6 +139,7 @@ describe ApTeiDocument do
                 <p><date value=\"2013-01-01\">pretending to care</date></p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du samedi 5 octobre 1793"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
           it "should get the text from a surrounding <p> element when there is no preceding text" do
@@ -140,11 +148,13 @@ describe ApTeiDocument do
                 <p><date value=\"1792-09-20\">Jeudi 20 septembre 1792</date>, au soir.</p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Jeudi 20 septembre 1792, au soir"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
           it "should call normalize_session_title" do
             @atd.should_receive(:normalize_session_title).and_call_original
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du samedi 5 octobre 1793"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(@dx)
           end
           it "should work for multiple sessions in a page" do
@@ -156,6 +166,7 @@ describe ApTeiDocument do
                   <p>another <date value=\"2013-01-01\">one</date></p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["first one", "another one"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
           it "should get the text from a surrounding <head> element" do
@@ -167,6 +178,7 @@ describe ApTeiDocument do
                 <head>Séance du <date value=\"1792-04-19\">jeudi 19 avril 1792</date>, au soir, </head>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du jeudi 19 avril 1792, au soir"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
         end # session_title
@@ -178,6 +190,7 @@ describe ApTeiDocument do
                 <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_title_ssim => ["1793-10-05-|-Séance du samedi 5 octobre 1793"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
         end
@@ -200,6 +213,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_seq_first_isim => [815])).twice
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser2.parse(x)
         end
         it "should change when the session changes" do
@@ -218,6 +232,7 @@ describe ApTeiDocument do
                 <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_seq_first_isim => [815]))
           @rsolr_client.should_receive(:add).with(hash_including(:session_seq_first_isim => [815, 888]))
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser2.parse(x)
         end
       end
@@ -230,6 +245,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
         it "should ignore subsequent <head> elements, even if allcaps" do
@@ -240,6 +256,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_not_including(:session_govt_ssim => ["PRESIDENCE DE M. MERLIN"]))
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
         it "should strip whitespace and punctuation" do
@@ -250,6 +267,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["ASSEMBLÉE NATIONALE LÉGISLATIVE"]))
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
         it "should ignore whitespace before first <head> or <p>" do
@@ -260,6 +278,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
         it "should find the value if it is in <p> instead of <head>" do
@@ -269,6 +288,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["ASSEMBLÉE NATIONALE LÉGISLATIVE"]))
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
         it "should not have leftover text from preceding elements" do
@@ -280,6 +300,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
+          @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
       end # session_govt_ssim
@@ -296,6 +317,7 @@ describe ApTeiDocument do
                             :session_date_dtsim => ["1793-10-05T00:00:00Z"],
                             :session_title_ftsim => ["Séance du samedi 5 octobre 1793"] }
         @rsolr_client.should_receive(:add).with(hash_including(exp_hash_fields)).twice
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
     end # type session    
@@ -307,7 +329,7 @@ describe ApTeiDocument do
         <p>boo <date value=\"1792-999-02\">5 octobre 1793</date> ya</p>
         <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
     @logger.should_receive(:warn).with("Found <date> tag with unparseable date value: '1792-999-02' in page tq360bc6948_00_0816")
-    @rsolr_client.should_receive(:add)
+    @rsolr_client.should_receive(:add).at_least(1).times
     @parser.parse(x)
   end
 
@@ -321,6 +343,7 @@ describe ApTeiDocument do
                <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
             </sp>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet']))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
       it "should have multiple values for multiple speakers" do
@@ -336,6 +359,7 @@ describe ApTeiDocument do
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet', 'McRae']))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end     
       it "should not be present if there is an empty <speaker> element" do
@@ -347,12 +371,14 @@ describe ApTeiDocument do
                <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
              </sp>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
       it "should not be present if there is no <speaker> element" do
         x = @start_tei_body_div2_session + 
             "<p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
       it "should not have duplicate values" do
@@ -367,6 +393,7 @@ describe ApTeiDocument do
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['McRae']))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
       it "should call normalize_speaker" do
@@ -378,6 +405,7 @@ describe ApTeiDocument do
             </sp>" + @end_div2_body_tei
         @atd.should_receive(:normalize_speaker).and_call_original
         @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Le Président']))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
     end # speaker_ssim
@@ -404,20 +432,26 @@ describe ApTeiDocument do
       end
       it "should have a separate value, starting with the speaker, for each <p> inside a single <sp>" do
         @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...']))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(@x)
       end
       it "should not include <p> text outside an <sp>" do
         @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['before']))
+        @rsolr_client.should_receive(:add)
         @parser.parse(@x)
         @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['middle']))
+        @rsolr_client.should_receive(:add)
         @parser.parse(@x)
         @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['after']))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(@x)
       end
       it "should not include <p> text when there is no speaker " do
         @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['no speaker']))
+        @rsolr_client.should_receive(:add)
         @parser.parse(@x)
         @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['also no speaker']))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(@x)
       end
       it "should not include <p> text past </sp> element" do
@@ -430,6 +464,7 @@ describe ApTeiDocument do
             </sp>
             <p>after</p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...']))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(@x)
       end
       it "should not include <p> text past </sp> element", :jira => 'FRDA-107' do
@@ -445,6 +480,7 @@ describe ApTeiDocument do
                 <p>after</p>
             </div3>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...']))
+        @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(@x)
       end
     end # spoken_text_timv
