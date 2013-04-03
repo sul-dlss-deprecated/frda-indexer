@@ -35,6 +35,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @in_body = false
     @in_back = false
     init_page_doc_hash
+    @div2_counter = 1
   end
     
   # @param [String] name the element tag
@@ -258,12 +259,14 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   #  and reset variables
   def init_div2_doc_hash
     @div2_doc_hash = {}
+    add_value_to_div2_doc_hash(:id, "#{@druid}_div2_#{@div2_counter}")
     if (@in_body || @in_back) && @in_div2
       add_value_to_div2_doc_hash(:doc_type_ssim, @div2_doc_type)
       @div2_doc_hash[:type_ssi] = @div2_doc_type
     end
     add_vol_fields_to_hash(@div2_doc_hash)
     @div2_buffer = ''
+    @div2_counter = @div2_counter + 1
   end
   
   # initialize hash with mappings appropriate for all docs in the volume

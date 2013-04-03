@@ -35,20 +35,25 @@ describe ApTeiDocument do
           <pb n=\"5\" id=\"ns351vc7243_00_0002\"/>" + @end_div2_body_tei
       @session_type = ApTeiDocument::DIV2_TYPE['session']
     end
+    it "should populate id field" do
+      @rsolr_client.should_receive(:add).at_least(1).times
+      @parser.parse(@x)
+      @atd.div2_doc_hash[:id].should == "#{@druid}_div2_1"
+    end
     it "should populate type_ssi field" do
-      @rsolr_client.should_receive(:add).at_least(1)
+      @rsolr_client.should_receive(:add).at_least(1).times
       @parser.parse(@x)
       @atd.div2_doc_hash[:type_ssi].should == @session_type
     end
     it "should call add_vol_fields_to_hash for div2_doc_hash" do
-      @rsolr_client.should_receive(:add).at_least(1)
+      @rsolr_client.should_receive(:add).at_least(1).times
       @atd.should_receive(:init_div2_doc_hash).and_call_original
       @atd.should_receive(:add_vol_fields_to_hash).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE)).at_least(2).times
       @atd.should_receive(:add_vol_fields_to_hash).with(hash_including(:type_ssi => @session_type, :doc_type_ssim => [@session_type]))
       @parser.parse(@x)
     end
     it "should populate doc_type_ssim" do
-      @rsolr_client.should_receive(:add).at_least(1)
+      @rsolr_client.should_receive(:add).at_least(1).times
       @atd.should_receive(:init_div2_doc_hash).and_call_original
       @parser.parse(@x)
       @atd.div2_doc_hash[:doc_type_ssim].should == [@session_type]
@@ -79,6 +84,17 @@ describe ApTeiDocument do
       x = @start_tei_body_div2_session +
           "<p>actual content</p>" + @end_div1_body_tei
       @atd.should_not_receive(:add_div2_doc_to_solr)
+      @parser.parse(x)
+    end
+    it "multiple <div2> elements create multiple div2 docs" do
+      x = @start_tei_body_div2_session +
+          "  <p>actual content</p>
+          </div2>
+          <div2 type=\"session\">
+            <p>more</p>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :type_ssi => 'séance'))
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2", :type_ssi => 'séance'))
       @parser.parse(x)
     end
     
@@ -144,19 +160,50 @@ describe ApTeiDocument do
   end # <div2> element
   
   context "add_div2_doc_to_solr" do
-    it "doc should have volume fields" do
-      pending "to be implemented"
+    before(:all) do
+      @x = @start_tei_body_div2_session +
+          "<pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+          <p>actual content</p>
+          <pb n=\"5\" id=\"ns351vc7243_00_0002\"/>" + @end_div2_body_tei
+      @session_type = ApTeiDocument::DIV2_TYPE['session']
     end
-    it "doc should have div2 fields" do
-      pending "to be implemented"
+    it "div2 solr doc should have an id" do
+      @rsolr_client.should_receive(:add).at_least(1).times
+      @parser.parse(@x)
+      @atd.div2_doc_hash[:id].should == "#{@druid}_div2_1"
     end
-    it "doc should have unspoken_text fields" do
-      pending "to be implemented"
+    it "div2 solr doc should have volume fields" do
+      @rsolr_client.should_receive(:add).at_least(1).times
+      @parser.parse(@x)
+      @atd.div2_doc_hash[:druid_ssi].should == @druid
+      @atd.div2_doc_hash[:collection_ssi].should == ApTeiDocument::COLL_VAL
+      @atd.div2_doc_hash[:vol_num_ssi].should == @volume.sub(/^Volume /i, '')
+      @atd.div2_doc_hash[:vol_num_ssi].should == '36'
+      @atd.div2_doc_hash[:vol_title_ssi].should == VOL_TITLES[@volume.sub(/^Volume /i, '')]
+      @atd.div2_doc_hash[:vol_date_start_dti].should end_with 'Z'
+      @atd.div2_doc_hash[:vol_date_end_dti].should end_with 'Z'
+      @atd.div2_doc_hash[:vol_pdf_name_ss].should == 'aa222bb4444.pdf'
+      @atd.div2_doc_hash[:vol_pdf_size_ls].should == 2218576614
+      @atd.div2_doc_hash[:vol_tei_name_ss].should == 'aa222bb4444.xml'
+      @atd.div2_doc_hash[:vol_tei_size_is].should == 6885841
+      @atd.div2_doc_hash[:vol_total_pages_is].should == 806
     end
-    it "doc should have catch all text fields" do
-      pending "to be implemented"
+    it "div2 solr doc should have div2 fields" do
+      @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@session_type], :type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@session_type], :type_ssi =>  @session_type))
+      @parser.parse(@x)
     end
-    context "knows about all its pages" do
+    it "div2 solr doc should have unspoken_text fields" do
+      pending "unspoken_text to be implemented"
+      @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => 'actual content'))
+      @parser.parse(@x)
+    end
+    it "div2 solr doc should have catch all text fields" do
+      pending "to be implemented"
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'actual content'))
+      @parser.parse(@x)
+    end
+    context "div2 solr knows about all its pages" do
       it "image number" do
         pending "to be implemented"
       end
