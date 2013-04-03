@@ -29,6 +29,47 @@ describe ApTeiDocument do
     @end_div2_back_tei = "</div2>#{@end_div1_back_tei}"
   end
   
+  context "add_vol_fields_to_hash" do
+    before(:all) do
+      x = "<TEI.2><teiHeader id='666'></teiHeader></TEI.2>"
+      @parser.parse(x)
+      @hash = {}
+      @atd.add_vol_fields_to_hash(@hash)
+    end
+    it "should populate druid_ssi field" do
+      @hash[:druid_ssi].should == @druid
+    end
+    it "should populate collection_ssi field" do
+      @hash[:collection_ssi].should == ApTeiDocument::COLL_VAL
+    end
+    it "should populate vol_num_ssi field" do
+      @hash[:vol_num_ssi].should == @volume.sub(/^Volume /i, '')
+      @hash[:vol_num_ssi].should == '36'
+    end
+    it "should populate vol_title_ssi" do
+      @hash[:vol_title_ssi].should == VOL_TITLES[@volume.sub(/^Volume /i, '')]
+    end
+    it "should get volume date fields in UTC form (1995-12-31T23:59:59Z)" do
+      val = @hash[:vol_date_start_dti]
+      val.should end_with 'Z'
+      Time.xmlschema(val).xmlschema.should == val # also ensures it doesn't throw parsing error
+      val = @hash[:vol_date_end_dti]
+      val.should end_with 'Z'
+      Time.xmlschema(val).xmlschema.should == val
+    end
+    it "should populate vol_pdf fields" do
+      @hash[:vol_pdf_name_ss].should == 'aa222bb4444.pdf'
+      @hash[:vol_pdf_size_ls].should == 2218576614
+    end
+    it "should populate vol_tei fields" do
+      @hash[:vol_tei_name_ss].should == 'aa222bb4444.xml'
+      @hash[:vol_tei_size_is].should == 6885841
+    end
+    it "should populate vol_total_pages_is field" do
+      @hash[:vol_total_pages_is].should == 806
+    end
+  end # add_vol_fields_to_hash
+  
   context "<div2> element" do
     context 'type="alpha"' do
       before(:all) do

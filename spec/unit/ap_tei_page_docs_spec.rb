@@ -1,8 +1,6 @@
 # encoding: UTF-8
 require 'spec_helper'
 
-require 'time'
-
 describe ApTeiDocument do
   before(:all) do
     @volume = 'Volume 36'
@@ -31,7 +29,7 @@ describe ApTeiDocument do
 
   context "start_document" do
     it "should call init_page_doc_hash" do
-      @atd.should_receive(:init_page_doc_hash).and_call_original
+      @atd.should_receive(:init_page_doc_hash)
       x = "<TEI.2><teiHeader id='666'></TEI.2>"
       @parser.parse(x)
     end
@@ -39,45 +37,31 @@ describe ApTeiDocument do
   
   context "init_page_doc_hash" do
     before(:all) do
-      x = "<TEI.2><teiHeader id='666'></teiHeader></TEI.2>"
-      @parser.parse(x)
-    end
-    it "should populate druid_ssi field" do
-      @atd.page_doc_hash[:druid_ssi].should == @druid
-    end
-    it "should populate collection_ssi field" do
-      @atd.page_doc_hash[:collection_ssi].should == ApTeiDocument::COLL_VAL
-    end
-    it "should populate vol_num_ssi field" do
-      @atd.page_doc_hash[:vol_num_ssi].should == @volume.sub(/^Volume /i, '')
-      @atd.page_doc_hash[:vol_num_ssi].should == '36'
-    end
-    it "should populate vol_title_ssi" do
-      @atd.page_doc_hash[:vol_title_ssi].should == VOL_TITLES[@volume.sub(/^Volume /i, '')]
-    end
-    it "should get volume date fields in UTC form (1995-12-31T23:59:59Z)" do
-      val = @atd.page_doc_hash[:vol_date_start_dti]
-      val.should end_with 'Z'
-      Time.xmlschema(val).xmlschema.should == val # also ensures it doesn't throw parsing error
-      val = @atd.page_doc_hash[:vol_date_end_dti]
-      val.should end_with 'Z'
-      Time.xmlschema(val).xmlschema.should == val
+      @x = "<TEI.2><teiHeader id='666'></teiHeader></TEI.2>"
     end
     it "should populate type_ssi field" do
+      @parser.parse(@x)
       @atd.page_doc_hash[:type_ssi].should == ApTeiDocument::PAGE_TYPE
     end
-    it "should populate vol_pdf fields" do
-      @atd.page_doc_hash[:vol_pdf_name_ss].should == 'aa222bb4444.pdf'
-      @atd.page_doc_hash[:vol_pdf_size_ls].should == 2218576614
+    it "should call add_vol_fields_to_hash for page_doc_hash" do
+      @atd.should_receive(:init_page_doc_hash).and_call_original
+      @atd.should_receive(:add_vol_fields_to_hash).with({:type_ssi => ApTeiDocument::PAGE_TYPE})
+      @parser.parse(@x)
     end
-    it "should populate vol_tei fields" do
-      @atd.page_doc_hash[:vol_tei_name_ss].should == 'aa222bb4444.xml'
-      @atd.page_doc_hash[:vol_tei_size_is].should == 6885841
+    it "should not populate doc_type_ssim if it is not in a div2" do
+      @parser.parse(@x)
+      @atd.page_doc_hash[:doc_type_ssim].should == nil
     end
-    it "should populate vol_total_pages_is field" do
-      @atd.page_doc_hash[:vol_total_pages_is].should == 806
+    it "should populate doc_type_ssim if it is in a div2" do
+      x = @start_tei_body_div2_session +
+          "<pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+          <p>actual content</p>
+          <pb n=\"5\" id=\"ns351vc7243_00_0002\"/>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add)
+      @parser.parse(x)
+      @atd.page_doc_hash[:doc_type_ssim].should == [ApTeiDocument::DIV2_TYPE['session']]
     end
-  end # init_page_doc_hash
+  end 
 
   context "add_page_doc_to_solr" do
     context "when page has no indexed content (<p>)" do

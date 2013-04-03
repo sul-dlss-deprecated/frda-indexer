@@ -232,17 +232,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   #  and reset variables
   def init_page_doc_hash
     @page_doc_hash = {}
-    @page_doc_hash[:collection_ssi] = COLL_VAL
-    @page_doc_hash[:druid_ssi] = @druid
-    @page_doc_hash[:vol_num_ssi] = @volume
-    @page_doc_hash.merge!(@vol_constants_hash)
-    @page_doc_hash[:vol_title_ssi] = VOL_TITLES[@volume]
-    @page_doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
-    @page_doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
     @page_doc_hash[:type_ssi] = PAGE_TYPE
     if (@in_body || @in_back) && @in_div2
       add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
     end
+    add_vol_fields_to_hash(@page_doc_hash)
     @element_buffer = ''
     @page_buffer = ''
     # ensure session information doesn't carry incorrectly across pages
@@ -260,19 +254,23 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   #  and reset variables
   def init_div2_doc_hash
     @div2_doc_hash = {}
-    @div2_doc_hash[:collection_ssi] = COLL_VAL
-    @div2_doc_hash[:druid_ssi] = @druid
-    @div2_doc_hash[:vol_num_ssi] = @volume
-    @div2_doc_hash.merge!(@vol_constants_hash)
-    @div2_doc_hash[:vol_title_ssi] = VOL_TITLES[@volume]
-    @div2_doc_hash[:vol_date_start_dti] = VOL_DATES[@volume].first
-    @div2_doc_hash[:vol_date_end_dti] = VOL_DATES[@volume].last
     if (@in_body || @in_back) && @in_div2
       add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
+      @div2_doc_hash[:type_ssi] = @div2_doc_type
     end
-    @element_buffer = ''
+    add_vol_fields_to_hash(@div2_doc_hash)
     @div2_buffer = ''
-    
+  end
+  
+  # initialize hash with mappings appropriate for all docs in the volume
+  def add_vol_fields_to_hash(hash)
+    hash[:collection_ssi] = COLL_VAL
+    hash[:druid_ssi] = @druid
+    hash[:vol_num_ssi] = @volume
+    hash.merge!(@vol_constants_hash)
+    hash[:vol_title_ssi] = VOL_TITLES[@volume]
+    hash[:vol_date_start_dti] = VOL_DATES[@volume].first
+    hash[:vol_date_end_dti] = VOL_DATES[@volume].last
   end
   
   # add the value to the doc_hash for the Solr field.
