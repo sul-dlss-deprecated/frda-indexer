@@ -35,7 +35,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @in_body = false
     @in_back = false
     init_page_doc_hash
-    @div2_counter = 1
+    @div2_counter = 0
   end
     
   # @param [String] name the element tag
@@ -50,6 +50,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_back = true
     when 'div2'
       @in_div2 = true
+      @div2_counter = @div2_counter + 1
       div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
       @div2_doc_type = DIV2_TYPE[div2_type] if div2_type
       if div2_type == 'session'
@@ -104,13 +105,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if !@page_buffer.empty?
         add_page_doc_to_solr
         init_page_doc_hash
-        init_div2_doc_hash
       end
       @in_body = false
     when 'back'
       add_page_doc_to_solr
       init_page_doc_hash
-      init_div2_doc_hash
       @in_back = false
     when 'date'
       if @need_session_title 
@@ -266,7 +265,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
     add_vol_fields_to_hash(@div2_doc_hash)
     @div2_buffer = ''
-    @div2_counter = @div2_counter + 1
   end
   
   # initialize hash with mappings appropriate for all docs in the volume
