@@ -75,7 +75,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       d = normalize_date(date_val_str)
       if @need_session_date && date_val_str
         add_field_value_to_hash(:session_date_val_ssim, date_val_str, @page_session_fields)
+        add_value_to_div2_doc_hash(:session_date_val_ssi, date_val_str)
         add_field_value_to_hash(:session_date_dtsim, d.strftime('%Y-%m-%dT00:00:00Z'), @page_session_fields) if d
+        add_value_to_div2_doc_hash(:session_date_dtsi, d.strftime('%Y-%m-%dT00:00:00Z')) if d
         @need_session_date = false
       end
     when 'pb'
@@ -133,8 +135,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @session_title << @element_buffer
         title = normalize_session_title(@session_title)
         add_field_value_to_hash(:session_title_ftsim, title, @page_session_fields) if title
-        add_field_value_to_hash(:session_date_title_ssim, "#{@page_session_fields[:session_date_val_ssim].last}#{SEP}#{title}", 
-                                @page_session_fields)   if @page_session_fields[:session_date_val_ssim]
+        add_value_to_div2_doc_hash(:session_title_ftsi, title) if title
+        if @page_session_fields[:session_date_val_ssim]
+          val = "#{@page_session_fields[:session_date_val_ssim].last}#{SEP}#{title}"
+          add_field_value_to_hash(:session_date_title_ssim, val, @page_session_fields)
+          add_value_to_div2_doc_hash(:session_date_title_ssi, val)
+        end
         @need_session_title = false
         @got_date = false
       end
@@ -202,8 +208,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   # add :session_govt_ssim field to doc_hash, and reset appropriate vars
   def add_session_govt_ssim value
-    value.strip if value
-    add_field_value_to_hash(:session_govt_ssim, value.sub(/[[:punct:]]$/, ''), @page_session_fields) if value
+    val = value.strip if value
+    val = val.sub(/[[:punct:]]$/, '') if val
+    if val
+      add_field_value_to_hash(:session_govt_ssim, val, @page_session_fields)
+      add_value_to_div2_doc_hash(:session_govt_ssi, val)
+    end
     @need_session_govt = false
   end
   
@@ -261,8 +271,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @div2_doc_hash = {}
     add_value_to_div2_doc_hash(:id, "#{@druid}_div2_#{@div2_counter}")
     if (@in_body || @in_back) && @in_div2
-      add_value_to_div2_doc_hash(:doc_type_ssim, @div2_doc_type)
-      @div2_doc_hash[:type_ssi] = @div2_doc_type
+      add_value_to_div2_doc_hash(:doc_type_ssi, @div2_doc_type)
+      add_value_to_div2_doc_hash(:type_ssi, @div2_doc_type)
     end
     add_vol_fields_to_hash(@div2_doc_hash)
     @div2_buffer = ''
