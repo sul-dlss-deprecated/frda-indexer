@@ -37,6 +37,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     init_page_doc_hash
     @div2_counter = 0
     @page_id = nil
+    @page_num = nil
   end
     
   # @param [String] name the element tag
@@ -232,17 +233,36 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @logger.error("TEI for #{@druid} has <pb> element with incorrect druid: #{@page_id}; continuing with given page id.")
     end
 
+    add_value_to_page_doc_hash(:id, @page_id)
+
+    # image id sequence numbers
     old_seq_num = old_page_id.split('_').last.to_i if old_page_id
     seq_num = @page_id.split('_').last.to_i
     if seq_num == 0
       @logger.warn("Non-integer image sequence number: #{@page_id}; continuing with processing.") 
     elsif old_seq_num && seq_num != old_seq_num + 1
-      @logger.error("Image ids not consecutive in TEI: #{old_page_id} occurs before #{@page_id}; continuing with processing.")
+      @logger.error("Image ids not consecutive in TEI: #{@page_id} occurs after #{old_page_id}; continuing with processing.")
     end
     
-    add_value_to_page_doc_hash(:id, @page_id)
+    # (printed) page numbers
     page_num = get_attribute_val('n', attributes)
-    add_value_to_page_doc_hash(:page_num_ssi,  page_num) if page_num
+    page_num.strip! if page_num
+    if page_num
+      add_value_to_page_doc_hash(:page_num_ssi,  page_num)
+    elsif @page_num
+      @logger.warn("Missing page number in TEI for #{@page_id}; continuing with processing.")
+    end
+        
+    old_page_num = @page_num if @page_num
+    if page_num && page_num.match(/\d+/)
+      @page_num = page_num.to_i 
+    else
+      @page_num = nil
+    end
+    if old_page_num && @page_num && @page_num != old_page_num + 1
+      @logger.warn("Page numbers not consecutive in TEI: #{@page_num} (in image #{@page_id}) occurs after #{old_page_num} (in image #{old_page_id}); continuing with processing.")
+    end
+
     add_value_to_page_doc_hash(:page_sequence_isi, @page_id_hash[@page_id]) if @page_id_hash[@page_id]
     add_value_to_page_doc_hash(:image_id_ssm, @page_id + ".jp2")
     add_value_to_page_doc_hash(:ocr_id_ss, @page_id.sub(/_00_/, '_99_') + ".txt")

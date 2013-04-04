@@ -34,7 +34,7 @@ describe ApTeiDocument do
       @x = @start_tei_body_div2_session +
           "<pb n=\"5\" id=\"#{@druid}_00_0001\"/>
           <p>actual content</p>
-          <pb n=\"5\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
+          <pb n=\"6\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
     end
     it "should populate id field" do
       @rsolr_client.should_receive(:add).at_least(1).times
@@ -203,7 +203,7 @@ describe ApTeiDocument do
       @x = @start_tei_body_div2_session +
           "<pb n=\"5\" id=\"#{@druid}_00_0001\"/>
           <p>actual content</p>
-          <pb n=\"5\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
+          <pb n=\"6\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
     end
     it "div2 solr doc should have an id" do
       @rsolr_client.should_receive(:add).at_least(1).times

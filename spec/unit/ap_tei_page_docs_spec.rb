@@ -257,7 +257,7 @@ describe ApTeiDocument do
       it "should log a warning if an image sequence number isn't an integer" do
         x = @start_tei_body_div1 +
               "<div2 type=\"session\">
-                  <pb id=\"#{@druid}_00_00a\"/>
+                  <pb n=\"4\" id=\"#{@druid}_00_00a\"/>
                   <p>bleah bleah</p>" + @end_div2_body_tei 
         @logger.should_receive(:warn).with("Non-integer image sequence number: #{@druid}_00_00a; continuing with processing.")
         @rsolr_client.should_receive(:add).at_least(1).times
@@ -266,19 +266,46 @@ describe ApTeiDocument do
       it "should log a warning if an image sequence number isn't consecutively higher than its predecessor" do
         x = @start_tei_body_div1 +
               "<div2 type=\"session\">
-                  <pb id=\"#{@druid}_00_0012\"/>
+                  <pb n=\"4\" id=\"#{@druid}_00_0012\"/>
                   <p>blah blah</p>
-                  <pb id=\"#{@druid}_00_0011\"/>
+                  <pb n=\"5\" id=\"#{@druid}_00_0011\"/>
                   <p>bleah bleah</p>" + @end_div2_body_tei 
-        @logger.should_receive(:error).with("Image ids not consecutive in TEI: #{@druid}_00_0012 occurs before #{@druid}_00_0011; continuing with processing.")
+        @logger.should_receive(:error).with("Image ids not consecutive in TEI: #{@druid}_00_0011 occurs after #{@druid}_00_0012; continuing with processing.")
         @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
-      it "should log a warning if there is no page number after integers start" do
-        pending "to be implemented"
+      it "should log a warning if there is no page number after page numbers start" do
+        x = @start_tei_body_div1 +
+              "<div2 type=\"session\">
+                  <pb n=\"3\" id=\"#{@druid}_00_0012\"/>
+                  <p>blah blah</p>
+                  <pb id=\"#{@druid}_00_0013\"/>
+                  <p>bleah bleah</p>" + @end_div2_body_tei 
+        @logger.should_receive(:warn).with("Missing page number in TEI for #{@druid}_00_0013; continuing with processing.")
+        @rsolr_client.should_receive(:add).at_least(1).times
+        @parser.parse(x)
+      end
+      it "should not log a warning if there is no page number before the page numbers start" do
+        x = @start_tei_body_div1 +
+              "<div2 type=\"session\">
+                  <pb n=\"\" id=\"#{@druid}_00_0012\"/>
+                  <p>blah blah</p>
+                  <pb n=\"3\" id=\"#{@druid}_00_0013\"/>
+                  <p>bleah bleah</p>" + @end_div2_body_tei 
+        @logger.should_not_receive(:warn).with("Missing page number in TEI for #{@druid}_00_0013; continuing with processing.")
+        @rsolr_client.should_receive(:add).at_least(1).times
+        @parser.parse(x)
       end
       it "should log a warning if a numerical (printed) page number isn't consecutively higher than its predecessor" do
-        pending "to be implemented"
+        x = @start_tei_body_div1 +
+              "<div2 type=\"session\">
+                  <pb n=\"4\" id=\"#{@druid}_00_0012\"/>
+                  <p>blah blah</p>
+                  <pb n=\"8\" id=\"#{@druid}_00_0013\"/>
+                  <p>bleah bleah</p>" + @end_div2_body_tei 
+        @logger.should_receive(:warn).with("Page numbers not consecutive in TEI: 8 (in image #{@druid}_00_0013) occurs after 4 (in image #{@druid}_00_0012); continuing with processing.")
+        @rsolr_client.should_receive(:add).at_least(1).times
+        @parser.parse(x)
       end
     end
   end # <pb> element
@@ -419,7 +446,7 @@ describe ApTeiDocument do
         @x = @start_tei_body_div2_session +
             "<pb n=\"5\" id=\"#{@druid}_00_0001\"/>
             <p>actual content</p>
-            <pb n=\"5\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
+            <pb n=\"6\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
       end
       it_should_behave_like "solr doc for page with div2", ApTeiDocument::DIV2_TYPE['session'] 
     end
@@ -428,7 +455,7 @@ describe ApTeiDocument do
         @x = "#{@start_tei_back_div1}<div2 type=\"alpha\">
                 <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
                 <p>blah blah</p>
-                <pb n=\"5\" id=\"#{@druid}_00_0002\"/>" + @end_div2_back_tei
+                <pb n=\"6\" id=\"#{@druid}_00_0002\"/>" + @end_div2_back_tei
       end
       it_should_behave_like "solr doc for page with div2", ApTeiDocument::DIV2_TYPE['alpha'] 
     end
