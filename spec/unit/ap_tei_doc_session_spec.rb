@@ -410,8 +410,10 @@ describe ApTeiDocument do
 
     context "spoken_text_timv" do
       before(:each) do
+        @page_id = "#{@druid}_00_0816"
         @x = @start_tei_body_div2_session +
-            "<p>before</p>
+            "<pb n=\"812\" id=\"#{@page_id}\"/>
+            <p>before</p>
             <p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
                <speaker>M. Guadet.</speaker>
@@ -429,8 +431,8 @@ describe ApTeiDocument do
             <p>after</p>" + @end_div2_body_tei
       end
       it "should have a separate value, starting with the speaker, for each <p> inside a single <sp>" do
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...']))
-        @rsolr_client.should_receive(:add).at_least(1).times
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...'], :id => @page_id))
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@page_id}-|-Guadet-|-blah blah ...", "#{@page_id}-|-Guadet-|-bleah bleah ..."], :id => "#{@druid}_div2_1"))
         @parser.parse(@x)
       end
       it "should not include <p> text outside an <sp>" do
@@ -454,20 +456,22 @@ describe ApTeiDocument do
       end
       it "should not include <p> text past </sp> element" do
         x = @start_tei_body_div2_session +
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            "<pb n=\"812\" id=\"#{@page_id}\"/>
+            <p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
                <speaker>M. Guadet.</speaker>
                <p>blah blah ... </p>
                <p>bleah bleah ... </p>
             </sp>
             <p>after</p>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...']))
-        @rsolr_client.should_receive(:add).at_least(1).times
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...'], :id => @page_id))
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@page_id}-|-Guadet-|-blah blah ...", "#{@page_id}-|-Guadet-|-bleah bleah ..."], :id => "#{@druid}_div2_1"))
         @parser.parse(@x)
       end
       it "should not include <p> text past </sp> element", :jira => 'FRDA-107' do
         x = @start_tei_body_div2_session +
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            "<pb n=\"812\" id=\"#{@page_id}\"/>
+            <p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
                <speaker>M. Guadet.</speaker>
                <p>blah blah ... </p>
@@ -477,8 +481,8 @@ describe ApTeiDocument do
               <head>PREMIÈRE ANNEXE (1)</head>
                 <p>after</p>
             </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...']))
-        @rsolr_client.should_receive(:add).at_least(1).times
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...'], :id => @page_id))
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@page_id}-|-Guadet-|-blah blah ...", "#{@page_id}-|-Guadet-|-bleah bleah ..."], :id => "#{@druid}_div2_1"))
         @parser.parse(@x)
       end
     end # spoken_text_timv

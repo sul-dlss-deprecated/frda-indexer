@@ -121,6 +121,7 @@ describe ApTeiDocument do
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['session']
       
+      # NOTE:  many session field specifics are tested in ap-tei_doc_session_spec
       it "div2 doc should have session fields when it's a session" do
         @rsolr_client.should_receive(:add).with(hash_including(
           :doc_type_ssi => @session_type,
@@ -133,9 +134,13 @@ describe ApTeiDocument do
         @parser.parse(@x)
       end
       
+      it "should include speaker_ssim when appropriate" do
+        # this is tested in ap_tei_doc_session_spec
+      end
+      
       context "spoken text" do
-        it "needs test for spoken_text fields" do
-          pending "to be implemented"
+        it "should include spoken_text_ssim when appropriate" do
+          # this is tested in ap_tei_doc_session_spec
         end
         it "should be able to search spoken text across page breaks" do
           pending "to be implemented"

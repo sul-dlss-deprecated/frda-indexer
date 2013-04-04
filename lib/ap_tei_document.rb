@@ -101,7 +101,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] name the element tag
   def end_element name
     @element_name_stack.pop
-
     case name
     when 'body'
       if !@page_buffer.empty?
@@ -128,8 +127,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'p'
       text = @element_buffer.strip if !@element_buffer.strip.empty?
       add_session_govt_ssim(text) if @in_session && @need_session_govt && text && text == text.upcase
-      if @in_sp && @speaker
-        add_value_to_page_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}") if text
+      if @in_sp && @speaker && text
+        add_value_to_page_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}")
+        add_value_to_div2_doc_hash(:spoken_text_timv, "#{@page_id}#{SEP}#{@speaker}#{SEP}#{text}")
       end
       if @in_session && @need_session_title && @got_date && @page_session_fields
         @session_title << @element_buffer
@@ -149,8 +149,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_sp = false
     when 'speaker'
       @speaker = normalize_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
-      if @speaker && @speaker.strip
-        add_value_to_div2_doc_hash(:speaker_ssim, @speaker.strip) unless @div2_doc_hash[:speaker_ssim] && @div2_doc_hash[:speaker_ssim].include?(@speaker.strip)
+      @speaker.strip! if @speaker
+      if @speaker
+        add_value_to_div2_doc_hash(:speaker_ssim, @speaker) unless @div2_doc_hash[:speaker_ssim] && @div2_doc_hash[:speaker_ssim].include?(@speaker)
       end
       @in_speaker = false
     end # case name
@@ -223,15 +224,15 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [Array<String>] attributes an assoc list of namespaces and attributes, e.g.:
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
   def process_pb_attribs attributes
-    new_page_id = get_attribute_val('id', attributes)
-    add_value_to_page_doc_hash(:id, new_page_id)
+    @page_id = get_attribute_val('id', attributes)
+    add_value_to_page_doc_hash(:id, @page_id)
     page_num = get_attribute_val('n', attributes)
     add_value_to_page_doc_hash(:page_num_ssi,  page_num) if page_num
-    add_value_to_page_doc_hash(:page_sequence_isi, @page_id_hash[new_page_id]) if @page_id_hash[new_page_id]
-    add_value_to_page_doc_hash(:image_id_ssm, new_page_id + ".jp2")
-    add_value_to_page_doc_hash(:ocr_id_ss, new_page_id.sub(/_00_/, '_99_') + ".txt")
-    if @in_session && @need_session_first_page && @page_id_hash[new_page_id]
-      add_field_value_to_hash(:session_seq_first_isim, @page_id_hash[new_page_id], @page_session_fields)
+    add_value_to_page_doc_hash(:page_sequence_isi, @page_id_hash[@page_id]) if @page_id_hash[@page_id]
+    add_value_to_page_doc_hash(:image_id_ssm, @page_id + ".jp2")
+    add_value_to_page_doc_hash(:ocr_id_ss, @page_id.sub(/_00_/, '_99_') + ".txt")
+    if @in_session && @need_session_first_page && @page_id_hash[@page_id]
+      add_field_value_to_hash(:session_seq_first_isim, @page_id_hash[@page_id], @page_session_fields)
       @need_session_first_page = false
     end
   end
