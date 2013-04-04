@@ -1,8 +1,6 @@
 # encoding: UTF-8
 require 'spec_helper'
 
-require 'time'
-
 describe ApTeiDocument do
   before(:all) do
     @volume = 'Volume 36'
