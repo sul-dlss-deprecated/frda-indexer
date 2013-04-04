@@ -38,6 +38,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @div2_counter = 0
     @page_id = nil
     @page_num = nil
+    @need_session_govt = false
+    @need_session_title = false
   end
     
   # @param [String] name the element tag
@@ -103,6 +105,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] name the element tag
   def end_element name
     @element_name_stack.pop
+    text = @element_buffer.strip if !@element_buffer.strip.empty?
     case name
     when 'body'
       if !@page_buffer.empty?
@@ -118,6 +121,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if @need_session_title 
         @session_title << @element_buffer
         @got_date = true
+      else
+        add_unspoken_text_to_doc_hashes text
       end
     when 'div2'
       add_div2_doc_to_solr
@@ -125,14 +130,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @div2_doc_type = nil
       @in_session = false
     when 'head'
-      add_session_govt_ssim(@element_buffer.strip) if @in_session && @need_session_govt
-    when 'p'
-      text = @element_buffer.strip if !@element_buffer.strip.empty?
-      add_session_govt_ssim(text) if @in_session && @need_session_govt && text && text == text.upcase
-      if @in_sp && @speaker && text
-        add_value_to_page_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}")
-        add_value_to_div2_doc_hash(:spoken_text_timv, "#{@page_id}#{SEP}#{@speaker}#{SEP}#{text}")
+      if @in_session && @need_session_govt
+        add_session_govt_ssim(text)
+      else
+        add_unspoken_text_to_doc_hashes text 
       end
+    when 'p'
       if @in_session && @need_session_title && @got_date && @page_session_fields
         @session_title << @element_buffer
         title = normalize_session_title(@session_title)
@@ -145,17 +148,28 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         end
         @need_session_title = false
         @got_date = false
+      elsif text
+        if @in_session && @need_session_govt && text == text.upcase
+          add_session_govt_ssim(text)
+        elsif @in_sp && @speaker
+          add_value_to_page_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}")
+          add_value_to_div2_doc_hash(:spoken_text_timv, "#{@page_id}#{SEP}#{@speaker}#{SEP}#{text}")
+        else
+          add_unspoken_text_to_doc_hashes text
+        end
       end
     when 'sp'
       @speaker = nil
       @in_sp = false
     when 'speaker'
-      @speaker = normalize_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
+      @speaker = normalize_speaker(text) if text
       @speaker.strip! if @speaker
       if @speaker
         add_value_to_div2_doc_hash(:speaker_ssim, @speaker) unless @div2_doc_hash[:speaker_ssim] && @div2_doc_hash[:speaker_ssim].include?(@speaker)
       end
       @in_speaker = false
+    when 'hi', 'note', 'item', 'signed'
+      add_unspoken_text_to_doc_hashes text
     end # case name
     
     @element_just_ended = true
@@ -208,6 +222,15 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         buffer = chars.dup
       end
       buffer.gsub(/\s+/, ' ')
+    end
+  end
+  
+  # add value to unspoken_text_timv in page_doc_hash and div2_doc_hash
+  # @param text [String] text to add
+  def add_unspoken_text_to_doc_hashes text
+    if text.match(/\w+/)
+      add_value_to_page_doc_hash(:unspoken_text_timv, "#{text}")
+      add_value_to_div2_doc_hash(:unspoken_text_timv, "#{@page_id}#{SEP}#{text}")
     end
   end
   

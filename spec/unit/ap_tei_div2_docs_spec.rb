@@ -142,14 +142,48 @@ describe ApTeiDocument do
         it "should include spoken_text_ssim when appropriate" do
           # this is tested in ap_tei_doc_session_spec
         end
-        it "should be able to search spoken text across page breaks" do
-          pending "to be implemented"
-        end
-        it "needs to know page info for spoken text snippets" do
-          pending "to be implemented"
+        it "should be able to search spoken text across page breaks", :integration => true do
+          pending "to be implemented as an integration test"
         end
       end
-    end
+      
+      context "unspoken text" do
+        it "should include <p> session text when there is no speaker" do
+          page_id = "#{@druid}_00_0816"
+          x = @start_tei_body_div2_session +
+                "<pb n=\"812\" id=\"#{page_id}\"/>
+                <p>before</p>
+                <p><date value=\"2013-01-01\">session title</date></p>
+                <sp>
+                   <speaker>M. Guadet.</speaker>
+                   <p>blah blah ... </p>
+                   <p>bleah bleah ... </p>
+                </sp>
+                <p>middle</p>
+                <sp>
+                  <p>no speaker</p>
+                </sp>
+                <sp>
+                  <speaker/>
+                  <p>also no speaker</p>
+                </sp>
+                <p>after</p>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => [
+                        "before", 
+                        "middle", 
+                        "no speaker", 
+                        "also no speaker", 
+                        "after"], :id => page_id))
+          @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => [
+                        "#{page_id}-|-before", 
+                        "#{page_id}-|-middle", 
+                        "#{page_id}-|-no speaker", 
+                        "#{page_id}-|-also no speaker", 
+                        "#{page_id}-|-after"], :id => "#{@druid}_div2_1"))
+          @parser.parse(x)
+        end
+      end
+    end # type session
     
     context 'type="alpha"' do
       before(:all) do
@@ -264,18 +298,8 @@ describe ApTeiDocument do
     end
   end 
   
-  context "unspoken_text" do
-    it "div2 solr doc should have unspoken_text fields" do
-      pending "unspoken_text to be implemented"
-      @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => 'actual content'))
-      @parser.parse(@x)
-    end
-    it "needs to know page info for spoken text snippets" do
-      pending "to be implemented"
-    end
-    it "search unspoken text across page breaks (across <p>???)" do
-      pending "to be implemented"
-    end
+  it "unspoken_text field" do
+    # see ap_tei_unspoken_text_spec
   end
   
   context "text_tiv (catchall field)" do
