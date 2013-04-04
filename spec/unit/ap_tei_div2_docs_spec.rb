@@ -157,6 +157,10 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_back_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['alpha'] 
+      it "shouldn't have session fields" do
+        @rsolr_client.should_not_receive(:add).with(hash_including(:session_date_dtsi))
+        @parser.parse(@x)
+      end
     end
     context 'type="contents"' do
       before(:all) do
