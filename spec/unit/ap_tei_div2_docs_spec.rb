@@ -121,22 +121,18 @@ describe ApTeiDocument do
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['session']
       
-      it "div2 doc should have session fields" do
+      it "div2 doc should have session fields when it's a session" do
         @rsolr_client.should_receive(:add).with(hash_including(
           :doc_type_ssi => @session_type,
           :session_date_val_ssi => "1793-10-05",
           :session_date_dtsi => "1793-10-05T00:00:00Z",
           :session_title_ftsi => 'Séance du samedi 5 octobre 1793',
           :session_date_title_ssi => "1793-10-05-|-Séance du samedi 5 octobre 1793",
-#          :session_seq_first_isi => 'tq360bc6948_00_0816',
           :session_govt_ssi =>  "CONVENTION NATIONALE"))
         @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
         @parser.parse(@x)
       end
       
-      it "needs test for session fields" do
-        pending "to be implemented"
-      end
       context "spoken text" do
         it "needs test for spoken_text fields" do
           pending "to be implemented"
@@ -238,6 +234,7 @@ describe ApTeiDocument do
     context "div2 solr knows about all its pages" do
       it "image number" do
         pending "to be implemented"
+#        :div2_first_page_ssi => 'tq360bc6948_00_0816',
       end
       it "page number" do
         pending "to be implemented"
