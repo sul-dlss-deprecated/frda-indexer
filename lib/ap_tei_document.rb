@@ -165,6 +165,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
     end
     @page_buffer = add_chars_to_buffer(chars, @page_buffer) if (@in_body || @in_back) && !IGNORE_ELEMENTS.include?(@element_name_stack.last)
+    @div2_buffer = add_chars_to_buffer(chars, @div2_buffer) if @in_div2 && !IGNORE_ELEMENTS.include?(@element_name_stack.last)
     @element_just_started = false
     @element_just_ended = false
   end
@@ -322,8 +323,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
 
   # write @page_doc_hash to Solr, but only if the current page has content
   def add_page_doc_to_solr
-    if !@page_buffer.strip.empty?
-      add_value_to_page_doc_hash(:text_tiv, @page_buffer)
+    text = @page_buffer.strip.gsub(/\s+/, ' ') if @page_buffer && @page_buffer.strip
+    if !text.empty?
+      add_value_to_page_doc_hash(:text_tiv, text)
       @page_doc_hash.merge!(@page_session_fields) if @page_session_fields
       @rsolr_client.add(@page_doc_hash)
     end
@@ -331,6 +333,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   # write @div2_doc_hash to Solr
   def add_div2_doc_to_solr
+    text = @div2_buffer.strip.gsub(/\s+/, ' ') if @div2_buffer && @div2_buffer.strip
+    add_value_to_div2_doc_hash(:text_tiv, text)
     @rsolr_client.add(@div2_doc_hash)
   end
   

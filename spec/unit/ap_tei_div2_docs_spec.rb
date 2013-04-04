@@ -199,8 +199,8 @@ describe ApTeiDocument do
       @parser.parse(@x)
     end
     it "div2 solr doc should have catch all text fields" do
-      pending "to be implemented"
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'actual content'))
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @session_type, :text_tiv => 'actual content'))
       @parser.parse(@x)
     end
     context "div2 solr knows about all its pages" do
