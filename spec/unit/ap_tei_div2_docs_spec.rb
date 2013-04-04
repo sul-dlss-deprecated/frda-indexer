@@ -114,6 +114,12 @@ describe ApTeiDocument do
       it "needs test for session fields" do
         pending "to be implemented"
       end
+      it "needs test for spoken_text fields" do
+        pending "to be implemented"
+      end
+      it "should be able to search spoken text across page breaks" do
+        pending "to be implemented"
+      end
     end
     
     context 'type="alpha"' do
@@ -193,11 +199,6 @@ describe ApTeiDocument do
       @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@session_type], :type_ssi =>  @session_type))
       @parser.parse(@x)
     end
-    it "div2 solr doc should have unspoken_text fields" do
-      pending "unspoken_text to be implemented"
-      @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => 'actual content'))
-      @parser.parse(@x)
-    end
     it "div2 solr doc should have catch all text fields" do
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @session_type, :text_tiv => 'actual content'))
@@ -230,18 +231,13 @@ describe ApTeiDocument do
     end
   end 
   
-  context "page info" do
-    
-  end
-  
-  context "spoken_text" do
-    context "search text across page breaks" do
-      
-    end
-  end
-  
   context "unspoken_text" do
-    context "search text across page breaks" do
+    it "div2 solr doc should have unspoken_text fields" do
+      pending "unspoken_text to be implemented"
+      @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => 'actual content'))
+      @parser.parse(@x)
+    end
+    context "search unspoken text across page breaks (across <p>???)" do
       
     end
   end
