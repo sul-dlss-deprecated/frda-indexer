@@ -230,27 +230,93 @@ describe ApTeiDocument do
     end
   end 
   
-  context "text fields" do
-    context "spoken_text" do
-      context "search text across page breaks" do
-        
-      end
-    end
+  context "page info" do
     
-    context "unspoken_text" do
-      context "search text across page breaks" do
-        
-      end
-
-    end
-    
-    context "text_tiv" do
+  end
+  
+  context "spoken_text" do
+    context "search text across page breaks" do
       
     end
   end
   
-  context "page info" do
-    
+  context "unspoken_text" do
+    context "search text across page breaks" do
+      
+    end
   end
+  
+  context "text_tiv (catchall field)" do
+    it "should not include the contents of any attributes" do
+      x = @start_tei_body_div2_session + "<p>Art. 1<hi rend=\"superscript\">er</hi></p>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er', :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+      x = @start_tei_body_div2_session + "<date value=\"2013-01-01\">pretending to care</date>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care', :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+    end
+    it "should include the contents of <p> element" do
+      x = @start_tei_body_div2_session + "<p>blather</p>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'blather', :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+    end
+    it "should include the contents of <head> element" do
+      x = @start_tei_body_div2_session + "<head>MARDI 15 OCTOBRE 1793.</head>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'MARDI 15 OCTOBRE 1793.', :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+    end
+    it "should include the contents of <speaker> element" do
+      x = @start_tei_body_div2_session + "<sp><speaker>M. Bréard.</speaker></sp>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'M. Bréard.', :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+    end
+    it "should include the contents of <date> element" do
+      x = @start_tei_body_div2_session + "<date value=\"2013-01-01\">pretending to care</date>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care', :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+    end
+    it "should include the contents of <note> element" do
+      x = @start_tei_body_div2_session + "<note place=\"foot\">(1) shoes.</note>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.', :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+    end
+    it "should include the contents of <hi> element" do
+      x = @start_tei_body_div2_session + "<p>Art. 1<hi>er.</hi></p>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er.', :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+    end
+    it "should include the contents of <term> element" do
+      x = @start_tei_body_div2_session + "<p><term>Abbaye </term>(Prison de F).</p>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Abbaye (Prison de F).', :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+    end
+    it "should include the contents of <item> element" do
+      x = @start_tei_body_div2_session + "<list><item>item!</item></list>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'item!', :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+    end
+    it "should include the contents of <signed> element" do
+      x = @start_tei_body_div2_session + "<signed>Signé : Remillat, à l'original. </signed>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "Signé : Remillat, à l'original.", :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+    end
+    it "should ignore <trailer>" do
+      x = @start_tei_body_div2_session + "<trailer>FIN DE L'INTRODUCTION.</trailer><p>blah</p>" + @end_div2_body_tei
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => ApTeiDocument::PAGE_TYPE))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "blah", :id => "#{@druid}_div2_1"))
+      @parser.parse(x)
+    end
+  end # text_tiv field
   
 end

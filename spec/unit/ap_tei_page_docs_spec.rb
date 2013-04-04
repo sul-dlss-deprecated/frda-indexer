@@ -436,5 +436,4 @@ describe ApTeiDocument do
     end
   end # <div2> element
   
-  
 end
