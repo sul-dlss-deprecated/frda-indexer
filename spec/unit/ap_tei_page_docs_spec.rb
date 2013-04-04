@@ -56,7 +56,7 @@ describe ApTeiDocument do
       x = @start_tei_body_div2_session +
           "<pb n=\"5\" id=\"#{@druid}_00_0001\"/>
           <p>actual content</p>
-          <pb n=\"5\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
+          <pb n=\"6\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).at_least(1).times
       @parser.parse(x)
       @atd.page_doc_hash[:doc_type_ssim].should == [ApTeiDocument::DIV2_TYPE['session']]
@@ -244,14 +244,42 @@ describe ApTeiDocument do
       @rsolr_client.should_receive(:add).at_least(1).times
       @parser.parse(@x)
     end
-    it "should log an error if the druid in <pb> doesn't match the passed volume druid" do
-      x = @start_tei_body_div1 +
-            "<div2 type=\"session\">
-                <pb id=\"oo000oo0000_00_0001\"/>
-                <p>blah blah</p>" + @end_div2_body_tei 
-      @logger.should_receive(:error).with("TEI for #{@druid} has <pb> element with incorrect druid: oo000oo0000_00_0001; continuing with given page id.")
-      @rsolr_client.should_receive(:add).at_least(1).times
-      @parser.parse(x)
+    context "unexpected values" do
+      it "should log an error if the druid in <pb> image id doesn't match the passed volume druid" do
+        x = @start_tei_body_div1 +
+              "<div2 type=\"session\">
+                  <pb id=\"oo000oo0000_00_0001\"/>
+                  <p>blah blah</p>" + @end_div2_body_tei 
+        @logger.should_receive(:error).with("TEI for #{@druid} has <pb> element with incorrect druid: oo000oo0000_00_0001; continuing with given page id.")
+        @rsolr_client.should_receive(:add).at_least(1).times
+        @parser.parse(x)
+      end
+      it "should log a warning if an image sequence number isn't an integer" do
+        x = @start_tei_body_div1 +
+              "<div2 type=\"session\">
+                  <pb id=\"#{@druid}_00_00a\"/>
+                  <p>bleah bleah</p>" + @end_div2_body_tei 
+        @logger.should_receive(:warn).with("Non-integer image sequence number: #{@druid}_00_00a; continuing with processing.")
+        @rsolr_client.should_receive(:add).at_least(1).times
+        @parser.parse(x)
+      end
+      it "should log a warning if an image sequence number isn't consecutively higher than its predecessor" do
+        x = @start_tei_body_div1 +
+              "<div2 type=\"session\">
+                  <pb id=\"#{@druid}_00_0012\"/>
+                  <p>blah blah</p>
+                  <pb id=\"#{@druid}_00_0011\"/>
+                  <p>bleah bleah</p>" + @end_div2_body_tei 
+        @logger.should_receive(:error).with("Image ids not consecutive in TEI: #{@druid}_00_0012 occurs before #{@druid}_00_0011; continuing with processing.")
+        @rsolr_client.should_receive(:add).at_least(1).times
+        @parser.parse(x)
+      end
+      it "should log a warning if there is no page number after integers start" do
+        pending "to be implemented"
+      end
+      it "should log a warning if a numerical (printed) page number isn't consecutively higher than its predecessor" do
+        pending "to be implemented"
+      end
     end
   end # <pb> element
 
@@ -310,7 +338,7 @@ describe ApTeiDocument do
             </front>
             <body>
               <div1 type=\"volume\" n=\"14\">
-                <pb n=\"814\" id=\"#{@druid}_00_0817\"/>
+                <pb n=\"814\" id=\"#{@druid}_00_0003\"/>
                 <div2 type=\"contents\">
                   <p>in body</p>
             #{@end_div2_body_tei}"

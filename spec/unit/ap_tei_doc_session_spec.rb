@@ -100,7 +100,7 @@ describe ApTeiDocument do
                 <pb id=\"#{@druid}_00_0821\"/>
                 <div2 type=\"session\">
                 <p>fourth <date value=\"1793-10-08\">one</date></p>
-                <pb id=\"#{@druid}_00_0865\"/>" + @end_div2_body_tei
+                <pb id=\"#{@druid}_00_0822\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0816", :session_title_ftsim => ["first one"]))
             @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0817", :session_title_ftsim => ["first one"]))
             @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0818", :session_title_ftsim => ["second one"]))

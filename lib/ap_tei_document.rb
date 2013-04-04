@@ -36,6 +36,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @in_back = false
     init_page_doc_hash
     @div2_counter = 0
+    @page_id = nil
   end
     
   # @param [String] name the element tag
@@ -224,10 +225,21 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [Array<String>] attributes an assoc list of namespaces and attributes, e.g.:
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
   def process_pb_attribs attributes
+    old_page_id = @page_id
     @page_id = get_attribute_val('id', attributes)
-    if !@page_id.match(/^#{@druid}.*/)
+    @page_id.strip! if @page_id
+    if !@page_id.match(/^#{@druid}.*/) || @page_id.nil?
       @logger.error("TEI for #{@druid} has <pb> element with incorrect druid: #{@page_id}; continuing with given page id.")
     end
+
+    old_seq_num = old_page_id.split('_').last.to_i if old_page_id
+    seq_num = @page_id.split('_').last.to_i
+    if seq_num == 0
+      @logger.warn("Non-integer image sequence number: #{@page_id}; continuing with processing.") 
+    elsif old_seq_num && seq_num != old_seq_num + 1
+      @logger.error("Image ids not consecutive in TEI: #{old_page_id} occurs before #{@page_id}; continuing with processing.")
+    end
+    
     add_value_to_page_doc_hash(:id, @page_id)
     page_num = get_attribute_val('n', attributes)
     add_value_to_page_doc_hash(:page_num_ssi,  page_num) if page_num
