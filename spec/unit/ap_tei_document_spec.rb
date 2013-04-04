@@ -7,26 +7,23 @@ describe ApTeiDocument do
   before(:all) do
     @volume = 'Volume 36'
     @druid = 'aa222bb4444'
-    @vol_constants_hash = { :vol_pdf_name_ss => 'aa222bb4444.pdf',
+    vol_constants_hash = { :vol_pdf_name_ss => 'aa222bb4444.pdf',
                             :vol_pdf_size_ls => 2218576614,
                             :vol_tei_name_ss => 'aa222bb4444.xml',
                             :vol_tei_size_is => 6885841,
                             :vol_total_pages_is => 806  }
-    @page_id_hash = { 'aa222bb4444_00_0001' => 1, 
+    page_id_hash = { 'aa222bb4444_00_0001' => 1, 
                       'aa222bb4444_00_0002' => 2, 
                       'aa222bb4444_00_0805' => 805, 
                       'aa222bb4444_00_0806' => 806}
     @rsolr_client = RSolr::Client.new('http://somewhere.org')
     @logger = Logger.new(STDOUT)
-    @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, @vol_constants_hash, @page_id_hash, @logger)
+    @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, vol_constants_hash, page_id_hash, @logger)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
     @start_tei_body_div1 = "<TEI.2><text><body><div1 type=\"volume\" n=\"36\">"
     @start_tei_body_div2_session = "#{@start_tei_body_div1}<div2 type=\"session\">"
     @end_div1_body_tei = "</div1></body></text></TEI.2>"
     @end_div2_body_tei = "</div2>#{@end_div1_body_tei}"
-    @start_tei_back_div1 = "<TEI.2><text><back><div1 type=\"volume\" n=\"44\">"
-    @end_div1_back_tei = "</div1></back></text></TEI.2>"
-    @end_div2_back_tei = "</div2>#{@end_div1_back_tei}"
   end
   
   context "add_vol_fields_to_hash" do
@@ -110,39 +107,39 @@ describe ApTeiDocument do
   context "parsing warnings" do
     it "should log a warning when it finds direct non-whitespace text content in a wrapper element" do
       x = @start_tei_body_div2_session +
-          "<pb n=\"2\" id=\"ns351vc7243_00_0001\"/>
+          "<pb n=\"2\" id=\"#{@druid}_00_0001\"/>
           <p><date value=\"2013-01-01\">pretending to care</date></p>
           <sp>
              <speaker>M. Guadet.</speaker>
              <p>blah blah ... </p>
              mistake
           </sp>" + @end_div2_body_tei
-      @logger.should_receive(:warn).with("Found <sp> tag with direct text content: 'mistake' in page ns351vc7243_00_0001")
+      @logger.should_receive(:warn).with("Found <sp> tag with direct text content: 'mistake' in page #{@druid}_00_0001")
       @rsolr_client.should_receive(:add).at_least(1).times
       @parser.parse(x)
     end
     it "should log a warning for direct non-whitespace text children of <pb>" do
       x = @start_tei_body_div2_session + 
-          "<pb n=\"812\" id=\"tq360bc6948_00_0816\">
+          "<pb n=\"812\" id=\"#{@druid}_00_0816\">
           <p>foo</p>
           mistake
           </pb>
-          <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-      @logger.should_receive(:warn).with("Found <pb> tag with direct text content: 'mistake' in page tq360bc6948_00_0816")
+          <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
+      @logger.should_receive(:warn).with("Found <pb> tag with direct text content: 'mistake' in page #{@druid}_00_0816")
       @rsolr_client.should_receive(:add).at_least(1).times
       @parser.parse(x)
     end
     it "should log a warning for direct non-whitespace text children when not last" do
       x = @start_tei_body_div2_session + 
-          "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+          "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
           <list>
           <head>bar</head>
           <item>1</item>
           mistake
           <item>2</item>
           </list>
-          <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-      @logger.should_receive(:warn).with("Found <list> tag with direct text content: 'mistake' in page tq360bc6948_00_0816")
+          <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
+      @logger.should_receive(:warn).with("Found <list> tag with direct text content: 'mistake' in page #{@druid}_00_0816")
       @rsolr_client.should_receive(:add).at_least(1).times
       @parser.parse(x)
     end

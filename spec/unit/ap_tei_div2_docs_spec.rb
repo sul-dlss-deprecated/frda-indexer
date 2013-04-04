@@ -32,9 +32,9 @@ describe ApTeiDocument do
   context "init_div2_doc_hash" do
     before(:all) do
       @x = @start_tei_body_div2_session +
-          "<pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+          "<pb n=\"5\" id=\"#{@druid}_00_0001\"/>
           <p>actual content</p>
-          <pb n=\"5\" id=\"ns351vc7243_00_0002\"/>" + @end_div2_body_tei
+          <pb n=\"5\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
     end
     it "should populate id field" do
       @rsolr_client.should_receive(:add).at_least(1).times
@@ -110,7 +110,7 @@ describe ApTeiDocument do
     context 'type="session"' do
       before(:all) do
         @x = @start_tei_body_div2_session + 
-            "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+            "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
             <head>CONVENTION NATIONALE </head>
             <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
             <p>L'an II de la République Française une et indivisible </p>
@@ -154,7 +154,7 @@ describe ApTeiDocument do
     context 'type="alpha"' do
       before(:all) do
         @x = "#{@start_tei_back_div1}<div2 type=\"alpha\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_back_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['alpha'] 
@@ -166,16 +166,16 @@ describe ApTeiDocument do
     context 'type="contents"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"contents\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0008\"/>
+                <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
                 <p>blah blah</p>
-                <pb n=\"6\" id=\"ns351vc7243_00_0009\"/>" + @end_div2_body_tei
+                <pb n=\"6\" id=\"#{@druid}_00_0009\"/>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['contents'] 
     end
     context 'type="other"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"other\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['other'] 
@@ -183,7 +183,7 @@ describe ApTeiDocument do
     context 'type="table_alpha"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['table_alpha'] 
@@ -191,7 +191,7 @@ describe ApTeiDocument do
     context 'type="introduction"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"introduction\">
-                <pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['introduction'] 
@@ -201,9 +201,9 @@ describe ApTeiDocument do
   context "add_div2_doc_to_solr" do
     before(:all) do
       @x = @start_tei_body_div2_session +
-          "<pb n=\"5\" id=\"ns351vc7243_00_0001\"/>
+          "<pb n=\"5\" id=\"#{@druid}_00_0001\"/>
           <p>actual content</p>
-          <pb n=\"5\" id=\"ns351vc7243_00_0002\"/>" + @end_div2_body_tei
+          <pb n=\"5\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
     end
     it "div2 solr doc should have an id" do
       @rsolr_client.should_receive(:add).at_least(1).times
@@ -239,7 +239,7 @@ describe ApTeiDocument do
     context "div2 solr knows about all its pages" do
       it "image number" do
         pending "to be implemented"
-#        :div2_first_page_ssi => 'tq360bc6948_00_0816',
+#        :div2_first_page_ssi => '#{@druid}_00_0816',
       end
       it "page number" do
         pending "to be implemented"

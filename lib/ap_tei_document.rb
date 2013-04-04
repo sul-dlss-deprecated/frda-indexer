@@ -225,6 +225,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
   def process_pb_attribs attributes
     @page_id = get_attribute_val('id', attributes)
+    if !@page_id.match(/^#{@druid}.*/)
+      @logger.error("TEI for #{@druid} has <pb> element with incorrect druid: #{@page_id}; continuing with given page id.")
+    end
     add_value_to_page_doc_hash(:id, @page_id)
     page_num = get_attribute_val('n', attributes)
     add_value_to_page_doc_hash(:page_num_ssi,  page_num) if page_num

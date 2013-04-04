@@ -39,21 +39,21 @@ describe ApTeiDocument do
       context "date" do
         before(:all) do
           @dx = @start_tei_body_div2_session + 
-              "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+              "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
               <head>CONVENTION NATIONALE </head>
               <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
               <p>L'an II de la République Française une et indivisible </p>
-              <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+              <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
         end
         it "should log a warning if it doesn't find a <date> element before an <sp> element" do
           x = @start_tei_body_div2_session + 
-              "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+              "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
               <sp>
                 <speaker>M. Guadet</speaker>
                 <p>blah blah</p>
               </sp>
-              <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-          @logger.should_receive(:warn).with("Didn't find <date> tag before <sp> for session in page tq360bc6948_00_0816")
+              <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
+          @logger.should_receive(:warn).with("Didn't find <date> tag before <sp> for session in page #{@druid}_00_0816")
           @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
@@ -66,10 +66,10 @@ describe ApTeiDocument do
           end
           it "should ignore subsequent <date> elements and log a warning" do
             x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
                 <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p><date value=\"2013-01-01\">pretending to care</date></p>
-                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+                <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_dtsim => ["1793-10-05T00:00:00Z"]))
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
@@ -81,32 +81,32 @@ describe ApTeiDocument do
           end
           it "pages should only have their own session values" do
             x = @start_tei_body_div2_session + 
-                "<pb id=\"tq360bc6948_00_0816\"/>
+                "<pb id=\"#{@druid}_00_0816\"/>
                 <p>first <date value=\"1793-10-05\">one</date></p>
-                <pb id=\"tq360bc6948_00_0817\"/>
+                <pb id=\"#{@druid}_00_0817\"/>
                 <p>blah</p>
                 </div2>
-                <pb id=\"tq360bc6948_00_0818\"/>
+                <pb id=\"#{@druid}_00_0818\"/>
                 <div2 type=\"session\">
                 <p>second <date value=\"1793-10-06\">one</date></p>
-                <pb id=\"tq360bc6948_00_0819\"/>
+                <pb id=\"#{@druid}_00_0819\"/>
                 <p>bleah</p>
                 </div2>
                 <div2 type=\"session\">
                 <p>third <date value=\"1793-10-07\">one</date></p>
-                <pb id=\"tq360bc6948_00_0820\"/>
+                <pb id=\"#{@druid}_00_0820\"/>
                 <p>bleah</p>
                 </div2>
-                <pb id=\"tq360bc6948_00_0821\"/>
+                <pb id=\"#{@druid}_00_0821\"/>
                 <div2 type=\"session\">
                 <p>fourth <date value=\"1793-10-08\">one</date></p>
-                <pb id=\"tq360bc6948_00_0865\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0816', :session_title_ftsim => ["first one"]))
-            @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0817', :session_title_ftsim => ["first one"]))
-            @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0818', :session_title_ftsim => ["second one"]))
-            @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0819', :session_title_ftsim => ["second one", "third one"]))
-            @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0820', :session_title_ftsim => ["third one"]))
-            @rsolr_client.should_receive(:add).with(hash_including(:id => 'tq360bc6948_00_0821', :session_title_ftsim => ["fourth one"]))
+                <pb id=\"#{@druid}_00_0865\"/>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0816", :session_title_ftsim => ["first one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0817", :session_title_ftsim => ["first one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0818", :session_title_ftsim => ["second one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0819", :session_title_ftsim => ["second one", "third one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0820", :session_title_ftsim => ["third one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0821", :session_title_ftsim => ["fourth one"]))
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
@@ -121,30 +121,30 @@ describe ApTeiDocument do
           end
           it "should ignore text from other <p> elements" do
             x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
                 <p>la</p>
                 <p>Séance du <date value=\"1792-04-19\">jeudi 19 avril 1792</date>, au soir, </p>
                 <p>gah</p>
-                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+                <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ['Séance du jeudi 19 avril 1792, au soir']))
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
           it "should only get the first date's surrounding text" do
             x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
                 <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p><date value=\"2013-01-01\">pretending to care</date></p>
-                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+                <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du samedi 5 octobre 1793"]))
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
           it "should get the text from a surrounding <p> element when there is no preceding text" do
             x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
                 <p><date value=\"1792-09-20\">Jeudi 20 septembre 1792</date>, au soir.</p>
-                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+                <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Jeudi 20 septembre 1792, au soir"]))
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
@@ -157,12 +157,12 @@ describe ApTeiDocument do
           end
           it "should work for multiple sessions in a page" do
             x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
                 <p>first <date value=\"1793-10-05\">one</date>. </p>
                 </div2>
                 <div2 type=\"session\">
                   <p>another <date value=\"2013-01-01\">one</date></p>
-                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+                <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["first one", "another one"]))
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
@@ -172,9 +172,9 @@ describe ApTeiDocument do
             # <head>présidence de m. le franc de pompignaf, archevêque de vienne.Séance du <date
             pending "to be implemented if we have a lot of bad values due to this"
             x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
                 <head>Séance du <date value=\"1792-04-19\">jeudi 19 avril 1792</date>, au soir, </head>
-                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+                <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du jeudi 19 avril 1792, au soir"]))
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
@@ -184,9 +184,9 @@ describe ApTeiDocument do
         context "session_date_title_ssim" do
           it "should be (session_date_dtsim) -|- (session_title)" do
             x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+                "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
                 <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
-                <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
+                <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
             @rsolr_client.should_receive(:add).with(hash_including(:session_date_title_ssim => ["1793-10-05-|-Séance du samedi 5 octobre 1793"]))
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
@@ -196,27 +196,27 @@ describe ApTeiDocument do
       
       context "session_seq_first_isim" do
         before(:all) do
-          @page_id_hash = { 'tq360bc6948_00_0813' => 815, 
-                            'tq360bc6948_00_0814' => 888, 
-                            'tq360bc6948_00_0815' => 899}
+          @page_id_hash = { "#{@druid}_00_0813" => 815, 
+                            "#{@druid}_00_0814" => 888, 
+                            "#{@druid}_00_0815" => 899}
           @atd2 = ApTeiDocument.new(@rsolr_client, @druid, @volume, @vol_constants_hash, @page_id_hash, @logger)
           @parser2 = Nokogiri::XML::SAX::Parser.new(@atd2)
         end
         it "should be the first page sequence number in the session, for all pages in the session" do
           x = @start_tei_body_div2_session + 
-                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <head>CONVENTION NATIONALE</head>
                 <p>blah blah</p>
-                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>
+                <pb n=\"811\" id=\"#{@druid}_00_0814\"/>
                 <p>blah blah</p>
-                <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>" + @end_div2_body_tei
+                <pb n=\"812\" id=\"#{@druid}_00_0815\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_seq_first_isim => [815])).twice
           @rsolr_client.should_receive(:add).at_least(1).times
           @parser2.parse(x)
         end
         it "should change when the session changes" do
           x = @start_tei_body_div2_session + 
-                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <head>CONVENTION NATIONALE</head>
                 <p>first <date value=\"1793-10-05\">one</date>. </p>
                 <p>blah blah</p>
@@ -225,9 +225,9 @@ describe ApTeiDocument do
                 <head>CONVENTION NATIONALE</head>
                 <p>second <date value=\"1793-10-06\">one</date>. </p>
                 <p>blah blah</p>
-                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>
+                <pb n=\"811\" id=\"#{@druid}_00_0814\"/>
                 <p>blah blah</p>
-                <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>" + @end_div2_body_tei
+                <pb n=\"812\" id=\"#{@druid}_00_0815\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_seq_first_isim => [815]))
           @rsolr_client.should_receive(:add).with(hash_including(:session_seq_first_isim => [815, 888]))
           @rsolr_client.should_receive(:add).at_least(1).times
@@ -238,65 +238,65 @@ describe ApTeiDocument do
       context "session_govt_ssim" do
         it "should take the value of the first <head> element after <div2>" do
           x = @start_tei_body_div2_session + 
-                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <head>CONVENTION NATIONALE</head>
                 <p>blah blah</p>
-                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+                <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
           @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
         it "should ignore subsequent <head> elements, even if allcaps" do
           x = @start_tei_body_div2_session + 
-                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <head>CONVENTION NATIONALE</head>
                 <head>PRESIDENCE DE M. MERLIN</head>
                 <p>blah blah</p>
-                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+                <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_not_including(:session_govt_ssim => ["PRESIDENCE DE M. MERLIN"]))
           @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
         it "should strip whitespace and punctuation" do
           x = @start_tei_body_div2_session + 
-                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <head> 
                 ASSEMBLÉE NATIONALE LÉGISLATIVE. </head>
                 <p>blah blah</p>
-                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+                <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["ASSEMBLÉE NATIONALE LÉGISLATIVE"]))
           @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
         it "should ignore whitespace before first <head> or <p>" do
           x = @start_tei_body_div2_session + 
-                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 
                 <head>CONVENTION NATIONALE</head>
                 <p>blah blah</p>
-                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+                <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
           @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
         it "should find the value if it is in <p> instead of <head>" do
           x = @start_tei_body_div2_session + 
-                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <p>ASSEMBLÉE NATIONALE LÉGISLATIVE. </p>
                 <p>blah blah</p>
-                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+                <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["ASSEMBLÉE NATIONALE LÉGISLATIVE"]))
           @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
         end
         it "should not have leftover text from preceding elements" do
           x = @start_tei_body_div1 + 
-                "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+                "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <p>blah blah</p>
                 <div2 type=\"session\">
                 <head>CONVENTION NATIONALE</head>
                 <p>blah blah</p>
-                <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>" + @end_div2_body_tei
+                <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
           @rsolr_client.should_receive(:add).at_least(1).times
           @parser.parse(x)
@@ -304,13 +304,13 @@ describe ApTeiDocument do
       end # session_govt_ssim
       it "should put the session specific fields in every page in the session" do
         x = @start_tei_body_div2_session + 
-              "<pb n=\"810\" id=\"tq360bc6948_00_0813\"/>
+              "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
               <head>CONVENTION NATIONALE</head>
               <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
               <p>blah</p>
-              <pb n=\"811\" id=\"tq360bc6948_00_0814\"/>
+              <pb n=\"811\" id=\"#{@druid}_00_0814\"/>
               <p>bleh</p>
-              <pb n=\"812\" id=\"tq360bc6948_00_0815\"/>" + @end_div2_body_tei
+              <pb n=\"812\" id=\"#{@druid}_00_0815\"/>" + @end_div2_body_tei
         exp_hash_fields = { :session_govt_ssim => ["CONVENTION NATIONALE"],
                             :session_date_dtsim => ["1793-10-05T00:00:00Z"],
                             :session_title_ftsim => ["Séance du samedi 5 octobre 1793"] }
@@ -323,10 +323,10 @@ describe ApTeiDocument do
 
   it "should log a warning for unparseable dates" do
     x = @start_tei_body_div2_session + 
-        "<pb n=\"812\" id=\"tq360bc6948_00_0816\"/>
+        "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
         <p>boo <date value=\"1792-999-02\">5 octobre 1793</date> ya</p>
-        <pb n=\"813\" id=\"tq360bc6948_00_0817\"/>" + @end_div2_body_tei
-    @logger.should_receive(:warn).with("Found <date> tag with unparseable date value: '1792-999-02' in page tq360bc6948_00_0816")
+        <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
+    @logger.should_receive(:warn).with("Found <date> tag with unparseable date value: '1792-999-02' in page #{@druid}_00_0816")
     @rsolr_client.should_receive(:add).at_least(1).times
     @parser.parse(x)
   end
