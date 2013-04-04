@@ -340,7 +340,7 @@ describe ApTeiDocument do
                <speaker>m. Guadet</speaker>
                <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
             </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet']))
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet'], :id => "#{@druid}_div2_1"))
         @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
@@ -356,7 +356,7 @@ describe ApTeiDocument do
               <speaker>M. McRae.</speaker>
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet', 'McRae']))
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet', 'McRae'], :id => "#{@druid}_div2_1"))
         @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end     
@@ -390,7 +390,7 @@ describe ApTeiDocument do
               <speaker>M. McRae.</speaker>
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['McRae']))
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['McRae'], :id => "#{@druid}_div2_1"))
         @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
@@ -402,7 +402,7 @@ describe ApTeiDocument do
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
         @atd.should_receive(:normalize_speaker).and_call_original
-        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Le Président']))
+        @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Le Président'], :id => "#{@druid}_div2_1"))
         @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end

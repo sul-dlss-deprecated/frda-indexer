@@ -149,7 +149,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_sp = false
     when 'speaker'
       @speaker = normalize_speaker(@element_buffer.strip) if !@element_buffer.strip.empty?
-      add_value_to_page_doc_hash(:speaker_ssim, @speaker.strip) if @speaker && !(@page_doc_hash[:speaker_ssim] && @page_doc_hash[:speaker_ssim].include?(@speaker.strip))
+      if @speaker && @speaker.strip
+        add_value_to_div2_doc_hash(:speaker_ssim, @speaker.strip) unless @div2_doc_hash[:speaker_ssim] && @div2_doc_hash[:speaker_ssim].include?(@speaker.strip)
+      end
       @in_speaker = false
     end # case name
     
