@@ -232,6 +232,51 @@ describe ApTeiDocument do
     end
   end # <div2> element
   
+  context "div2 solr doc knows about all its pages" do
+    before(:all) do
+      @first_page_id = "#{@druid}_00_0111"
+      @last_page_id = "#{@druid}_00_0114"
+      @x = @start_tei_body_div2_session +
+            "<pb n=\"101\" id=\"#{@first_page_id}\"/>
+            <p>before</p>
+            <p><date value=\"2013-01-01\">session title</date></p>
+            <sp>
+               <speaker>M. Guadet.</speaker>
+               <p>blah blah ... </p>
+               <p>bleah bleah ... </p>
+            </sp>
+            <p>middle</p>
+            <pb n=\"102\" id=\"#{@druid}_00_0112\"/>
+            <sp>
+              <p>no speaker</p>
+            </sp>
+            <pb n=\"103\" id=\"#{@druid}_00_0113\"/>
+            <sp>
+              <speaker/>
+              <p>also no speaker</p>
+            </sp>
+            <pb n=\"104\" id=\"#{@last_page_id}\"/>
+            <p>after</p>" + @end_div2_body_tei
+    end
+    it "pages_ssim" do
+      pending "to be implemented"
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
+                      :pages_ssim => ["#{@druid}_00_0111-|-101",
+                                      "#{@druid}_00_0112-|-102",
+                                      "#{@druid}_00_0113-|-103",
+                                      "#{@druid}_00_0114-|-104"]))
+      @parser.parse(@x)
+    end
+    it "should know first text snippet" do
+      # grab first x chars of text_tiv?
+      pending "to be implemented"
+    end
+    it "should know last text snippet" do
+      # grab last x chars of text_tiv?
+      pending "to be implemented"
+    end
+  end
+  
   context "add_div2_doc_to_solr" do
     before(:all) do
       @x = @start_tei_body_div2_session +
@@ -269,34 +314,8 @@ describe ApTeiDocument do
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @session_type, :text_tiv => 'actual content'))
       @parser.parse(@x)
-    end
-    context "div2 solr knows about all its pages" do
-      it "image number" do
-        pending "to be implemented"
-#        :div2_first_page_ssi => '#{@druid}_00_0816',
-      end
-      it "page number" do
-        pending "to be implemented"
-      end
-    end
-    
-    context "first page" do
-      it "should know image id" do
-        pending "to be implemented: session_seq_first_isim"
-      end
-      it "should know first text snippet" do
-        pending "to be implemented"
-      end
-    end
-    context "last page" do
-      it "should know image id" do
-        pending "to be implemented"
-      end
-      it "should know last text snippet" do
-        pending "to be implemented"
-      end
-    end
-  end 
+    end    
+  end # add_div2_doc_to_solr
   
   it "unspoken_text field" do
     # see ap_tei_unspoken_text_spec
