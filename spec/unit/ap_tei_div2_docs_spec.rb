@@ -247,6 +247,7 @@ describe ApTeiDocument do
                 <head>RÉPUBLIQUE FRANÇAISE </head>
                   <div2 type=\"table_alpha\">
                   <p>something</p>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0007"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                           :pages_ssim => ["#{@druid}_00_0007-|-1"]))
           @parser.parse(x)

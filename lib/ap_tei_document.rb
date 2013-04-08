@@ -193,7 +193,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @page_buffer = add_chars_to_buffer(chars, @page_buffer) if (@in_body || @in_back) && !IGNORE_ELEMENTS.include?(@element_name_stack.last)
     @div2_buffer = add_chars_to_buffer(chars, @div2_buffer) if @in_div2 && !IGNORE_ELEMENTS.include?(@element_name_stack.last)
     # did a page start before we got to this div2?
-    if !@div2_doc_hash[:pages_ssim] && !div2_buffer_empty? && @page_id
+    if @div2_doc_hash && !@div2_doc_hash[:pages_ssim] && !div2_buffer_empty? && @page_id
       add_value_to_div2_doc_hash(:pages_ssim, @page_id + SEP + (@page_num_s ? @page_num_s : "") )
     end
     
@@ -236,7 +236,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def add_unspoken_text_to_doc_hashes text
     if text.match(/\w+/)
       add_value_to_page_doc_hash(:unspoken_text_timv, "#{text}")
-      add_value_to_div2_doc_hash(:unspoken_text_timv, "#{@page_id}#{SEP}#{text}")
+      add_value_to_div2_doc_hash(:unspoken_text_timv, "#{@page_id}#{SEP}#{text}") if @div2_doc_hash
     end
   end
   
