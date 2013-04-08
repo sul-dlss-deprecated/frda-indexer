@@ -37,6 +37,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     init_page_doc_hash
     @div2_counter = 0
     @page_id = nil
+    @page_num_s = nil
     @page_num_i = nil
     @need_session_govt = false
     @need_session_title = false

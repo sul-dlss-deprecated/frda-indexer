@@ -260,6 +260,7 @@ describe ApTeiDocument do
                   <head>PREMIÈRE SÉRIE </head>
                   <div2 type=\"contents\">
                     <head>TABLE CHRONOLOGIQUE DU TOME L </head>" + @end_div2_back_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0742"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                           :pages_ssim => ["#{@druid}_00_0742-|-"]))
           @parser.parse(x)
@@ -279,8 +280,9 @@ describe ApTeiDocument do
                         <head>more</head>
                         <p>stuff</p>
                       </div3>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => "page")).at_least(1).times
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
-                          :pages_ssim => ["#{@druid}_00_0005-|-1"]))
+                          :pages_ssim => ["#{@druid}_00_0004-|-iv", "#{@druid}_00_0005-|-1"]))
           @parser.parse(x)
         end
         it "<pb> just after <div1> and just before <div2>" do
@@ -288,6 +290,7 @@ describe ApTeiDocument do
                 <pb n=\"III\" id=\"#{@druid}_00_0004\"/>
                 <div2 type=\"other\">
                 <head>LOUKMENT DBS DÉPUTÉS AUX ÉTATS GÉNÉRAUX. </head>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0004"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                           :pages_ssim => ["#{@druid}_00_0004-|-III"]))
           @parser.parse(x)
@@ -298,6 +301,7 @@ describe ApTeiDocument do
                <div2 type=\"introduction\">
                  <head>INTRODUCTION</head>
                  <p>blah</p>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0025"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                          :pages_ssim => ["#{@druid}_00_0025-|-19"]))
           @parser.parse(x)
@@ -310,6 +314,7 @@ describe ApTeiDocument do
                 <head>RÉPUBLIQUE FRANÇAISE </head>
                   <div2 type=\"table_alpha\">
                   <p>something</p>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0007"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                           :pages_ssim => ["#{@druid}_00_0007-|-1"]))
           @parser.parse(x)
