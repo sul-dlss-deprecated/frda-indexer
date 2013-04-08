@@ -293,6 +293,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       add_field_value_to_hash(:session_seq_first_isim, @page_id_hash[@page_id], @page_session_fields)
       @need_session_first_page = false
     end
+    
+    div2_text = @div2_buffer.strip.gsub(/\s+/, ' ') if @div2_buffer && @div2_buffer.strip
+    if div2_text
+      add_value_to_div2_doc_hash(:pages_ssim, @page_id + SEP + page_num)
+    end
   end
 
   # @param [String] attr_name the name of the desired attribute

@@ -359,6 +359,7 @@ describe ApTeiDocument do
               <head>DES NOMS ET QUALITÉS DE MESSIEURS LES DÉPUTÉS ET SUPPLÉANTS </head>
               <head>A L'ASSEMBLÉE NATIONALE, </head>
               <head>DRESSÉE PAR ORDRE ALPHABÉTIQUE DE SÉNÉCHAUSSÉES ET BAILLIAGES. </head>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0007"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                         :pages_ssim => ["#{@druid}_00_0007-|-1"]))
         @parser.parse(x)
@@ -395,6 +396,7 @@ describe ApTeiDocument do
               <div3 type=\"other\">
                 <head>CAHIER DES DOLÉANCES</head>
               </div3>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0068"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0068-|-64"]))
         @parser.parse(x)
@@ -403,7 +405,7 @@ describe ApTeiDocument do
         x = @start_tei_body + 
             "<pb n=\"46\" id=\"#{@druid}_00_0050\"/>
             <div1>
-            <div2>
+            <div2 type = \"other\">
               <p>blah</p>
             </div2>
             <div2 type=\"other\">
@@ -419,7 +421,7 @@ describe ApTeiDocument do
         x = @start_tei_back_div1 +
             "<div2 type=\"other\">
               <pb n=\"706\" id=\"#{@druid}_00_0710\"/>
-              <p>blah
+              <p>blah</p>
             </div2>
             <div2 type=\"session\">
               <head>CONVENTION NATIONALE. </head>
@@ -430,6 +432,7 @@ describe ApTeiDocument do
               <p> blah</p>" + @end_div2_back_tei
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0710-|-706"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0710"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                        :pages_ssim => ["#{@druid}_00_0710-|-706", "#{@druid}_00_0711-|-707"]))
         @parser.parse(x)
