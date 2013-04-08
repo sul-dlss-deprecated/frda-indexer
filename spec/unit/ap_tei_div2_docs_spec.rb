@@ -403,6 +403,7 @@ describe ApTeiDocument do
         x = @start_tei_body + 
             "<pb n=\"46\" id=\"#{@druid}_00_0050\"/>
             <div1>
+            <div2>
               <p>blah</p>
             </div2>
             <div2 type=\"other\">
@@ -536,10 +537,10 @@ describe ApTeiDocument do
       end
       it "paging withing type other terms" do
         x = @start_tei_body_div1 + 
-            "<pb n=\"711\" id=\"bm916nx5550_00_0776\"/>
+            "<pb n=\"711\" id=\"#{@druid}_00_0776\"/>
             <div2 type=\"other\">
               <p><term>Luynes</term>blah</p>
-              <pb n=\"712\" id=\"bm916nx5550_00_0777\"/>
+              <pb n=\"712\" id=\"#{@druid}_00_0777\"/>
               <p><term>Luynes</term>hoo ha</p>
             </div2>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
@@ -607,11 +608,11 @@ describe ApTeiDocument do
       end
       it "<pb> after <div2> before <div1> end of <body>" do
         x = @start_tei_body_div1 + 
-              "<pb n=\"\" id=\"bg262qk2288_00_0723\"/>
+              "<pb n=\"\" id=\"#{@druid}_00_0723\"/>
               <div2 type=\"other\">
                 <p>blah</p>
               </div2>
-              <pb n=\"\" id=\"bg262qk2288_00_0724\"/>
+              <pb n=\"\" id=\"#{@druid}_00_0724\"/>
             </div1>
           </body>
           <back>
@@ -789,12 +790,12 @@ describe ApTeiDocument do
       end
       it "<pb> just between closing div3 and div2" do
         x = @start_tei_body_div1 + 
-            "<pb n=\"316\" id=\"bk786xb5412_00_0320\"/>
+            "<pb n=\"316\" id=\"#{@druid}_00_0320\"/>
             <div2 type=\"other\">
               <div3 type=\"other\">
                 <p>stuff</p>
               </div3>
-              <pb n=\"317\" id=\"bk786xb5412_00_0321\"/>
+              <pb n=\"317\" id=\"#{@druid}_00_0321\"/>
             </div2>
             <div2 type=\"session\">
               <p><date value=\"2013-01-01\">session title</date></p>
