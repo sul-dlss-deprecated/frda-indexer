@@ -37,7 +37,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     init_page_doc_hash
     @div2_counter = 0
     @page_id = nil
-    @page_num = nil
+    @page_num_i = nil
     @need_session_govt = false
     @need_session_title = false
   end
@@ -126,6 +126,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
     when 'div2'
       add_div2_doc_to_solr
+      @div2_buffer = ''
       @in_div2 = false
       @div2_doc_type = nil
       @in_session = false
@@ -191,6 +192,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
     @page_buffer = add_chars_to_buffer(chars, @page_buffer) if (@in_body || @in_back) && !IGNORE_ELEMENTS.include?(@element_name_stack.last)
     @div2_buffer = add_chars_to_buffer(chars, @div2_buffer) if @in_div2 && !IGNORE_ELEMENTS.include?(@element_name_stack.last)
+    # did a page start before we got to this div2?
+    if !@div2_doc_hash[:pages_ssim] && !div2_buffer_empty? && @page_id
+      add_value_to_div2_doc_hash(:pages_ssim, @page_id + SEP + (@page_num_s ? @page_num_s : "") )
+    end
+    
     @element_just_started = false
     @element_just_ended = false
   end
@@ -269,21 +275,22 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     
     # (printed) page numbers
     page_num = get_attribute_val('n', attributes)
-    page_num.strip! if page_num
-    if page_num
-      add_value_to_page_doc_hash(:page_num_ssi,  page_num)
-    elsif @page_num
+    @page_num_s = page_num.strip if page_num
+    if @page_num_s
+      add_value_to_page_doc_hash(:page_num_ssi,  @page_num_s)
+    elsif @page_num_i
       @logger.warn("Missing page number in TEI for #{@page_id}; continuing with processing.")
     end
         
-    old_page_num = @page_num if @page_num
+    # integer page num
+    old_page_num = @page_num_i if @page_num_i
     if page_num && page_num.match(/\d+/)
-      @page_num = page_num.to_i 
+      @page_num_i = page_num.to_i 
     else
-      @page_num = nil
+      @page_num_i = nil
     end
-    if old_page_num && @page_num && @page_num != old_page_num + 1
-      @logger.warn("Page numbers not consecutive in TEI: #{@page_num} (in image #{@page_id}) occurs after #{old_page_num} (in image #{old_page_id}); continuing with processing.")
+    if old_page_num && @page_num_i && @page_num_i != old_page_num + 1
+      @logger.warn("Page numbers not consecutive in TEI: #{@page_num_i} (in image #{@page_id}) occurs after #{old_page_num} (in image #{old_page_id}); continuing with processing.")
     end
 
     add_value_to_page_doc_hash(:page_sequence_isi, @page_id_hash[@page_id]) if @page_id_hash[@page_id]
@@ -294,9 +301,17 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @need_session_first_page = false
     end
     
+    if @in_div2 && !div2_buffer_empty?
+      add_value_to_div2_doc_hash(:pages_ssim, @page_id + SEP + (@page_num_s ? @page_num_s : "") )
+    end
+  end
+
+  def div2_buffer_empty?
     div2_text = @div2_buffer.strip.gsub(/\s+/, ' ') if @div2_buffer && @div2_buffer.strip
-    if div2_text
-      add_value_to_div2_doc_hash(:pages_ssim, @page_id + SEP + page_num)
+    if div2_text && !div2_text.empty?
+      true
+    else
+      false
     end
   end
 
@@ -411,6 +426,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def add_div2_doc_to_solr
     text = @div2_buffer.strip.gsub(/\s+/, ' ') if @div2_buffer && @div2_buffer.strip
     add_value_to_div2_doc_hash(:text_tiv, text)
+    last_page = @page_id + SEP + (@page_num_s ? @page_num_s : "") if @page_id
+    add_value_to_div2_doc_hash(:pages_ssim, last_page) unless last_page.nil? || @div2_doc_hash[:pages_ssim].include?(last_page)
     @rsolr_client.add(@div2_doc_hash)
   end
   

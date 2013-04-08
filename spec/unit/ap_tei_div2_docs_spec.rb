@@ -237,6 +237,7 @@ describe ApTeiDocument do
   context "div2 solr doc pages_ssim" do
     
     context "opening <div2> tag" do
+
       context "first <div2> in <div1>" do
         it "<pb> just before <div1> (<body>)" do
           x = @start_tei_body + 
@@ -336,6 +337,7 @@ describe ApTeiDocument do
                 <pb n=\"1\" id=\"#{@druid}_00_0007\"/>
                   <div2 type=\"table_alpha\">
                   <p>something</p>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0007"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                           :pages_ssim => ["#{@druid}_00_0007-|-1"]))
           @parser.parse(x)
@@ -347,6 +349,7 @@ describe ApTeiDocument do
                 <p>Compte rendu du Moniteur universel (1). </p>"  + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                           :pages_ssim => ["#{@druid}_00_0007-|-1"]))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0007"))
           @parser.parse(x)
         end
       end # first <div2> in <div1>
