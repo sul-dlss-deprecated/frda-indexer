@@ -80,15 +80,16 @@ describe ApTeiDocument do
       x = @start_tei_body_div2_session +
           "<pb n=\"316\" id=\"#{@druid}_00_0320\"/>
           <p>actual content</p>" + @end_div2_body_tei
-      @atd.should_receive(:add_div2_doc_to_solr) # once for end of <div2>, once for end_document
-      @rsolr_client.should_receive(:add).twice
+      @atd.should_receive(:add_div2_doc_to_solr).and_call_original # once for end of <div2>; not redundantly called at end of doc
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0320"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1"))
       @parser.parse(x)
     end
     it "start of <div2> element should not call add_div2_doc_to_solr" do
       x = @start_tei_body_div2_session +
           "<pb n=\"316\" id=\"#{@druid}_00_0320\"/>
           <p>actual content</p>" + @end_div1_body_tei
-      @atd.should_not_receive(:add_div2_doc_to_solr)
+      @atd.should_receive(:add_div2_doc_to_solr)  # once at end of document
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @parser.parse(x)
     end
