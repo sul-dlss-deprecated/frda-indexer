@@ -36,11 +36,16 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @in_back = false
     init_page_doc_hash
     @div2_counter = 0
+    # much of the below is for reusing the @atd object in testing
     @page_id = nil
     @page_num_s = nil
     @page_num_i = nil
     @need_session_govt = false
     @need_session_title = false
+    @need_first_page = true
+    @last_page_added = nil
+    @last_div2_added = nil
+    @div2_doc_hash = nil
   end
     
   # @param [String] name the element tag
@@ -71,22 +76,22 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       else
         @page_session_fields = nil
       end
-      if @in_body || @in_back
-        add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
-      end
+      add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
       init_div2_doc_hash
     when 'date'
       date_val_str = get_attribute_val('value', attributes)
       d = normalize_date(date_val_str)
       if @need_session_date && date_val_str
         add_field_value_to_hash(:session_date_val_ssim, date_val_str, @page_session_fields)
-        add_value_to_div2_doc_hash(:session_date_val_ssi, date_val_str)
+        add_value_to_div2_doc_hash(:session_date_val_ssi, date_val_str) if @div2_doc_hash
         add_field_value_to_hash(:session_date_dtsim, d.strftime('%Y-%m-%dT00:00:00Z'), @page_session_fields) if d
-        add_value_to_div2_doc_hash(:session_date_dtsi, d.strftime('%Y-%m-%dT00:00:00Z')) if d
+        add_value_to_div2_doc_hash(:session_date_dtsi, d.strftime('%Y-%m-%dT00:00:00Z')) if d && @div2_doc_hash
         @need_session_date = false
       end
     when 'pb'
-      if !@page_buffer.empty? && (@in_body || @in_back)
+      if @need_first_page
+        @need_first_page = false
+      else
         add_page_doc_to_solr
       end
       init_page_doc_hash
@@ -109,10 +114,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     text = @element_buffer.strip if !@element_buffer.strip.empty?
     case name
     when 'body'
-      if !@page_buffer.empty?
-        add_page_doc_to_solr
-        init_page_doc_hash
-      end
+      add_page_doc_to_solr
+      init_page_doc_hash
       @in_body = false
     when 'back'
       add_page_doc_to_solr
@@ -167,7 +170,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @speaker = normalize_speaker(text) if text
       @speaker.strip! if @speaker
       if @speaker
-        add_value_to_div2_doc_hash(:speaker_ssim, @speaker) unless @div2_doc_hash[:speaker_ssim] && @div2_doc_hash[:speaker_ssim].include?(@speaker)
+        add_value_to_div2_doc_hash(:speaker_ssim, @speaker) unless @div2_doc_hash && @div2_doc_hash[:speaker_ssim] && @div2_doc_hash[:speaker_ssim].include?(@speaker)
       end
       @in_speaker = false
     when 'hi', 'note', 'item', 'signed'
@@ -176,6 +179,18 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     
     @element_just_ended = true
     @element_buffer = ''
+  end
+  
+  # ensure we output the last page / div2 documents
+  def end_document
+    # write out last page, if we didn't already
+    if @page_doc_hash && @page_doc_hash[:id] && @page_doc_hash[:id] != @last_page_added
+      add_page_doc_to_solr
+    end
+    # write out last div2, if we didn't already
+    if @div2_doc_hash && @div2_doc_hash[:id] && @div2_doc_hash[:id] != @last_div2_added
+      add_div2_doc_to_solr
+    end
   end
   
   # Characters within element tags.  This method might be called multiple
@@ -264,7 +279,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @logger.error("TEI for #{@druid} has <pb> element with incorrect druid: #{@page_id}; continuing with given page id.")
     end
 
-    add_value_to_page_doc_hash(:id, @page_id)
+    add_value_to_page_doc_hash(:id, @page_id) if @page_id
 
     # image id sequence numbers
     old_seq_num = old_page_id.split('_').last.to_i if old_page_id
@@ -307,6 +322,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
   end
 
+  # @return true if @div2_buffer is empty or nil
   def div2_buffer_empty?
     div2_text = @div2_buffer.strip.gsub(/\s+/, ' ') if @div2_buffer && @div2_buffer.strip
     if div2_text && !div2_text.empty?
@@ -330,9 +346,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def init_page_doc_hash
     @page_doc_hash = {}
     @page_doc_hash[:type_ssi] = PAGE_TYPE
-    if (@in_body || @in_back) && @in_div2
-      add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
-    end
+    add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type) if @div2_doc_type
     add_vol_fields_to_hash(@page_doc_hash)
     @element_buffer = ''
     @page_buffer = ''
@@ -352,7 +366,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def init_div2_doc_hash
     @div2_doc_hash = {}
     add_value_to_div2_doc_hash(:id, "#{@druid}_div2_#{@div2_counter}")
-    if (@in_body || @in_back) && @in_div2
+    if @in_div2
       add_value_to_div2_doc_hash(:doc_type_ssi, @div2_doc_type)
       add_value_to_div2_doc_hash(:type_ssi, @div2_doc_type)
     end
@@ -382,7 +396,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [Symbol] key the Solr field name 
   # @param [String] value the value to add to the div2_doc_hash for the key
   def add_value_to_div2_doc_hash(key, value)
-    add_field_value_to_hash(key, value, @div2_doc_hash)
+    add_field_value_to_hash(key, value, @div2_doc_hash) if @div2_doc_hash
   end
   
   # add the value to the hash for the Solr field.
@@ -415,21 +429,25 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
 
   # write @page_doc_hash to Solr, but only if the current page has content
   def add_page_doc_to_solr
-    text = @page_buffer.strip.gsub(/\s+/, ' ') if @page_buffer && @page_buffer.strip
-    if !text.empty?
-      add_value_to_page_doc_hash(:text_tiv, text)
+    if @page_doc_hash[:id] && @page_doc_hash[:id] != @last_page_added
+      text = @page_buffer.strip.gsub(/\s+/, ' ') if @page_buffer && @page_buffer.strip
+      add_value_to_page_doc_hash(:text_tiv, text) if text && !text.empty?
       @page_doc_hash.merge!(@page_session_fields) if @page_session_fields
       @rsolr_client.add(@page_doc_hash)
+      @last_page_added = @page_doc_hash[:id]
     end
   end
   
   # write @div2_doc_hash to Solr
   def add_div2_doc_to_solr
-    text = @div2_buffer.strip.gsub(/\s+/, ' ') if @div2_buffer && @div2_buffer.strip
-    add_value_to_div2_doc_hash(:text_tiv, text)
-    last_page = @page_id + SEP + (@page_num_s ? @page_num_s : "") if @page_id
-    add_value_to_div2_doc_hash(:pages_ssim, last_page) unless last_page.nil? || @div2_doc_hash[:pages_ssim].include?(last_page)
-    @rsolr_client.add(@div2_doc_hash)
+    if @div2_doc_hash[:id] && @div2_doc_hash[:id] != @last_div2_added
+      text = @div2_buffer.strip.gsub(/\s+/, ' ') if @div2_buffer && @div2_buffer.strip
+      add_value_to_div2_doc_hash(:text_tiv, text)
+      last_page = @page_id + SEP + (@page_num_s ? @page_num_s : "") if @page_id
+      add_value_to_div2_doc_hash(:pages_ssim, last_page) unless last_page.nil? || @div2_doc_hash[:pages_ssim].include?(last_page)
+      @rsolr_client.add(@div2_doc_hash)
+      @last_div2_added = @div2_doc_hash[:id]
+    end
   end
   
 end # ApTeiDocument class

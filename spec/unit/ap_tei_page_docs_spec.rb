@@ -57,15 +57,16 @@ describe ApTeiDocument do
           "<pb n=\"5\" id=\"#{@druid}_00_0001\"/>
           <p>actual content</p>
           <pb n=\"6\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
-      @rsolr_client.should_receive(:add).at_least(1).times
+      @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [ApTeiDocument::DIV2_TYPE['session']], :id => "#{@druid}_00_0001"))
+      @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [ApTeiDocument::DIV2_TYPE['session']], :id => "#{@druid}_00_0002"))
+      @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => ApTeiDocument::DIV2_TYPE['session'], :id => "#{@druid}_div2_1"))
       @parser.parse(x)
-      @atd.page_doc_hash[:doc_type_ssim].should == [ApTeiDocument::DIV2_TYPE['session']]
     end
   end 
 
   context "add_page_doc_to_solr" do
     context "when page has no indexed content (<p>)" do
-      it "pages in <front> section should not go to Solr" do
+      it "pages in <front> section should go to Solr" do
         x = "<TEI.2><text><front>
               <div type=\"frontpiece\">
                   <pb n=\"\" id=\"#{@druid}_00_0001\"/>
@@ -74,25 +75,27 @@ describe ApTeiDocument do
               <div type=\"abstract\">
                   <pb n=\"ii\" id=\"#{@druid}_00_0002\"/>
               </div></front></text></TEI.2>"
-        @rsolr_client.should_not_receive(:add).with(hash_including(:id => "#{@druid}_00_0001"))
-        @rsolr_client.should_not_receive(:add).with(hash_including(:id => "#{@druid}_00_0002"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0001"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0002"))
         @parser.parse(x)
       end
-      it "blank page at beginning of <body> should not go to Solr" do
+      it "blank page at beginning of <body> should go to Solr" do
         x = @start_tei_body_div1 +
                "<pb n=\"\" id=\"#{@druid}_00_0004\"/>
                 <pb n=\"1\" id=\"#{@druid}_00_0005\"/>" + @end_div1_body_tei
-        @rsolr_client.should_not_receive(:add).with(hash_including(:id => "#{@druid}_00_0004"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0004"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0005"))
         @parser.parse(x)
       end
-      it "blank pages at end of <body> should not go to Solr" do
+      it "blank pages at end of <body> should go to Solr" do
         x = @start_tei_body_div1 +
                 "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"#{@druid}_00_0814\"/>
                 <pb n=\"812\" id=\"#{@druid}_00_0815\"/>" + @end_div1_body_tei
-        @rsolr_client.should_not_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
-        @rsolr_client.should_not_receive(:add).with(hash_including(:id => "#{@druid}_00_0815"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0813"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0815"))
         @parser.parse(x)
       end
       it "blank page at beginning of <back> should go to Solr" do
@@ -101,16 +104,18 @@ describe ApTeiDocument do
                 <head>blah</head>
                 <pb n=\"1\" id=\"#{@druid}_00_0005\"/>" + @end_div1_back_tei
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0004"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0005"))
         @parser.parse(x)
       end
-      it "blank pages at end of <back> should not go to Solr" do
+      it "blank pages at end of <back> should go to Solr" do
         x = @start_tei_back_div1 +
                 "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"#{@druid}_00_0814\"/>
                 <pb n=\"812\" id=\"#{@druid}_00_0815\"/>" + @end_div1_back_tei
-        @rsolr_client.should_not_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
-        @rsolr_client.should_not_receive(:add).with(hash_including(:id => "#{@druid}_00_0815"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0813"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0815"))
         @parser.parse(x)
       end
     end # when no indexed content
@@ -375,60 +380,72 @@ describe ApTeiDocument do
     end
     it "should not include the contents of any attributes" do
       x = @begin_body + "<p>Art. 1<hi rend=\"superscript\">er</hi></p>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er', :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
       x = @begin_body + "<date value=\"2013-01-01\">pretending to care</date>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care', :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
     end
     it "should include the contents of <p> element" do
       x = @begin_body + "<p>blather</p>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'blather'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'blather', :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
     end
     it "should include the contents of <head> element" do
       x = @begin_body + "<head>MARDI 15 OCTOBRE 1793.</head>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'MARDI 15 OCTOBRE 1793.'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'MARDI 15 OCTOBRE 1793.', :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
     end
     it "should include the contents of <speaker> element" do
       x = @begin_body + "<sp><speaker>M. Bréard.</speaker></sp>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'M. Bréard.'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'M. Bréard.', :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
     end
     it "should include the contents of <date> element" do
       x = @begin_body + "<date value=\"2013-01-01\">pretending to care</date>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care', :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
     end
     it "should include the contents of <note> element" do
       x = @begin_body + "<note place=\"foot\">(1) shoes.</note>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.', :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
     end
     it "should include the contents of <hi> element" do
       x = @begin_body + "<p>Art. 1<hi>er.</hi>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er.'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er.', :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
     end
     it "should include the contents of <term> element" do
       x = @begin_body + "<p><term>Abbaye </term>(Prison de F).</p>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Abbaye (Prison de F).'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Abbaye (Prison de F).', :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
     end
     it "should include the contents of <item> element" do
       x = @begin_body + "<list><item>item!</item></list>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'item!'))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'item!', :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
     end
     it "should include the contents of <signed> element" do
       x = @begin_body + "<signed>Signé : Remillat, à l'original. </signed>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "Signé : Remillat, à l'original."))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "Signé : Remillat, à l'original.", :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
     end
     it "should ignore <trailer>" do
       x = @begin_body + "<trailer>FIN DE L'INTRODUCTION.</trailer><p>blah</p>" + @end_body
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "blah"))
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "blah", :id => "#{@druid}_00_0813"))
+      @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0814"))
       @parser.parse(x)
     end
   end # text_tiv field

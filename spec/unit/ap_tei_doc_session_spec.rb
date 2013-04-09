@@ -28,10 +28,11 @@ describe ApTeiDocument do
     context 'type="session"' do
       before(:all) do
         @x = @start_tei_body_div2_session +
-            "<p>actual content</p>" + @end_div2_body_tei
+            "<pb n=\"010\" id=\"#{@druid}_00_0010\"/>
+            <p>actual content</p>" + @end_div2_body_tei
       end
       it "should have doc_type_ssim of 'séance'" do
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["séance"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ["séance"], :id => "#{@druid}_00_0010"))
         @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(@x)
       end
@@ -335,18 +336,20 @@ describe ApTeiDocument do
     context "speaker_ssim" do
       it "should be present if there is a non-empty <speaker> element" do
         x = @start_tei_body_div2_session +
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            "<pb n=\"010\" id=\"#{@druid}_00_0016\"/>
+            <p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
                <speaker>m. Guadet</speaker>
                <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
             </sp>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet'], :id => "#{@druid}_div2_1"))
-        @rsolr_client.should_receive(:add).at_least(1).times
+        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim)) # no speaker for pages
         @parser.parse(x)
       end
       it "should have multiple values for multiple speakers" do
         x = @start_tei_body_div2_session + 
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            "<pb n=\"010\" id=\"#{@druid}_00_0016\"/>
+            <p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
               <speaker>m. Guadet</speaker>
               <p>blah blah</p>
@@ -357,31 +360,32 @@ describe ApTeiDocument do
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Guadet', 'McRae'], :id => "#{@druid}_div2_1"))
-        @rsolr_client.should_receive(:add).at_least(1).times
+        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim)) # no speaker for pages
         @parser.parse(x)
       end     
       it "should not be present if there is an empty <speaker> element" do
         x = @start_tei_body_div2_session + 
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            "<pb n=\"010\" id=\"#{@druid}_00_0016\"/>
+            <p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
                <speaker></speaker>
                <speaker/>
                <p>,secrétaire, donne lecture du procès-verbal de la séance ... </p>
              </sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
-        @rsolr_client.should_receive(:add).at_least(1).times
+        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim)).twice # div2 and page
         @parser.parse(x)
       end
       it "should not be present if there is no <speaker> element" do
         x = @start_tei_body_div2_session + 
-            "<p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
-        @rsolr_client.should_receive(:add).at_least(1).times
+            "<pb n=\"010\" id=\"#{@druid}_00_0016\"/>
+            <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim)).twice # div2 and page
         @parser.parse(x)
       end
       it "should not have duplicate values" do
         x = @start_tei_body_div2_session + 
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            "<pb n=\"010\" id=\"#{@druid}_00_0016\"/>
+            <p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
               <speaker>M. McRae.</speaker>
               <p>blah blah</p>
@@ -391,19 +395,20 @@ describe ApTeiDocument do
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['McRae'], :id => "#{@druid}_div2_1"))
-        @rsolr_client.should_receive(:add).at_least(1).times
+        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim)) # no speaker for pages
         @parser.parse(x)
       end
       it "should call normalize_speaker" do
         x = @start_tei_body_div2_session + 
-            "<p><date value=\"2013-01-01\">pretending to care</date></p>
+            "<pb n=\"010\" id=\"#{@druid}_00_0016\"/>
+            <p><date value=\"2013-01-01\">pretending to care</date></p>
             <sp>
               <speaker>&gt;M. le Président</speaker>
               <p>bleah bleah</p>
             </sp>" + @end_div2_body_tei
         @atd.should_receive(:normalize_speaker).and_call_original
         @rsolr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Le Président'], :id => "#{@druid}_div2_1"))
-        @rsolr_client.should_receive(:add).at_least(1).times
+        @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim)) # no speaker for pages
         @parser.parse(x)
       end
     end # speaker_ssim
