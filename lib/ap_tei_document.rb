@@ -256,6 +256,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [Array<String>] attributes an assoc list of namespaces and attributes, e.g.:
   #     [ ["xmlns:foo", "http://sample.net"], ["size", "large"] ]
   def process_pb_attribs attributes
+    @page_num_s = nil
     old_page_id = @page_id
     @page_id = get_attribute_val('id', attributes)
     @page_id.strip! if @page_id
@@ -277,9 +278,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     # (printed) page numbers
     page_num = get_attribute_val('n', attributes)
     @page_num_s = page_num.strip if page_num
-    if @page_num_s
-      add_value_to_page_doc_hash(:page_num_ssi,  @page_num_s)
-    elsif @page_num_i
+    add_value_to_page_doc_hash(:page_num_ssi,  @page_num_s) if @page_num_s
+    if @page_num_i && !@page_num_s
       @logger.warn("Missing page number in TEI for #{@page_id}; continuing with processing.")
     end
         

@@ -331,18 +331,21 @@ describe ApTeiDocument do
                 <head>PREMIÈRE SÉRIE </head>
                 <div2 type=\"contents\">
                   <head>TABLE CHRONOLOGIQUE </head>" + @end_div2_back_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "page")).at_least(2).times
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                           :pages_ssim => ["#{@druid}_00_0773-|-"]))
           @parser.parse(x)
         end
         it "<pb> just before <div2>" do
           x = @start_tei_body + 
-              "<div1 type=\"volume\" n=\"36\">
+              "<pb n=\"\" id=\"#{@druid}_00_0006\"/>
+              <div1 type=\"volume\" n=\"36\">
                 <head>ARCHIVES PARLEMENTAIRES </head>
                 <head>RÉPUBLIQUE FRANÇAISE </head>
                 <pb n=\"1\" id=\"#{@druid}_00_0007\"/>
                   <div2 type=\"table_alpha\">
                   <p>something</p>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0006"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0007"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                           :pages_ssim => ["#{@druid}_00_0007-|-1"]))
