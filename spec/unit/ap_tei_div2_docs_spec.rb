@@ -714,8 +714,10 @@ describe ApTeiDocument do
               <p>second</p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                         :pages_ssim => ["#{@druid}_00_0110-|-100"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0110"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                         :pages_ssim => ["#{@druid}_00_0111-|-101"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0111"))
         @parser.parse(x)
       end
       it "page across </div2> simple" do
@@ -730,6 +732,7 @@ describe ApTeiDocument do
                        :pages_ssim => ["#{@druid}_00_0754-|-748"]))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                        :pages_ssim => ["#{@druid}_00_0754-|-748"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0754"))
         @parser.parse(x)
       end
       it "page across div2 other" do
@@ -744,12 +747,15 @@ describe ApTeiDocument do
               <p>second</p>
               <pb n=\"102\" id=\"#{@druid}_00_0112\"/>
               <p>last</p>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0110"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                         :pages_ssim => ["#{@druid}_00_0110-|-100",
                                         "#{@druid}_00_0111-|-101"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0111"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                         :pages_ssim => ["#{@druid}_00_0111-|-101",
                                         "#{@druid}_00_0112-|-102"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0112"))
         @parser.parse(x)
       end
       it "page across div2 alpha" do
@@ -764,6 +770,7 @@ describe ApTeiDocument do
                         :pages_ssim => ["#{@druid}_00_0778-|-713"]))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                         :pages_ssim => ["#{@druid}_00_0778-|-713"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0778"))
         @parser.parse(x)
       end
       it "page across div2 type other with speaker" do
@@ -776,11 +783,11 @@ describe ApTeiDocument do
                  <pb n=\"9\" id=\"#{@druid}_00_0013\"/>
                  <p>à deux jours toute discussion sur la question qui vous est soumise par</p>
                </sp>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0012"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
-                       :pages_ssim => ["#{@druid}_00_0012-|-8"]))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                        :pages_ssim => ["#{@druid}_00_0012-|-8",
                                        "#{@druid}_00_0013-|-9"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0013"))
         @parser.parse(x)
       end
     end # pages spanning multiple div2
