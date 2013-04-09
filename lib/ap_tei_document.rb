@@ -313,7 +313,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @need_session_first_page = false
     end
     
-    if @in_div2 && !div2_buffer_empty?
+    if @in_div2
       add_value_to_div2_doc_hash(:pages_ssim, @page_id + SEP + (@page_num_s ? @page_num_s : "") )
     end
   end
@@ -440,7 +440,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       text = @div2_buffer.strip.gsub(/\s+/, ' ') if @div2_buffer && @div2_buffer.strip
       add_value_to_div2_doc_hash(:text_tiv, text)
       last_page = @page_id + SEP + (@page_num_s ? @page_num_s : "") if @page_id
-      add_value_to_div2_doc_hash(:pages_ssim, last_page) unless last_page.nil? || @div2_doc_hash[:pages_ssim].include?(last_page)
+      add_value_to_div2_doc_hash(:pages_ssim, last_page) unless last_page.nil? || (@div2_doc_hash[:pages_ssim] && @div2_doc_hash[:pages_ssim].include?(last_page))
       @rsolr_client.add(@div2_doc_hash)
       @last_div2_added = @div2_doc_hash[:id]
     end

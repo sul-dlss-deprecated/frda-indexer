@@ -78,26 +78,30 @@ describe ApTeiDocument do
     end
     it "end of <div2> element should call add_div2_doc_to_solr" do
       x = @start_tei_body_div2_session +
-          "<p>actual content</p>" + @end_div2_body_tei
-      @atd.should_receive(:add_div2_doc_to_solr)
-      @rsolr_client.should_receive(:add)
+          "<pb n=\"316\" id=\"#{@druid}_00_0320\"/>
+          <p>actual content</p>" + @end_div2_body_tei
+      @atd.should_receive(:add_div2_doc_to_solr) # once for end of <div2>, once for end_document
+      @rsolr_client.should_receive(:add).twice
       @parser.parse(x)
     end
     it "start of <div2> element should not call add_div2_doc_to_solr" do
       x = @start_tei_body_div2_session +
-          "<p>actual content</p>" + @end_div1_body_tei
+          "<pb n=\"316\" id=\"#{@druid}_00_0320\"/>
+          <p>actual content</p>" + @end_div1_body_tei
       @atd.should_not_receive(:add_div2_doc_to_solr)
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @parser.parse(x)
     end
     it "multiple <div2> elements create multiple div2 docs" do
       x = @start_tei_body_div2_session +
-          "  <p>actual content</p>
+          "<pb n=\"316\" id=\"#{@druid}_00_0320\"/>
+          <p>actual content</p>
           </div2>
           <div2 type=\"session\">
             <p>more</p>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :type_ssi => 'séance'))
-      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2", :type_ssi => 'séance'))
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @parser.parse(x)
     end
     
@@ -203,8 +207,7 @@ describe ApTeiDocument do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"contents\">
                 <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
-                <p>blah blah</p>
-                <pb n=\"6\" id=\"#{@druid}_00_0009\"/>" + @end_div2_body_tei
+                <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['contents'] 
     end
@@ -280,7 +283,7 @@ describe ApTeiDocument do
                         <head>more</head>
                         <p>stuff</p>
                       </div3>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => "page")).at_least(1).times
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).at_least(1).times
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                           :pages_ssim => ["#{@druid}_00_0004-|-iv", "#{@druid}_00_0005-|-1"]))
           @parser.parse(x)
@@ -331,7 +334,7 @@ describe ApTeiDocument do
                 <head>PREMIÈRE SÉRIE </head>
                 <div2 type=\"contents\">
                   <head>TABLE CHRONOLOGIQUE </head>" + @end_div2_back_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:id => "page")).at_least(2).times
+          @rsolr_client.should_receive(:add).with(hash_including(:id => @page_type)).at_least(2).times
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                           :pages_ssim => ["#{@druid}_00_0773-|-"]))
           @parser.parse(x)
@@ -384,6 +387,7 @@ describe ApTeiDocument do
               <p><term>Ouvriers des ports</term>. Rapport de Grégoire sur leurs salaires (t. L, p. 659 et
                 suiv.). — Rapport de Granet (de Toulon) sur le même objet (p. 661 et suiv.). </p>
             </div2>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0781"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0781-|-778"]))
         @parser.parse(x)
@@ -395,6 +399,7 @@ describe ApTeiDocument do
               <p><term>Hugo,</term>blah</p>
               <p><term>Huguet</term>blah</p>
             </div2>" + @end_div2_back_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0776-|-770"]))
         @parser.parse(x)
@@ -425,8 +430,11 @@ describe ApTeiDocument do
               <pb n=\"47\" id=\"#{@druid}_00_0051\"/>
               <p>Nota. Les cahiers du clergé</p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
-                       :pages_ssim => ["#{@druid}_00_0050-|-46",
-                                        "#{@druid}_00_0051-|-47"]))
+                       :pages_ssim => ["#{@druid}_00_0050-|-46"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).twice
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
+                      :pages_ssim => ["#{@druid}_00_0050-|-46",
+                                       "#{@druid}_00_0051-|-47"]))
         @parser.parse(x)
       end
       it "<pb> after <div2> session headings as <p>" do
@@ -445,6 +453,7 @@ describe ApTeiDocument do
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0710-|-706"]))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0710"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0711"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                        :pages_ssim => ["#{@druid}_00_0710-|-706", "#{@druid}_00_0711-|-707"]))
         @parser.parse(x)
@@ -453,7 +462,7 @@ describe ApTeiDocument do
         x = @start_tei_body_div1 + 
             "<pb n=\"67\" id=\"#{@druid}_00_0070\"/>
             <div2 type=\"other\">
-              <p>blah
+              <p>blah</p>
             </div2>
             <div2 type=\"session\">
               <head>CONVENTION NATIONALE.</head>
@@ -464,8 +473,11 @@ describe ApTeiDocument do
               <p> blah</p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0070-|-67"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0070"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
-                       :pages_ssim => ["#{@druid}_00_0070-|-67", "#{@druid}_00_0071-|-68"]))
+                       :pages_ssim => ["#{@druid}_00_0070-|-67", 
+                                        "#{@druid}_00_0071-|-68"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0071"))
         @parser.parse(x)
       end
       it "<pb> after <div2> alpha first <term>" do
@@ -484,8 +496,11 @@ describe ApTeiDocument do
               <p>Répond à l'appel général (t. VIII, p. 97). </p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0771-|-706"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0771"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
-                       :pages_ssim => ["#{@druid}_00_0771-|-706", "#{@druid}_00_0772-|-707"]))
+                       :pages_ssim => ["#{@druid}_00_0771-|-706", 
+                                        "#{@druid}_00_0772-|-707"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0772"))
         @parser.parse(x)
       end
       it "<pb> after <div2> alpha first <term>" do
@@ -505,8 +520,10 @@ describe ApTeiDocument do
               <p>magasins nationaux (16 septembre 1792, t. L, p. 62). </p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0770-|-767"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0770"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                        :pages_ssim => ["#{@druid}_00_0770-|-767", "#{@druid}_00_0771-|-768"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0771"))
         @parser.parse(x)
       end
     end # opening <div2> tag
@@ -815,8 +832,10 @@ describe ApTeiDocument do
             <div2 type=\"session\">
               <p><date value=\"2013-01-01\">session title</date></p>
               <p>blah blah ... </p>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0320-|-316"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                        :pages_ssim => ["#{@druid}_00_0321-|-317"]))
         @parser.parse(x)
@@ -834,10 +853,12 @@ describe ApTeiDocument do
             </div2>
             <pb n=\"104\" id=\"#{@druid}_00_0114\"/>
             <div2 type=\"session\">" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).exactly(3).times
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                         :pages_ssim => ["#{@druid}_00_0111-|-101",
                                         "#{@druid}_00_0112-|-102",
                                         "#{@druid}_00_0113-|-103"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).once
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                         :pages_ssim => ["#{@druid}_00_0114-|-104"]))
         @parser.parse(x)
@@ -850,6 +871,7 @@ describe ApTeiDocument do
                <pb n=\"\" id=\"#{@druid}_00_0814\"/>
                <pb n=\"\" id=\"#{@druid}_00_0815\"/>
                <pb n=\"\" id=\"#{@druid}_00_0816\"/>" + @end_div2_back_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).exactly(4).times
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0813-|-",
                                        "#{@druid}_00_0814-|-",
@@ -867,6 +889,7 @@ describe ApTeiDocument do
               </list>
               <pb n=\"\" id=\"#{@druid}_00_0737\"/>
               <pb n=\"\" id=\"#{@druid}_00_0738\"/>" + @end_div2_back_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).exactly(3).times
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0736-|-",
                                        "#{@druid}_00_0737-|-",
@@ -914,12 +937,12 @@ describe ApTeiDocument do
       @atd.div2_doc_hash[:vol_total_pages_is].should == 806
     end
     it "div2 solr doc should have div2 fields" do
-      @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@session_type], :type_ssi => @page_type))
+      @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssim => [@session_type], :type_ssi => @page_type)).twice
       @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => @session_type, :type_ssi =>  @session_type))
       @parser.parse(@x)
     end
     it "div2 solr doc should have catch all text fields" do
-      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).twice
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @session_type, :text_tiv => 'actual content'))
       @parser.parse(@x)
     end    
@@ -930,72 +953,75 @@ describe ApTeiDocument do
   end
   
   context "text_tiv (catchall field)" do
+    before(:all) do
+      @start_session = @start_tei_body_div2_session + "<pb n=\"100\" id=\"#{@druid}_00_0110\"/>"
+    end
     it "should not include the contents of any attributes" do
-      x = @start_tei_body_div2_session + "<p>Art. 1<hi rend=\"superscript\">er</hi></p>" + @end_div2_body_tei
+      x = @start_session + "<p>Art. 1<hi rend=\"superscript\">er</hi></p>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er', :id => "#{@druid}_div2_1"))
       @parser.parse(x)
-      x = @start_tei_body_div2_session + "<date value=\"2013-01-01\">pretending to care</date>" + @end_div2_body_tei
+      x = @start_session + "<date value=\"2013-01-01\">pretending to care</date>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care', :id => "#{@druid}_div2_1"))
       @parser.parse(x)
     end
     it "should include the contents of <p> element" do
-      x = @start_tei_body_div2_session + "<p>blather</p>" + @end_div2_body_tei
+      x = @start_session + "<p>blather</p>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'blather', :id => "#{@druid}_div2_1"))
       @parser.parse(x)
     end
     it "should include the contents of <head> element" do
-      x = @start_tei_body_div2_session + "<head>MARDI 15 OCTOBRE 1793.</head>" + @end_div2_body_tei
+      x = @start_session + "<head>MARDI 15 OCTOBRE 1793.</head>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'MARDI 15 OCTOBRE 1793.', :id => "#{@druid}_div2_1"))
       @parser.parse(x)
     end
     it "should include the contents of <speaker> element" do
-      x = @start_tei_body_div2_session + "<sp><speaker>M. Bréard.</speaker></sp>" + @end_div2_body_tei
+      x = @start_session + "<sp><speaker>M. Bréard.</speaker></sp>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'M. Bréard.', :id => "#{@druid}_div2_1"))
       @parser.parse(x)
     end
     it "should include the contents of <date> element" do
-      x = @start_tei_body_div2_session + "<date value=\"2013-01-01\">pretending to care</date>" + @end_div2_body_tei
+      x = @start_session + "<date value=\"2013-01-01\">pretending to care</date>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'pretending to care', :id => "#{@druid}_div2_1"))
       @parser.parse(x)
     end
     it "should include the contents of <note> element" do
-      x = @start_tei_body_div2_session + "<note place=\"foot\">(1) shoes.</note>" + @end_div2_body_tei
+      x = @start_session + "<note place=\"foot\">(1) shoes.</note>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => '(1) shoes.', :id => "#{@druid}_div2_1"))
       @parser.parse(x)
     end
     it "should include the contents of <hi> element" do
-      x = @start_tei_body_div2_session + "<p>Art. 1<hi>er.</hi></p>" + @end_div2_body_tei
+      x = @start_session + "<p>Art. 1<hi>er.</hi></p>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Art. 1er.', :id => "#{@druid}_div2_1"))
       @parser.parse(x)
     end
     it "should include the contents of <term> element" do
-      x = @start_tei_body_div2_session + "<p><term>Abbaye </term>(Prison de F).</p>" + @end_div2_body_tei
+      x = @start_session + "<p><term>Abbaye </term>(Prison de F).</p>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'Abbaye (Prison de F).', :id => "#{@druid}_div2_1"))
       @parser.parse(x)
     end
     it "should include the contents of <item> element" do
-      x = @start_tei_body_div2_session + "<list><item>item!</item></list>" + @end_div2_body_tei
+      x = @start_session + "<list><item>item!</item></list>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'item!', :id => "#{@druid}_div2_1"))
       @parser.parse(x)
     end
     it "should include the contents of <signed> element" do
-      x = @start_tei_body_div2_session + "<signed>Signé : Remillat, à l'original. </signed>" + @end_div2_body_tei
+      x = @start_session + "<signed>Signé : Remillat, à l'original. </signed>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "Signé : Remillat, à l'original.", :id => "#{@druid}_div2_1"))
       @parser.parse(x)
     end
     it "should ignore <trailer>" do
-      x = @start_tei_body_div2_session + "<trailer>FIN DE L'INTRODUCTION.</trailer><p>blah</p>" + @end_div2_body_tei
+      x = @start_session + "<trailer>FIN DE L'INTRODUCTION.</trailer><p>blah</p>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
       @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => "blah", :id => "#{@druid}_div2_1"))
       @parser.parse(x)
