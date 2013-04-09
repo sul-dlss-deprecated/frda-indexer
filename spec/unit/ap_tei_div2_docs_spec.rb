@@ -804,9 +804,11 @@ describe ApTeiDocument do
                 <p>content</p>
               </div3>
             </div2>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0111"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                         :pages_ssim => ["#{@druid}_00_0111-|-101",
                                         "#{@druid}_00_0112-|-102"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0112"))
         @parser.parse(x)
       end
       it "empty page before div3" do
@@ -819,15 +821,18 @@ describe ApTeiDocument do
                 <pb n=\"\" id=\"#{@druid}_00_0675\"/>
                 <head>CAHIER</head>
                 <p>blah</p>
-              </div3"> + @end_div2_body_tei
+              </div3>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0673"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0674"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                         :pages_ssim => ["#{@druid}_00_0673-|-",
                                         "#{@druid}_00_0674-|-",
                                         "#{@druid}_00_0675-|-"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0675"))
         @parser.parse(x)
       end
       it "<pb> just before closing </div3></div2>" do
-        @x = @start_tei_body_div1 +
+        x = @start_tei_body_div1 +
               "<pb n=\"101\" id=\"#{@druid}_00_0111\"/>
               <div2 type=\"other\">
                 <pb n=\"102\" id=\"#{@druid}_00_0112\"/>
@@ -840,12 +845,15 @@ describe ApTeiDocument do
               </div2>
               <div2 type=\"other\">
               <p>after2</p>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0111"))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0112"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                         :pages_ssim => ["#{@druid}_00_0111-|-101",
                                         "#{@druid}_00_0112-|-102",
                                         "#{@druid}_00_0113-|-103"]))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                         :pages_ssim => ["#{@druid}_00_0113-|-103"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0113"))
         @parser.parse(x)
       end
       it "<pb> just between closing div3 and div2" do
@@ -860,10 +868,10 @@ describe ApTeiDocument do
             <div2 type=\"session\">
               <p><date value=\"2013-01-01\">session title</date></p>
               <p>blah blah ... </p>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type, :id => "#{@druid}_00_0320"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0320-|-316"]))
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type, :id => "#{@druid}_00_0321"))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                        :pages_ssim => ["#{@druid}_00_0321-|-317"]))
         @parser.parse(x)
