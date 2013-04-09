@@ -114,12 +114,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     text = @element_buffer.strip if !@element_buffer.strip.empty?
     case name
     when 'body'
-      add_page_doc_to_solr
-      init_page_doc_hash
       @in_body = false
     when 'back'
-      add_page_doc_to_solr
-      init_page_doc_hash
       @in_back = false
     when 'date'
       if @need_session_title 
