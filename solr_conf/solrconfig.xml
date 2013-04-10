@@ -60,10 +60,10 @@
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
           <str name="facet.field">collection_ssi</str>
-          <str name="facet.field">doc_type_ssim</str>
+          <str name="facet.field">doc_type_ssi</str>
           <str name="facet.field">speaker_ssim</str>
-          <str name="facet.field">session_date_sim</str>
-          <str name="facet.field">session_title_sim</str>
+          <str name="facet.field">search_date_dtsim</str>
+          <str name="facet.field">session_title_si</str>
           <str name="facet.field">vol_title_ssi</str>
           <str name="facet.field">medium_ssi</str>
           <str name="facet.field">genre_ssim</str>
@@ -80,10 +80,10 @@
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
           <str name="facet.field">collection_ssi</str>
-          <str name="facet.field">doc_type_ssim</str>
+          <str name="facet.field">doc_type_ssi</str>
           <str name="facet.field">speaker_ssim</str>
-          <str name="facet.field">session_date_sim</str>
-          <str name="facet.field">session_title_sim</str>
+          <str name="facet.field">search_date_dtsim</str>
+          <str name="facet.field">session_title_si</str>
           <str name="facet.field">vol_title_ssi</str>
           <str name="facet.field">medium_ssi</str>
           <str name="facet.field">genre_ssim</str>
@@ -106,10 +106,10 @@
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
           <str name="facet.field">collection_ssi</str>
-          <str name="facet.field">doc_type_ssim</str>
+          <str name="facet.field">doc_type_ssi</str>
           <str name="facet.field">speaker_ssim</str>
-          <str name="facet.field">session_date_sim</str>
-          <str name="facet.field">session_title_sim</str>
+          <str name="facet.field">search_date_dtsim</str>
+          <str name="facet.field">session_title_si</str>
           <str name="facet.field">vol_title_ssi</str>
           <str name="facet.field">medium_ssi</str>
           <str name="facet.field">genre_ssim</str>
@@ -126,10 +126,10 @@
           <int name="facet.mincount">1</int>
           <int name="facet.limit">30</int>
           <str name="facet.field">collection_ssi</str>
-          <str name="facet.field">doc_type_ssim</str>
+          <str name="facet.field">doc_type_ssi</str>
           <str name="facet.field">speaker_ssim</str>
-          <str name="facet.field">session_date_sim</str>
-          <str name="facet.field">session_title_sim</str>
+          <str name="facet.field">search_date_dtsim</str>
+          <str name="facet.field">session_title_si</str>
           <str name="facet.field">vol_title_ssi</str>
           <str name="facet.field">medium_ssi</str>
           <str name="facet.field">genre_ssim</str>
@@ -164,6 +164,8 @@
       <int name="qs">1</int>
       <int name="ps">0</int>
       <float name="tie">0.01</float>
+      <str name="fl">score, *, [explain]</str>
+
       <str name="qf">
         title_short_ti^5
         title_long_ti^5
@@ -174,48 +176,54 @@
         catalog_heading_etsimv
         spoken_text_timv^5
         spoken_text_ftsimv
-        text_tiv^5
-        text_ftsiv
-        session_title_sim^5
-        session_title_ftsim
+        unspoken_text_timv^5
+        unspoken_text_ftsimv
+        session_title_si^5
+        session_title_ftsi
         speaker_ssim
-        session_govt_ssim
-        doc_type_ssim
+        session_govt_ssi
+        doc_type_ssi
         id
         druid_ssi
+        text_tiv^0.5
+        text_ftsiv^0.1
       </str>
       <str name="pf">
         title_short_ti^20
         title_long_ti^20
         title_short_ftsi^15
         title_long_ftsi^15
-        spoken_text_timv^20
-        spoken_text_ftsimv^15
-        text_tiv^20
-        text_ftsiv^10
-        session_title_sim^20
-        session_title_ftsim^10
         catalog_heading_timv^20
         catalog_heading_ftsimv^15
         catalog_heading_etsimv^15
+        spoken_text_timv^20
+        spoken_text_ftsimv^15
+        unspoken_text_timv^20
+        unspoken_text_ftsimv^15
+        session_title_si^20
+        session_title_ftsi^10
+        text_tiv^10
+        text_ftsiv^5
       </str>
       <str name="qf_exact">
         title_short_ti
         title_long_ti
         catalog_heading_timv
         spoken_text_timv
-        text_tiv
-        session_title_sim
+        unspoken_text_timv
+        session_title_si
         speaker_ssim
-        session_govt_ssim
-        doc_type_ssim
+        session_govt_ssi
+        doc_type_ssi
+        text_tiv^0.1
       </str>
       <str name="pf_exact">
         title_short_ti^5
         title_long_ti^5
         catalog_heading_timv^5
         spoken_text_timv^5
-        session_title_sim^5
+        unspoken_text_timv^5
+        session_title_si^5
         text_tiv^5
       </str>
 
@@ -251,21 +259,22 @@
         collector_ssim^5
       </str>
 
-      <str name="fl">score, *</str>
-      
       <bool name="facet">true</bool>
       <int name="facet.mincount">1</int>
       <int name="facet.limit">16</int>
       <str name="facet.field">collection_ssi</str>
-      <str name="facet.field">doc_type_ssim</str>
+      <str name="facet.field">doc_type_ssi</str>
       <str name="facet.field">speaker_ssim</str>
-      <str name="facet.field">session_title_sim</str>
+      <str name="facet.field">session_title_si</str>
+      <str name="f.session_title_si.facet.limit">1000</str>
       <str name="facet.field">vol_title_ssi</str>
       <str name="facet.field">medium_ssi</str>
       <str name="facet.field">genre_ssim</str>
       <str name="facet.field">artist_ssim</str>
       <str name="facet.field">collector_ssim</str>
-      <str name="facet.pivot">result_group_ssi,session_title_sim</str>
+      <str name="facet.field">result_group_ssi</str>
+      <str name="f.result_group_ssi.facet.limit">1000</str>
+      <str name="facet.pivot">result_group_ssi,session_title_si</str>
       <str name="facet.query">search_date_dtsim:[1787-02-22T00:00:00Z TO 1789-01-25T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-05-05T00:00:00Z TO 1789-07-15T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-07-17T00:00:00Z TO 1791-10-01T00:00:00Z]</str>
@@ -283,7 +292,7 @@
       <str name="group.field">result_group_ssi</str>
 
       <str name="hl">on</str>
-      <str name="hl.fl">spoken_text_ftsimv, title_long_ftsi, title_short_ftsi, text_ftsiv, session_title_ftsim</str>
+      <str name="hl.fl">spoken_text_ftsimv, unspoken_text_ftsimv, title_long_ftsi, title_short_ftsi, session_title_ftsi</str>
       <str name="hl.fragsize">0</str>
     </lst>    
   </requestHandler>
@@ -321,21 +330,24 @@
       <str name="sort">vol_date_end_dti asc,vol_num_ssi asc,score desc</str>
       <int name="rows">20</int>
 
-      <str name="fl">score, *</str>
+      <str name="fl">score, *, [explain]</str>
       
       <bool name="facet">true</bool>
       <int name="facet.mincount">1</int>
       <int name="facet.limit">16</int>
       <str name="facet.field">collection_ssi</str>
-      <str name="facet.field">doc_type_ssim</str>
+      <str name="facet.field">doc_type_ssi</str>
       <str name="facet.field">speaker_ssim</str>
-      <str name="facet.field">session_title_sim</str>
+      <str name="facet.field">session_title_si</str>
+      <str name="f.session_title_si.facet.limit">1000</str>
       <str name="facet.field">vol_title_ssi</str>
       <str name="facet.field">medium_ssi</str>
       <str name="facet.field">genre_ssim</str>
       <str name="facet.field">artist_ssim</str>
       <str name="facet.field">collector_ssim</str>
-      <str name="facet.pivot">result_group_ssi,session_title_sim</str>
+      <str name="facet.field">result_group_ssi</str>
+      <str name="f.result_group_ssi.facet.limit">1000</str>
+      <str name="facet.pivot">result_group_ssi,session_title_si</str>
       <str name="facet.query">search_date_dtsim:[1787-02-22T00:00:00Z TO 1789-01-25T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-05-05T00:00:00Z TO 1789-07-15T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-07-17T00:00:00Z TO 1791-10-01T00:00:00Z]</str>
@@ -353,7 +365,7 @@
       <str name="group.field">result_group_ssi</str>
 
       <str name="hl">on</str>
-      <str name="hl.fl">spoken_text_ftsimv, title_long_ftsi, title_short_ftsi, text_ftsiv, session_title_ftsim</str>
+      <str name="hl.fl">spoken_text_ftsimv, unspoken_text_ftsimv, title_long_ftsi, title_short_ftsi, session_title_ftsi</str>
       <str name="hl.fragsize">0</str>
     </lst>
   </requestHandler>
