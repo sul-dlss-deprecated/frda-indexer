@@ -324,12 +324,12 @@ describe ApTeiDocument do
           @parser.parse(x)
         end
         it "multiple <pb> in <div1> before <div2> contents" do
-          x = @start_tei_back_div1 
+          x = @start_tei_back_div1 +
               "<pb n=\"767\" id=\"#{@druid}_00_0771\"/>
                 <head>TABLE </head>
                 <head>CHRONOLOGIQUE, ALPHABÉTIQUE ET ANALYTIQUE </head>
                 <head>DU TOME XVI</head>
-                <pb n=\"\" id=\"#{@druid}_00_0772\"/>
+                <pb n=\"768\" id=\"#{@druid}_00_0772\"/>
                 <pb n=\"\" id=\"#{@druid}_00_0773\"/>
                 <head>ARCHIVES PARLEMENTAIRES </head>
                 <head>PREMIÈRE SÉRIE </head>
