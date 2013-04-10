@@ -267,7 +267,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # add value to unspoken_text_timv in page_doc_hash and div2_doc_hash
   # @param text [String] text to add
   def add_unspoken_text_to_doc_hashes text
-    if text.match(/\w+/)
+    if text && text.match(/\w+/)
       add_value_to_page_doc_hash(:unspoken_text_timv, "#{text}")
       add_value_to_div2_doc_hash(:unspoken_text_timv, "#{@page_id}#{SEP}#{text}") if @div2_doc_hash
     end
