@@ -99,10 +99,13 @@
   </fields>
 
   <!-- copy fields -->
+  <copyField source="session_date_dtsi" dest="search_date_dtsim" />
   <copyField source="session_date_dtsim" dest="search_date_dtsim" />
+  <copyField source="session_title_ftsi" dest="session_title_si" />
   <copyField source="session_title_ftsim" dest="session_title_sim" />
   <copyField source="text_tiv" dest="text_ftsiv" />
   <copyField source="spoken_text_timv" dest="spoken_text_ftsimv" />
+  <copyField source="unspoken_text_timv" dest="unspoken_text_ftsimv" />
   <copyField source="title_short_ftsi" dest="title_short_ti" />
   <copyField source="title_long_ftsi" dest="title_long_ti" />
   <copyField source="vol_title_ssi" dest="result_group_ssi" />
