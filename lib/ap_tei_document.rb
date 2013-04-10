@@ -312,7 +312,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @page_num_s = page_num.strip if page_num
     add_value_to_page_doc_hash(:page_num_ssi,  @page_num_s) if @page_num_s
     if @page_num_i && !@page_num_s
-      @logger.warn("Missing page number in TEI for #{@page_id}; continuing with processing.")
+      @logger.warn("Missing printed page number in TEI for #{@page_id}; continuing with processing.")
     end
         
     # integer page num
@@ -323,7 +323,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @page_num_i = nil
     end
     if old_page_num && @page_num_i && @page_num_i != old_page_num + 1
-      @logger.warn("Page numbers not consecutive in TEI: #{@page_num_i} (in image #{@page_id}) occurs after #{old_page_num} (in image #{old_page_id}); continuing with processing.")
+      @logger.warn("Printed page numbers not consecutive in TEI: #{@page_num_i} (in image #{@page_id}) occurs after #{old_page_num} (in image #{old_page_id}); continuing with processing.")
     end
 
     add_value_to_page_doc_hash(:page_sequence_isi, @page_id_hash[@page_id]) if @page_id_hash[@page_id]

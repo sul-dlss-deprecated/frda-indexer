@@ -286,7 +286,7 @@ describe ApTeiDocument do
                   <p>blah blah</p>
                   <pb id=\"#{@druid}_00_0013\"/>
                   <p>bleah bleah</p>" + @end_div2_body_tei 
-        @logger.should_receive(:warn).with("Missing page number in TEI for #{@druid}_00_0013; continuing with processing.")
+        @logger.should_receive(:warn).with("Missing printed page number in TEI for #{@druid}_00_0013; continuing with processing.")
         @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
@@ -308,7 +308,7 @@ describe ApTeiDocument do
                   <p>blah blah</p>
                   <pb n=\"8\" id=\"#{@druid}_00_0013\"/>
                   <p>bleah bleah</p>" + @end_div2_body_tei 
-        @logger.should_receive(:warn).with("Page numbers not consecutive in TEI: 8 (in image #{@druid}_00_0013) occurs after 4 (in image #{@druid}_00_0012); continuing with processing.")
+        @logger.should_receive(:warn).with("Printed page numbers not consecutive in TEI: 8 (in image #{@druid}_00_0013) occurs after 4 (in image #{@druid}_00_0012); continuing with processing.")
         @rsolr_client.should_receive(:add).at_least(1).times
         @parser.parse(x)
       end
