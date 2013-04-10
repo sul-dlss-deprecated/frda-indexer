@@ -59,6 +59,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'back'
       @in_back = true
     when 'div2'
+      # write out last div2, if we didn't already
+      if @div2_doc_hash && @div2_doc_hash[:id] && @div2_doc_hash[:id] != @last_div2_added
+        add_div2_doc_to_solr
+        @div2_buffer = ''
+        @div2_doc_type = nil
+      end
       @in_div2 = true
       @div2_counter = @div2_counter + 1
       div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
@@ -92,6 +98,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if @need_first_page
         @need_first_page = false
       else
+        # add previous page to div2 if it's not already there
+        last_page_val = current_page_pages_ssim_val
+        if @in_div2 && last_page_val && (@div2_doc_hash[:pages_ssim] && !@div2_doc_hash[:pages_ssim].include?(last_page_val))
+          add_value_to_div2_doc_hash(:pages_ssim, last_page_val)
+        end
         add_page_doc_to_solr
       end
       init_page_doc_hash
@@ -125,10 +136,14 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         add_unspoken_text_to_doc_hashes text
       end
     when 'div2'
-      add_div2_doc_to_solr
-      @div2_buffer = ''
+      # add current page to div2, if it's non-empty and not already there
+      last_page_val = current_page_pages_ssim_val
+      if last_page_val && (@div2_doc_hash[:pages_ssim] && !@div2_doc_hash[:pages_ssim].include?(last_page_val)) &&
+            @page_buffer && !@page_buffer.strip.gsub(/\s+/, ' ').empty?
+        add_value_to_div2_doc_hash(:pages_ssim, last_page_val)
+      end
+      # NOTE: can't add @div2_doc_hash to Solr here, because <pb> within closing tag(s) might not be part of THIS div2?
       @in_div2 = false
-      @div2_doc_type = nil
       @in_session = false
     when 'head'
       if @in_session && @need_session_govt
@@ -185,6 +200,12 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
     # write out last div2, if we didn't already
     if @div2_doc_hash && @div2_doc_hash[:id] && @div2_doc_hash[:id] != @last_div2_added
+      # add last page of the document if it's needed
+      last_page_val = current_page_pages_ssim_val
+      if last_page_val && (!@div2_doc_hash[:pages_ssim] ||
+                            (@div2_doc_hash[:pages_ssim] && !@div2_doc_hash[:pages_ssim].include?(last_page_val)))
+        add_value_to_div2_doc_hash(:pages_ssim, last_page_val)
+      end
       add_div2_doc_to_solr
     end
   end
@@ -312,11 +333,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       add_field_value_to_hash(:session_seq_first_isim, @page_id_hash[@page_id], @page_session_fields)
       @need_session_first_page = false
     end
-    
-    if @in_div2
-      add_value_to_div2_doc_hash(:pages_ssim, @page_id + SEP + (@page_num_s ? @page_num_s : "") )
-    end
-  end
+  end # process_pb_attribs
 
   # @return true if @div2_buffer is empty or nil
   def div2_buffer_empty?
@@ -326,6 +343,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     else
       false
     end
+  end
+
+  # @return [String] the value for a div2 doc's pages_ssim field for the current page
+  def current_page_pages_ssim_val
+    @page_id + SEP + (@page_num_s ? @page_num_s : "") if @page_id
   end
 
   # @param [String] attr_name the name of the desired attribute
@@ -422,7 +444,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
     end
   end
-
+  
   # write @page_doc_hash to Solr, but only if the current page has content
   def add_page_doc_to_solr
     if @page_doc_hash[:id] && @page_doc_hash[:id] != @last_page_added
@@ -439,8 +461,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     if @div2_doc_hash[:id] && @div2_doc_hash[:id] != @last_div2_added
       text = @div2_buffer.strip.gsub(/\s+/, ' ') if @div2_buffer && @div2_buffer.strip
       add_value_to_div2_doc_hash(:text_tiv, text)
-      last_page = @page_id + SEP + (@page_num_s ? @page_num_s : "") if @page_id
-      add_value_to_div2_doc_hash(:pages_ssim, last_page) unless last_page.nil? || (@div2_doc_hash[:pages_ssim] && @div2_doc_hash[:pages_ssim].include?(last_page))
       @rsolr_client.add(@div2_doc_hash)
       @last_div2_added = @div2_doc_hash[:id]
     end
