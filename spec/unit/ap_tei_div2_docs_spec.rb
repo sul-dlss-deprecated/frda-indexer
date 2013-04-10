@@ -531,7 +531,7 @@ describe ApTeiDocument do
       end
     end # opening <div2> tag
     
-    context "multiple pages in a div2" do
+    context "multiple pages in a div2", :fixme => true do
       it "pages_ssim" do
         x = @start_tei_body_div1 +
               "<pb n=\"100\" id=\"#{@druid}_00_0110\"/>

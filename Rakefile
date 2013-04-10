@@ -30,7 +30,7 @@ task :spec => :rspec
 
 desc "run all non-integration specs"
 RSpec::Core::RakeTask.new(:rspec) do |spec|
-  spec.rspec_opts = ["-c", "-f progress", "--tty", "-r ./spec/spec_helper.rb", "--tag ~integration"]
+  spec.rspec_opts = ["-c", "-f progress", "--tty", "-r ./spec/spec_helper.rb", "--tag ~integration", "--tag ~fixme"]
 end
 
 desc "run ALL specs, including integration (OAI harvest)"
