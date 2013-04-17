@@ -39,6 +39,10 @@ describe ApTeiDocument do
     it "should populate collection_ssi field" do
       @hash[:collection_ssi].should == ApTeiDocument::COLL_VAL
     end
+    it "should populate vol_ssort" do
+      @hash[:vol_ssort].should == VOL_SORT[@volume.sub(/^Volume /i, '')]
+      @hash[:vol_ssort].should == '0360'
+    end
     it "should populate vol_num_ssi field" do
       @hash[:vol_num_ssi].should == @volume.sub(/^Volume /i, '')
       @hash[:vol_num_ssi].should == '36'

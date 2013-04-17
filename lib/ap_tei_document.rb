@@ -3,6 +3,7 @@ require 'date'
 require 'nokogiri'
 
 require 'ap_vol_dates'
+require 'ap_vol_sort'
 require 'ap_vol_titles'
 
 require 'normalization_helper'
@@ -399,6 +400,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     hash[:vol_num_ssi] = @volume
     hash.merge!(@vol_constants_hash)
     hash[:vol_title_ssi] = VOL_TITLES[@volume]
+    hash[:vol_ssort] = VOL_SORT[@volume]
     hash[:vol_date_start_dti] = VOL_DATES[@volume].first
     hash[:vol_date_end_dti] = VOL_DATES[@volume].last
   end

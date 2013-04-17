@@ -40,6 +40,10 @@ describe BnfImagesIndexer do
         @solr_client.should_receive(:add).with(hash_including(:result_group_ssi => 'Images de la Révolution française'))
         @indexer.index(@fake_druid)
       end
+      it ":vol_ssort should be '0000' (to sort ahead of all AP volumes)" do
+        @solr_client.should_receive(:add).with(hash_including(:vol_ssort => '0000'))
+        @indexer.index(@fake_druid)
+      end
     end
     
     it ":text_tiv" do
