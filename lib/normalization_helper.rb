@@ -34,6 +34,7 @@ module NormalizationHelper
     session_title.gsub! /[*"]\z/, ''   # more trailing chars
     remove_trailing_and_leading_characters session_title
     session_title.gsub! /\s,\s/, ', '
+    # 'Séance' 
     session_title.gsub! /\AS[éeèêdt][aâd][nm][cçdeèot][çeéèê]/i, 'Séance' # 6 letter variants
     session_title.gsub! /\AS[eé]a?nc?[eèé]/i, 'Séance'  # 5 letter variants corrected
     session_title.gsub! 'seanc', 'Séance'  # 5 letter variants corrected
@@ -41,9 +42,13 @@ module NormalizationHelper
     session_title.gsub! 'Séan ce', 'Séance'
     session_title.gsub! 'Sécthôè', 'Séance'
     session_title.gsub! 'Séyripe', 'Séance'
+    # skip ahead to 'Séance' if it starts 'présidence'
+    session_title.gsub! /\APrésidence.*Séance/i, 'Séance'
+    # Séance du
     session_title.gsub! /\ASéance,? d[uû]/, 'Séance du'
     session_title.gsub! /\ASéance du[\.\-,] /, 'Séance du '
     session_title.gsub! /\ASéance du \. /, 'Séance du '
+    # days of the week
     session_title.gsub! /\ASéance du lu[nh]di/i, 'Séance du lundi'
     session_title.gsub! /\ASéance du ?ma[rt]?di/i, 'Séance du mardi'
     session_title.gsub! /\ASéance du mer[ce]r?redi/i, 'Séance du mercredi'
@@ -54,8 +59,17 @@ module NormalizationHelper
     session_title.gsub! 'Séance du smaedi', 'Séance du samedi'
     session_title.gsub! 'Séance du ssamedi', 'Séance du samedi'
     session_title.gsub! /\ASéance du di(rn|m)an[cp]he/i, 'Séance du dimanche'
+    # adjust if it starts with a day of the week
+    session_title.gsub! /\ADimanche/i, 'Séance du dimanche'
+    session_title.gsub! /\ALundi/i, 'Séance du lundi'
+    session_title.gsub! /\AMardi/i, 'Séance du mardi'
+    session_title.gsub! /\AMercredi/i, 'Séance du mercredi'
+    session_title.gsub! /\AJeudi/i, 'Séance du jeudi'
+    session_title.gsub! /\AVendredi/i, 'Séance du vendredi'
+    session_title.gsub! /\ASamedi/i, 'Séance du samedi'
     # separate digits smashed against day of the week
     session_title.gsub! /\ASéance du (lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)(\d)/i, 'Séance du \1 \2'
+    # normalize remaing whitespace
     session_title.gsub! /\s+/, ' '
     session_title
   end

@@ -146,7 +146,7 @@ describe ApTeiDocument do
                 "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
                 <p><date value=\"1792-09-20\">Jeudi 20 septembre 1792</date>, au soir.</p>
                 <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Jeudi 20 septembre 1792, au soir"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du jeudi 20 septembre 1792, au soir"]))
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
