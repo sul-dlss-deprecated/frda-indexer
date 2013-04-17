@@ -39,6 +39,7 @@ class ApIndexer < Harvestdor::Indexer
       rescue => e
         @error_count+=1
         logger.error "Failed to index #{druid}: #{e.message}"
+        logger.error e.backtrace
         p e.backtrace
       end
     end
