@@ -193,7 +193,7 @@ describe NormalizationHelper do
       normalize_session_title('-Séance du jeudi 9 août 1792, au matin').should == "Séance du jeudi 9 août 1792, au matin"
     end
     it "should deal with weird punctuation" do
-      normalize_session_title("Séance du mercredi 21 septembre 1791 * au matin (1").should == "Séance du mercredi 21 septembre 1791 * au matin"
+      normalize_session_title("Séance du mercredi 21 septembre 1791 * au matin (1").should == "Séance du mercredi 21 septembre 1791 au matin"
       normalize_session_title("").should == ""
       normalize_session_title("").should == ""
       pending "to be implemented"
@@ -228,8 +228,8 @@ describe NormalizationHelper do
         normalize_session_title("Dimanche 2 septembre 1792 ' Suite de la stance permanente").should == "Séance du dimanche 2 septembre 1792"
         normalize_session_title("Lundi 3 septembre 1792 Suite de la stance permanente").should == "Séance du lundi 3 septembre 1792"
         normalize_session_title("Séance du samedi 6 mars 1790, député dç BoUlogue-Sur-Mer, prête le serment patriotique qu'une absence forcée l'avait empêché de prêter Je 4 février").should == "Séance du samedi 6 mars 1790"
-#        normalize_session_title("Séance du dimanche 13 mai 1792 La séance est ouverte à 6 heures du soir. .1").should == "Séance du dimanche 13 mai 1792"
-#        normalize_session_title("Séance du dimanche 17 juillet 1791 La séance est ouverte à onze heures du malin").should == "Séance du dimanche 17 juillet 1791"
+        normalize_session_title("Séance du dimanche 13 mai 1792 La séance est ouverte à 6 heures du soir. .1").should == "Séance du dimanche 13 mai 1792"
+        normalize_session_title("Séance du dimanche 17 juillet 1791 La séance est ouverte à onze heures du malin").should == "Séance du dimanche 17 juillet 1791"
       end
       it "except 'au matin'" do
         normalize_session_title("Séance du 11 mai 1790, au matin (1)").should == "Séance du 11 mai 1790, au matin"
