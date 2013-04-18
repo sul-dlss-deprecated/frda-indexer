@@ -51,6 +51,88 @@ describe NormalizationHelper do
       normalize_session_title('Séance dit lundi').should == 'Séance du lundi'
       normalize_session_title('Séance âu lundi').should == 'Séance du lundi'
     end
+    it "should correct OCR for au" do
+      normalize_session_title("Séance du lundi 31 décembre 1792, AU MATIN").should == "Séance du lundi 31 décembre 1792 au matin"
+      normalize_session_title("Séance du vendredi 6 juillet 1792, aU matin").should == "Séance du vendredi 6 juillet 1792 au matin"
+      normalize_session_title("Séance du lundi 18 juin 1792 aumatin").should == "Séance du lundi 18 juin 1792 au matin"
+      normalize_session_title("Séance du mercredi 28 septembre 1791 ,aumatin").should == "Séance du mercredi 28 septembre 1791 au matin"
+      normalize_session_title("Séance du jeudi 3 septembre 1789 ,au matin").should == "Séance du jeudi 3 septembre 1789 au matin"
+      normalize_session_title("Séance du jeudi 22 mars 1792 ,au soir").should == "Séance du jeudi 22 mars 1792 au soir"
+      normalize_session_title("Séance du lundi 18 juin 1792 ,[au soir").should == "Séance du lundi 18 juin 1792 au soir"
+      normalize_session_title("Séance du lundi 4 avril 1791, ausoir").should == "Séance du lundi 4 avril 1791, au soir"
+      normalize_session_title("Séance du mercredi 10 juillet 1793, au. soir").should == "Séance du mercredi 10 juillet 1793 au soir"
+      normalize_session_title("Séance du lundi 18 juin 1792 aii soir").should == "Séance du lundi 18 juin 1792 au soir"
+      normalize_session_title("Séance du samedi 14 août 1790, ail matin").should == "Séance du samedi 14 août 1790 au matin"
+      normalize_session_title("Séance du mardi 5 juillet 1791 ait matin").should == "Séance du mardi 5 juillet 1791 au matin"
+      normalize_session_title("Séance du lundi 18 juin 1792 au. soir").should == "Séance du lundi 18 juin 1792 au soir"
+      normalize_session_title("Séance du jeudi 22 avril 1790, aù soir").should == "Séance du jeudi 22 avril 1790 au soir"
+      normalize_session_title("Séance du vendredi 6 juillet 1792, au matin").should == "Séance du vendredi 6 juillet 1792, au matin"
+      normalize_session_title("Séance du dimanche 24 août 1790, aw matin").should == "Séance du dimanche 24 août 1790, au matin"
+      normalize_session_title("Séance du mardi 20 septembre 1791, ay soir").should == "Séance du mardi 20 septembre 1791, au soir"
+      normalize_session_title("Séance du vendredi 31 déçembre 1790, ay matin").should == "Séance du vendredi 31 déçembre 1790, au matin"
+      normalize_session_title("Séance du lundi 18 juin 1792 du soir").should == "Séance du lundi 18 juin 1792 au soir"
+      normalize_session_title("Séance du lundi 18 juin 1792 du matin").should == "Séance du lundi 18 juin 1792 au matin"
+      normalize_session_title("Séance du lundi 27 juin 1791, lui matin").should == "Séance du lundi 27 juin 1791, au matin"
+      normalize_session_title("Séance du lundi 18 juin 1792 m soir").should == "Séance du lundi 18 juin 1792 au soir"
+      normalize_session_title("Séance du jeudi 29 mars 1792, oeu soir").should == "Séance du jeudi 29 mars 1792, au soir"
+      normalize_session_title("Séance du jeudi 11 février 1790 otf soir").should == "Séance du jeudi 11 février 1790 au soir"
+      normalize_session_title("Séance du jeudi 4 novembre 1790, ou soir").should == "Séance du jeudi 4 novembre 1790, au soir"
+      normalize_session_title("Séance du samedi 17 juillet 1790, où soir").should == "Séance du samedi 17 juillet 1790, au soir"
+      normalize_session_title("Séance du lundi 31 décembre 1792, s au soir").should == "Séance du lundi 31 décembre 1792 au soir"
+    end
+    it "should correct OCR for matin" do
+#      normalize_session_title("Séance du lundi 31 mai 1790 aumatin").should == "Séance du lundi 31 mai 1790 au matin"
+#      normalize_session_title("Séance du mercredi 28 septembre 1791 ,aumatin").should == "Séance du mercredi 28 septembre 1791 au matin"
+#      normalize_session_title("Séance du mardi 27 juin 1792 ,'au matin.").should == "Séance du mardi 27 juin 1792 au matin"
+#      normalize_session_title("Séance du leudi 26 août 1790, au *matin").should == "Séance du leudi 26 août 1790 au matin"
+      normalize_session_title("Séance du lundi 31 mai 1790 au malin").should == "Séance du lundi 31 mai 1790 au matin"
+      normalize_session_title("Séance du vendredi 6 juillet 1792, au malin").should == "Séance du vendredi 6 juillet 1792 au matin"
+      normalize_session_title("Séance du samedi 14 août 1790, ail matift").should == "Séance du samedi 14 août 1790 au matin"
+      normalize_session_title("Séance du mardi 27 juillet 1790 . au matin").should == "Séance du mardi 27 juillet 1790 au matin"
+      normalize_session_title("Séance du lundi 31 mai 1790 au matinx").should == "Séance du lundi 31 mai 1790 au matin"
+      normalize_session_title("Séance du jeudi 20 mai 1790, au matin\\ ").should == "Séance du jeudi 20 mai 1790 au matin"
+      normalize_session_title("Séance du lundi 31 mai 1790 au matiti").should == "Séance du lundi 31 mai 1790 au matin"
+      normalize_session_title("Séance du jeudi 29 septembre 1791, au Matin").should == "Séance du jeudi 29 septembre 1791 au matin"
+      normalize_session_title("Séance du vendredi 20 mai 1791, au màtin").should == "Séance du vendredi 20 mai 1791 au matin"
+      normalize_session_title("Séance du vendredi 21 juillet 1791 au matm").should == "Séance du vendredi 21 juillet 1791 au matin"
+      normalize_session_title("Séance du lundi 18 juin 1792 au 'mâtin").should == "Séance du lundi 18 juin 1792 au matin"
+      normalize_session_title("Séance du samedi 11 juin 1791, au mdtin").should == "Séance du samedi 11 juin 1791 au matin"
+      normalize_session_title("Séance du mardi 13 fuillét 1790, au mutin").should == "Séance du mardi 13 fuillét 1790 au matin"
+      normalize_session_title("Séance du samedi 10 avril 1790, au *ot>(l").should == "Séance du samedi 10 avril 1790 au matin"
+    end
+    it "should correct OCR for soir" do
+      normalize_session_title("Séance du jeudi 11 février 1790 otf soir ft}.-").should == ""
+      normalize_session_title("Séance du lundi 31 mai 1790 du sàir ").should == ""
+      normalize_session_title("Séance du lundi 31 mai 1790 au soîr(l").should == ""
+      normalize_session_title("Séance du jeudi 24 mars 1791, au soir(\\").should == ""
+      normalize_session_title("Séance du jeudi 26 aout 1790, au soit (1)").should == ""
+      normalize_session_title("Séance du jeudi 26 novembre 1789, au $oir (1)").should == ""
+      normalize_session_title("Séance du jeudi 28 avril 1791, au S0ir(l").should == ""
+      normalize_session_title("Séance du jeudi 29 septembre 1791, au soir( 1").should == ""
+      normalize_session_title("Séance du lundi 11 oètobre 1790, aù Sdlr (1)").should == ""
+      normalize_session_title("Séance du lundi 31 mai 1790, au soif (1)").should == ""
+      normalize_session_title("Séance du mardi 20 septembre 1791, ay solr (1)").should == ""
+      normalize_session_title("Séance du mardi 22 mars 1791, au sofr (1)").should == ""
+      normalize_session_title("Séance du mardi 30 novembre 1790, au snr (1)").should == ""
+      normalize_session_title("Séance du mardi 31 aôût 1790, du soî?'(l").should == ""
+      normalize_session_title("Séance du mardi 31 aôût 1790, du soî?'(l").should == ""
+      normalize_session_title("Séance du lundi 18 juin 1792 du sàir ").should == ""
+      normalize_session_title("Séance du mardi 9 août 1791, au loir (1)").should == ""
+      normalize_session_title("Séance du mardi 9 févriejr 1790, m voir (1)").should == ""
+      normalize_session_title("Séance du samedi 24 avril 1790, au soit (1)").should == ""
+      normalize_session_title("Séance du samedi 30 juillet 1791, au Sùir").should == ""
+      normalize_session_title("Séance du lundi 18 juin 1792 aù soit").should == ""
+      normalize_session_title("Séance du lundi 11 oètobre 1790, aù Sdlr").should == ""
+      normalize_session_title("Séance du lundi 31 mai 1790 du sàir").should == ""
+      normalize_session_title("Séance du lundi 31 mai 1790 aù Sdlr").should == ""
+      normalize_session_title("Séance du lundi 31 mai 1790 au soif").should == ""
+      normalize_session_title("Séance du lundi 31 mai 1790 ausoir").should == ""
+      normalize_session_title("Séance du lundi 31 mai 1790 m voir").should == ""
+      normalize_session_title("Séance du lundi 31 mai 1790 au soîrl").should == ""
+      normalize_session_title("Séance du lundi 31 mai 1790 au soirl").should == ""
+      normalize_session_title("").should == ""
+      pending "to be implemented"
+    end
     context "should correct OCR for days of the week" do
       it "lundi" do
         normalize_session_title('Séance du Lundi').should == "Séance du lundi"
@@ -65,6 +147,7 @@ describe NormalizationHelper do
         normalize_session_title('Séance du Mercredi').should == "Séance du mercredi"
         normalize_session_title('Séance du mercrredi').should == "Séance du mercredi"
         normalize_session_title('Séance du mereredi').should == "Séance du mercredi"
+        normalize_session_title('Procis-verbal de la cerhnonie de la Federation (1), du mereredi 14 juillet 1790').should == "Procis-verbal de la cerhnonie de la Federation (1), du mereredi 14 juillet 1790"
       end
       it "jeudi" do
         normalize_session_title('Séance du hindi').should == "Séance du jeudi"
@@ -106,7 +189,7 @@ describe NormalizationHelper do
       normalize_session_title('Séance du mardi 29 décembre 1789 , au matin').should == "Séance du mardi 29 décembre 1789, au matin"
     end
     it "should normalize internal whitespace" do
-      normalize_session_title('Séance du   mardi 29 décembre 1789, au matin (1) ').should == "Séance du mardi 29 décembre 1789, au matin (1)"
+      normalize_session_title('Séance du   mardi 29 décembre 1789, au matin (1) ').should == "Séance du mardi 29 décembre 1789, au matin"
     end    
     it "should remove outer parens and spaces" do
       normalize_session_title('( Dimanche 17 novembre 1793 )').should == "Séance du dimanche 17 novembre 1793"
@@ -123,6 +206,33 @@ describe NormalizationHelper do
       normalize_session_title('- Séance du jeudi 10 mars 1791').should == "Séance du jeudi 10 mars 1791"
       normalize_session_title('-Séance du jeudi 9 août 1792, au matin').should == "Séance du jeudi 9 août 1792, au matin"
     end
+    it "should deal with weird punctuation" do
+      normalize_session_title("Séance du mercredi 21 septembre 1791 * au matin (1").should == "Séance du mercredi 21 septembre 1791 * au matin"
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      normalize_session_title("").should == ""
+      pending "to be implemented"
+    end
     it "should skip ahead to 'Séance' if it starts 'présidence'" do
       normalize_session_title('PRÉSIDENCE DE M. DUPORT. Séance du mercredi 23 février 1791, au soir').should == 'Séance du mercredi 23 février 1791, au soir'
       normalize_session_title('Présidence de Billaud-Varenne. Séance du lundi matin 16 septembre 1793').should == 'Séance du lundi matin 16 septembre 1793'
@@ -136,6 +246,66 @@ describe NormalizationHelper do
       normalize_session_title('Jeudi 28 novembre 1793').should == 'Séance du jeudi 28 novembre 1793'
       normalize_session_title('Vendredi 3 janvier 1794').should == 'Séance du vendredi 3 janvier 1794'
       normalize_session_title('Samedi 4 janvier 1794').should == 'Séance du samedi 4 janvier 1794'
+    end
+    context "should drop everything after the year" do
+      it "plain" do
+        normalize_session_title("Séance du dimanche 16 janvier 1791 (1)").should == "Séance du dimanche 16 janvier 1791"
+        normalize_session_title("Séance du dimanche 24 octobre 1790 (i").should == "Séance du dimanche 24 octobre 1790"
+        normalize_session_title("Séance du dimanche 6 février 1791 (I").should == "Séance du dimanche 6 février 1791"
+        normalize_session_title("Séance du dimanche 7 février 1790 (t").should == "Séance du dimanche 7 février 1790"
+        normalize_session_title("Séance du lundi 14 mars 1791 {1}").should == "Séance du lundi 14 mars 1791"
+        normalize_session_title("Séance du lundi 18 octobre 1790 (2)").should == "Séance du lundi 18 octobre 1790"
+        normalize_session_title("Séance du dimanche 12 mai 1793 . présidence de boyer-fonfrède, Président").should == "Séance du dimanche 12 mai 1793"
+        normalize_session_title("Séance du dimanche 15 janvier 1792 PRÉSIDENCE DE M. DAVERHOULT (1)").should == "Séance du dimanche 15 janvier 1792"
+        normalize_session_title("Séance du dimanche 13 mai 1792 La séance est ouverte à 6 heures du soir. .1").should == "Séance du dimanche 13 mai 1792"
+        normalize_session_title("Séance du dimanche 17 juillet 1791 La séance est ouverte à onze heures du malin").should == "Séance du dimanche 17 juillet 1791"
+        normalize_session_title("Séance du dimanche 22 septembre 1793 L'an II de la République française, une et indivisible").should == "Séance du dimanche 22 septembre 1793"
+        normalize_session_title("Séance du jeudi 15 août 1793 l'an deuxième de la République française, une et indivisible").should == "Séance du jeudi 15 août 1793"
+        normalize_session_title("Séance du dimanche 12 août 1792 . Suite de la séance permanente").should == "Séance du dimanche 12 août 1792"
+        normalize_session_title("Dimanche 2 septembre 1792 ' Suite de la stance permanente").should == "Séance du dimanche 2 septembre 1792"
+        normalize_session_title("Lundi 3 septembre 1792 Suite de la stance permanente").should == "Séance du lundi 3 septembre 1792"
+        normalize_session_title("Séance du samedi 6 mars 1790, député dç BoUlogue-Sur-Mer, prête le serment patriotique qu'une absence forcée l'avait empêché de prêter Je 4 février").should == "Séance du samedi 6 mars 1790"
+      end
+      it "except 'au matin'" do
+        normalize_session_title("Séance du 11 mai 1790, au matin (1)").should == "Séance du 11 mai 1790, au matin"
+        normalize_session_title("Séance du 29 juillet 1790, au matin ( 1").should == "Séance du 29 juillet 1790, au matin"
+        normalize_session_title("Séance du dimanche 23 octobre 1791, au matin. PRESIDENCE DE M. DUCASTEL").should == "Séance du dimanche 23 octobre 1791, au matin"
+        normalize_session_title("Séance du jeudi 10 mars 1791, au matin (i").should == "Séance du jeudi 10 mars 1791, au matin"
+        normalize_session_title("Séance du jeudi 11 mars 1790, au matin, (l)„").should == "Séance du jeudi 11 mars 1790, au matin"
+        normalize_session_title("Séance du jeudi 13 mai 1790, au matin ,(1)").should == "Séance du jeudi 13 mai 1790, au matin"
+        normalize_session_title("Séance du jeudi 14 juillet 1791, au matin (2)").should == "Séance du jeudi 14 juillet 1791, au matin"
+        normalize_session_title("Séance du jeudi 22 avril 1790, au matin (Y").should == "Séance du jeudi 22 avril 1790, au matin"
+        normalize_session_title("Séance du jeudi 9 juin 1791, au matin {1").should == "Séance du jeudi 9 juin 1791, au matin"
+        normalize_session_title("Séance du lundi 15 juillet 1793, au matin.x").should == "Séance du lundi 15 juillet 1793, au matin"
+        normalize_session_title("Séance du lundi 16 avril 1792, au matin. présidence de m. bigot de préameneu.-").should == "Séance du lundi 16 avril 1792, au matin"
+        normalize_session_title("Séance du vendredi 21 septembre 1792, au matin tenue d'abord au chateau des Tuileries, puis a la salle du Man&amp;amp;ge, lieu ordinaire des Séancees de VAssembUe legislative").should == "Séance du vendredi 21 septembre 1792, au matin"
+        normalize_session_title("Jeudi 16 août 1792, au matin. Suite de la séance permanente").should == "Séance du jeudi 16 août 1792, au matin"
+        normalize_session_title("Séance du jeudi 20 mai 1790, au matin\\ 1").should == "Séance du jeudi 20 mai 1790, au matin"
+        normalize_session_title("Séance du jeudi 3 février 1791 , au matin(1)").should == "Séance du jeudi 3 février 1791, au matin"
+        normalize_session_title("Séance du jeudi 4 aout 1791, du 'mâtin (î").should == "Séance du jeudi 4 aout 1791, au matin"
+        normalize_session_title("").should == ""
+        normalize_session_title("").should == ""
+      end
+      it "except 'au soir'" do
+        normalize_session_title("Séance du 10 juin 1790, au soir (1)").should == "Séance du 10 juin 1790, au soir"
+        normalize_session_title("Séance du dimanche 23 octobre 1791, au soir. PRESIDENCE DE M. DUCASTEL").should == "Séance du dimanche 23 octobre 1791, au soir"
+        normalize_session_title("Séance du jeudi 10 décembre 1789, au soir (l").should == "Séance du jeudi 10 décembre 1789, au soir"
+        normalize_session_title("Séance du jeudi 24 mars 1791, au soir(\\").should == "Séance du jeudi 24 mars 1791, au soir"
+        normalize_session_title("Séance du jeudi 9 juin 1791, au soir (2)").should == "Séance du jeudi 9 juin 1791, au soir"
+        normalize_session_title("Séance du lundi 17 juin 1793 . au soir. présidence de collot d'herbois, Président").should == "Séance du lundi 17 juin 1793 . au soir"
+        normalize_session_title("Séance du jeudi, 3 octobre 1798, au soir, l'an II de la République française une et indivisible").should == "Séance du jeudi, 3 octobre 1798, au soir"
+        normalize_session_title("Séance du lundi 17 septembre 1792, au soir. Suite de la séance permanente").should == "Séance du lundi 17 septembre 1792, au soir"
+        normalize_session_title("Séance du lundi 24 octobre 1791, au soir. PRESIDENCE DE M. DUGASTEL").should == "Séance du lundi 24 octobre 1791, au soir"
+        normalize_session_title("Séance du jeudi 13 juin 1793, au soir présidence de mallarmé").should == "Séance du jeudi 13 juin 1793, au soir"
+        normalize_session_title("Séance du jeudi 24 mars 1791, au soir(\\").should == "Séance du jeudi 24 mars 1791, au soir"
+        normalize_session_title("Séance du jeudi 29 septembre 1791, au soir( 1").should == "Séance du jeudi 29 septembre 1791, au soir"
+        normalize_session_title("Séance du jeudi 4 août 1791, au soir(l").should == "Séance du jeudi 4 août 1791, au soir"
+        normalize_session_title("Séance du mercredi 11 août 1790, au soir( 1").should == "Séance du mercredi 11 août 1790, au soir"
+        normalize_session_title("Séance du samedi 18 septembre 1790, au soir (1), au soir (1)").should == "Séance du samedi 18 septembre 1790, au soir"
+        normalize_session_title("Séance du jeudi 11 février 1790 otf soir ft}.-").should == "Séance du jeudi 11 février 1790 otf soir"
+        normalize_session_title("").should == ""
+        normalize_session_title("").should == ""
+      end
     end
     
     it "should deal with annoying reality" do

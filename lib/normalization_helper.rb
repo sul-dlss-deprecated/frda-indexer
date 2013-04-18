@@ -70,6 +70,16 @@ module NormalizationHelper
     session_title.gsub! /\ASamedi/i, 'Séance du samedi'
     # separate digits smashed against day of the week
     session_title.gsub! /\ASéance du (lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)(\d)/i, 'Séance du \1 \2'
+    # TODO: au (au soir, au matin)
+    # TODO: matin
+    session_title.gsub! /(.*)(au m[aâdu][lt]in).*/i, '\1au matin'
+    # TODO: soir
+    # remove anything after the year, unless it's au matin or au soir
+    if session_title.match(/(.*(au matin|au soir)).*/i)
+      session_title.gsub! /(.*?(au matin|au soir)).*/i, '\1'
+    else
+      session_title.gsub! /(.*\d{4}).*/i, '\1'
+    end
     # normalize remaing whitespace
     session_title.gsub! /\s+/, ' '
     session_title
