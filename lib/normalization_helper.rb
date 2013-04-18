@@ -45,9 +45,10 @@ module NormalizationHelper
     # skip ahead to 'Séance' if it starts 'présidence'
     session_title.gsub! /\APrésidence.*Séance/i, 'Séance'
     # Séance du
-    session_title.gsub! /\ASéance,? d[uû]/, 'Séance du'
+    session_title.gsub! /\ASéance,? [daâ][uûa]/, 'Séance du'
     session_title.gsub! /\ASéance du[\.\-,] /, 'Séance du '
     session_title.gsub! /\ASéance du \. /, 'Séance du '
+    session_title.gsub! /\ASéance dit /, 'Séance du '
     # days of the week
     session_title.gsub! /\ASéance du lu[nh]di/i, 'Séance du lundi'
     session_title.gsub! /\ASéance du ?ma[rt]?di/i, 'Séance du mardi'

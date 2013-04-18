@@ -46,6 +46,10 @@ describe NormalizationHelper do
       normalize_session_title('Séance du. mardi').should == 'Séance du mardi'
       normalize_session_title('Séance du . mardi').should == 'Séance du mardi'
       normalize_session_title('Séance du . samedi').should == 'Séance du samedi'
+      normalize_session_title('Séance au lundi').should == 'Séance du lundi'
+      normalize_session_title('Séance da lundi').should == 'Séance du lundi'
+      normalize_session_title('Séance dit lundi').should == 'Séance du lundi'
+      normalize_session_title('Séance âu lundi').should == 'Séance du lundi'
     end
     context "should correct OCR for days of the week" do
       it "lundi" do
