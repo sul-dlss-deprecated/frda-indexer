@@ -75,6 +75,8 @@ module NormalizationHelper
     # au soir
     session_title.gsub! /(.*?) [',\. \[]*([dao][uùwy][\.]? ?[slv$][odàù0][iîfl][rft\?]).*/i, '\1 au soir'
     session_title.gsub! /(.*?) (au ?snr).*/i, '\1 au soir'
+    # au - 3 letter OCR
+    session_title.gsub! /(.*?) [alo][euit][ufilt] (matin|soir)/i, '\1 au \2'
     # remove anything after the year, unless it's au matin or au soir
     if session_title.match(/(.*(au matin|au soir)).*/i)
       session_title.gsub! /(.*?(au matin|au soir)).*/i, '\1'
