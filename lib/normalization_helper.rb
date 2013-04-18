@@ -72,7 +72,7 @@ module NormalizationHelper
     session_title.gsub! /\ASéance du (lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)(\d)/i, 'Séance du \1 \2'
     # TODO: au (au soir, au matin)
     # TODO: matin
-    session_title.gsub! /(.*) [',]?(au ?[\*']?m[aâdu][lt]in).*/i, '\1 au matin'
+    session_title.gsub! /(.*) [',\. ]*(au ?[\*']?m[aâàdu][lt]i[nf]).*/i, '\1 au matin'
     # TODO: soir
     session_title.gsub! /(.*) (au ?[slv$][odàù0][iîfl][rft\?]).*/i, '\1 au soir'
     session_title.gsub! /(.*) (au ?snr).*/i, '\1 au soir'
