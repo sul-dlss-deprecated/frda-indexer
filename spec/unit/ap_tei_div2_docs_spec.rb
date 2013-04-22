@@ -572,7 +572,8 @@ describe ApTeiDocument do
                         :pages_ssim => ["#{@druid}_00_0111-|-101",
                                         "#{@druid}_00_0112-|-102",
                                         "#{@druid}_00_0113-|-103",
-                                        "#{@druid}_00_0114-|-104"]))
+                                        "#{@druid}_00_0114-|-104",
+                                        "#{@druid}_00_0115-|-105"]))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0115"))
         @parser.parse(x)
       end
