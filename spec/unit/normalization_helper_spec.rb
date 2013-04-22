@@ -69,7 +69,7 @@ describe NormalizationHelper do
       normalize_session_title("Séance du vendredi 6 juillet 1792, au matin").should == "Séance du vendredi 6 juillet 1792, au matin"
       normalize_session_title("Séance du dimanche 24 août 1790, aw matin").should == "Séance du dimanche 24 août 1790, au matin"
       normalize_session_title("Séance du mardi 20 septembre 1791, ay soir").should == "Séance du mardi 20 septembre 1791, au soir"
-      normalize_session_title("Séance du vendredi 31 déçembre 1790, ay matin").should == "Séance du vendredi 31 déçembre 1790, au matin"
+      normalize_session_title("Séance du vendredi 31 déçembre 1790, ay matin").should == "Séance du vendredi 31 décembre 1790, au matin"
       normalize_session_title("Séance du lundi 18 juin 1792 du soir").should == "Séance du lundi 18 juin 1792 au soir"
       normalize_session_title("Séance du lundi 18 juin 1792 du matin").should == "Séance du lundi 18 juin 1792 au matin"
       normalize_session_title("Séance du lundi 27 juin 1791, lui matin").should == "Séance du lundi 27 juin 1791, au matin"
@@ -87,7 +87,6 @@ describe NormalizationHelper do
       normalize_session_title("Séance du leudi 26 août 1790, au *matin").should == "Séance du leudi 26 août 1790, au matin"
       normalize_session_title("Séance du lundi 31 mai 1790 au malin").should == "Séance du lundi 31 mai 1790 au matin"
       normalize_session_title("Séance du vendredi 6 juillet 1792, au malin").should == "Séance du vendredi 6 juillet 1792, au matin"
-#      normalize_session_title("Séance du samedi 14 août 1790, ail matift").should == "Séance du samedi 14 août 1790, au matin"
       normalize_session_title("Séance du mardi 27 juillet 1790 . au matin").should == "Séance du mardi 27 juillet 1790 au matin"
       normalize_session_title("Séance du lundi 31 mai 1790 au matinx").should == "Séance du lundi 31 mai 1790 au matin"
       normalize_session_title("Séance du jeudi 20 mai 1790, au matin\\ ").should == "Séance du jeudi 20 mai 1790, au matin"
@@ -98,7 +97,6 @@ describe NormalizationHelper do
       normalize_session_title("Séance du lundi 18 juin 1792 au 'mâtin").should == "Séance du lundi 18 juin 1792 au matin"
       normalize_session_title("Séance du samedi 11 juin 1791, au mdtin").should == "Séance du samedi 11 juin 1791, au matin"
       normalize_session_title("Séance du mardi 13 fuillét 1790, au mutin").should == "Séance du mardi 13 fuillét 1790, au matin"
-#      normalize_session_title("Séance du samedi 10 avril 1790, au *ot>(l").should == "Séance du samedi 10 avril 1790, au matin"
     end
     it "should correct OCR for soir" do
       normalize_session_title("Séance du lundi 31 mai 1790 au soirl").should == "Séance du lundi 31 mai 1790 au soir"
@@ -113,9 +111,9 @@ describe NormalizationHelper do
       normalize_session_title("Séance du lundi 31 mai 1790 au soif").should == "Séance du lundi 31 mai 1790 au soir"
       normalize_session_title("Séance du lundi 18 juin 1792 au soit").should == "Séance du lundi 18 juin 1792 au soir"
       normalize_session_title("Séance du mardi 30 novembre 1790, au snr").should == "Séance du mardi 30 novembre 1790, au soir"
-      normalize_session_title("Séance du mardi 31 aôût 1790, au soî?'(l").should == "Séance du mardi 31 aôût 1790, au soir"
+      normalize_session_title("Séance du mardi 31 aôût 1790, au soî?'(l").should == "Séance du mardi 31 août 1790, au soir"
       normalize_session_title("Séance du mardi 9 août 1791, au loir").should == "Séance du mardi 9 août 1791, au soir"
-      normalize_session_title("Séance du mardi 9 févriejr 1790, au voir").should == "Séance du mardi 9 févriejr 1790, au soir"
+      normalize_session_title("Séance du mardi 9 février 1790, au voir").should == "Séance du mardi 9 février 1790, au soir"
       normalize_session_title("Séance du jeudi 26 novembre 1789, au $oir").should == "Séance du jeudi 26 novembre 1789, au soir"
       normalize_session_title("Séance du lundi 31 mai 1790 ausoir").should == "Séance du lundi 31 mai 1790 au soir"
     end
@@ -168,6 +166,60 @@ describe NormalizationHelper do
         normalize_session_title('Séance du dimanche26').should == "Séance du dimanche 26"
       end
     end # days of the week
+    context "should correct OCR for months" do
+      it "janvier" do
+        normalize_session_title("jahvièr").should == "janvier"
+        normalize_session_title("Janvier").should == "janvier"
+        normalize_session_title("JANVIER").should == "janvier"
+      end
+      it "février" do
+        # all okay?
+      end
+      it "mars" do
+        # all okay?
+      end
+      it "avril" do
+        # all okay?
+      end
+      it "mai" do
+        normalize_session_title("mài").should == "mai"
+      end
+      it "juin" do
+        # all okay?
+      end
+      it "juillet" do
+        # all okay?
+      end
+      it "août" do
+        normalize_session_title("aout").should == "août"
+        normalize_session_title("aoUt").should == "août"
+        normalize_session_title("AOUT").should == "août"
+        normalize_session_title("aotit").should == "août"
+        normalize_session_title("aôût").should == "août"
+      end
+      it "septembre" do
+        normalize_session_title("septembrê").should == "septembre"
+        normalize_session_title("septembre!").should == "septembre"
+      end
+      it "octobre" do
+        normalize_session_title("oetobre ").should == "octobre"
+        normalize_session_title("Octobre").should == "octobre"
+        normalize_session_title("OCTOBRE'").should == "octobre"
+        normalize_session_title("octobrè").should == "octobre"
+      end
+      it "novembre" do
+        normalize_session_title("novémbre").should == "novembre"
+        normalize_session_title("novembrè").should == "novembre"
+        normalize_session_title("novèmbre").should == "novembre"
+        normalize_session_title("Novembre").should == "novembre"
+      end
+      it "décembre" do
+        normalize_session_title("décëmbre").should == "décembre"
+        normalize_session_title("déçembre").should == "décembre"
+        normalize_session_title("Décembre").should == "décembre"
+        normalize_session_title("DÉCEMBRE").should == "décembre"
+      end
+    end
     it "should deal well with preceding commas" do
       normalize_session_title('Séance du vendredi, 4 octobre 1793,').should == "Séance du vendredi, 4 octobre 1793"
     end
@@ -247,7 +299,7 @@ describe NormalizationHelper do
         normalize_session_title("Jeudi 16 août 1792, au matin. Suite de la séance permanente").should == "Séance du jeudi 16 août 1792, au matin"
         normalize_session_title("Séance du jeudi 20 mai 1790, au matin\\ 1").should == "Séance du jeudi 20 mai 1790, au matin"
         normalize_session_title("Séance du jeudi 3 février 1791 , au matin(1)").should == "Séance du jeudi 3 février 1791, au matin"
-        normalize_session_title("Séance du jeudi 4 aout 1791, du 'mâtin (î").should == "Séance du jeudi 4 aout 1791, au matin"
+        normalize_session_title("Séance du jeudi 4 aout 1791, du 'mâtin (î").should == "Séance du jeudi 4 août 1791, au matin"
       end
       it "except 'au soir'" do
         normalize_session_title("Séance du 10 juin 1790, au soir (1)").should == "Séance du 10 juin 1790, au soir"

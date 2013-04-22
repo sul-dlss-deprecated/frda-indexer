@@ -70,6 +70,15 @@ module NormalizationHelper
     session_title.gsub! /\ASamedi/i, 'Séance du samedi'
     # separate digits smashed against day of the week
     session_title.gsub! /\ASéance du (lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)(\d)/i, 'Séance du \1 \2'
+    # months
+    session_title.gsub! /ja[nh]vi[eè]r/i, 'janvier'
+    session_title.gsub! /m[aà]i/i, 'mai'
+    session_title.gsub! /a[oô][ûu]t/i, 'août'
+    session_title.gsub! /aotit/i, 'août'
+    session_title.gsub! /septembr[eê][!']?/i, 'septembre'
+    session_title.gsub! /o[ce]tobr[eè]'?/i, 'octobre'
+    session_title.gsub! /nov[eéè]mbr[eè]/i, 'novembre'
+    session_title.gsub! /dé[cç][eë]mbre/i, 'décembre'
     # au matin
     session_title.gsub! /(.*?) [',\. \*\[]*([dao][uùwy][\.]? ?[\*']?m[aâàdu][lt]i[nft]).*/i, '\1 au matin'
     # OCR 4 letter matin
