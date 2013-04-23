@@ -102,12 +102,12 @@ describe ApTeiDocument do
                 <div2 type=\"session\">
                 <p>fourth <date value=\"1793-10-08\">one</date></p>
                 <pb id=\"#{@druid}_00_0822\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0816", :session_title_ftsim => ["first one"]))
-            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0817", :session_title_ftsim => ["first one"]))
-            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0818", :session_title_ftsim => ["second one"]))
-            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0819", :session_title_ftsim => ["second one", "third one"]))
-            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0820", :session_title_ftsim => ["third one"]))
-            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0821", :session_title_ftsim => ["fourth one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0816", :session_title_ftsim => ["First one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0817", :session_title_ftsim => ["First one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0818", :session_title_ftsim => ["Second one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0819", :session_title_ftsim => ["Second one", "Third one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0820", :session_title_ftsim => ["Third one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0821", :session_title_ftsim => ["Fourth one"]))
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
@@ -164,7 +164,7 @@ describe ApTeiDocument do
                 <div2 type=\"session\">
                   <p>another <date value=\"2013-01-01\">one</date></p>
                 <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["first one", "another one"]))
+            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["First one", "Another one"]))
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end

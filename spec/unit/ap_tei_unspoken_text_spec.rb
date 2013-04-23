@@ -136,10 +136,10 @@ describe ApTeiDocument do
       it "when it's a session title" do
         x = @start_session_doc + "<p>nope<date value=\"2013-01-01\">nope</date>nope</p><p>yes</p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => ["#{@page_id}-|-yes"],
-                                                                :session_title_ftsi => 'nope nope nope',
+                                                                :session_title_ftsi => 'Nope nope nope',
                                                                 :id => "#{@druid}_div2_1"))
         @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => ["yes"], 
-                                                                :session_title_ftsim => ['nope nope nope'],
+                                                                :session_title_ftsim => ['Nope nope nope'],
                                                                 :id => @page_id))
         @parser.parse(x)
       end
@@ -148,10 +148,10 @@ describe ApTeiDocument do
       it "when it's part of a session title" do
         x = @start_session_doc + "<p>foo<date value=\"2013-01-01\">nope</date></p><p>yes</p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => ["#{@page_id}-|-yes"], 
-                                                                :session_title_ftsi => 'foo nope',
+                                                                :session_title_ftsi => 'Foo nope',
                                                                 :id => "#{@druid}_div2_1"))
         @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => ["yes"], 
-                                                                :session_title_ftsim => ['foo nope'],
+                                                                :session_title_ftsim => ['Foo nope'],
                                                                 :id => @page_id))
         @parser.parse(x)
       end

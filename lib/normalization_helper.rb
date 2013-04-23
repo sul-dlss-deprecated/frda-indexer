@@ -103,7 +103,11 @@ module NormalizationHelper
     # normalize remaing whitespace
     session_title.gsub! /\s+/, ' '
     # only capitalize first word
-    session_title[0].upcase + session_title[1, session_title.size-1].downcase
+    if session_title && session_title.size > 1
+      session_title[0].upcase + session_title[1, session_title.size-1].downcase 
+    else
+      session_title
+    end
   end
   
   def normalize_speaker name
