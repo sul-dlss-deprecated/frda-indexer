@@ -33,7 +33,7 @@ module NormalizationHelper
     session_title.gsub! /\A[-]/, ''   # more leading chars
     session_title.gsub! /[*"]\z/, ''   # more trailing chars
     remove_trailing_and_leading_characters session_title
-    session_title.gsub! /\s,\s/, ', '
+    session_title.gsub! /\s,\s/, ', '  # space comma space
     # 'Séance' 
     session_title.gsub! /\AS[éeèêdt][aâd][nm][cçdeèot][çeéèê]/i, 'Séance' # 6 letter variants
     session_title.gsub! /\AS[eé]a?nc?[eèé]/i, 'Séance'  # 5 letter variants corrected
@@ -68,6 +68,8 @@ module NormalizationHelper
     session_title.gsub! /\AJeudi/i, 'Séance du jeudi'
     session_title.gsub! /\AVendredi/i, 'Séance du vendredi'
     session_title.gsub! /\ASamedi/i, 'Séance du samedi'
+    # adjust if it starts with du
+    session_title.gsub! /\ADu/i, 'Séance du'
     # separate digits smashed against day of the week
     session_title.gsub! /\ASéance du (lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)(\d)/i, 'Séance du \1 \2'
     # months
@@ -79,17 +81,19 @@ module NormalizationHelper
     session_title.gsub! /o[ce]tobr[eè]'?/i, 'octobre'
     session_title.gsub! /nov[eéè]mbr[eè]/i, 'novembre'
     session_title.gsub! /dé[cç][eë]mbre/i, 'décembre'
+    # punctuation
+    session_title.gsub! /[»;\.',]/, ''   
     # au matin
-    session_title.gsub! /(.*?) [',\. \*\[]*([dao][uùwy][\.]? ?[\*']?m[aâàdu][lt]i[nft]).*/i, '\1 au matin'
+    session_title.gsub! /(.*?) [',\. \*\[]*([dao][uùwyn][\.]? ?[\*']?m[aâàdu][lt]i[nft]).*/i, '\1, au matin'
     # OCR 4 letter matin
-    session_title.gsub! /(.*?) [',\. \*\[]*([dao][uùwy][\.]? ?[\*']?matm).*/i, '\1 au matin'
+    session_title.gsub! /(.*?) [',\. \*\[]*([dao][uùwyn][\.]? ?[\*']?matm).*/i, '\1, au matin'
     # au soir
-    session_title.gsub! /(.*?) [',\. \*\[]*([dao][uùwy][\.]? ?[slv$][odàù0][iîfl][rft\?]).*/i, '\1 au soir'
-    session_title.gsub! /(.*?) (au ?snr).*/i, '\1 au soir'
+    session_title.gsub! /(.*?) [',\. \*\[]*([dao][uùwyn][\.]? ?[slv$][odàù0][iîfl][rftn\?]).*/i, '\1, au soir'
+    session_title.gsub! /(.*?) (au ?snr).*/i, '\1, au soir'
     # 3 letter OCR for au
-    session_title.gsub! /(.*?) [alo][euit][ufilt] (matin|soir)/i, '\1 au \2'
+    session_title.gsub! /(.*?) [alo][euit][ufilt] (matin|soir)/i, '\1, au \2'
     # 1 letter OCR for au
-    session_title.gsub! /(.*?) m (matin|soir).*/i, '\1 au \2'
+    session_title.gsub! /(.*?) m (matin|soir).*/i, '\1, au \2'
     # remove anything after the year, unless it's au matin or au soir
     if session_title.match(/(.*\d{4}[,\.]* (au matin|au soir)).*/i)
       session_title.gsub! /(.*?\d{4}[,\.]* (au matin|au soir)).*/i, '\1'
@@ -98,7 +102,8 @@ module NormalizationHelper
     end
     # normalize remaing whitespace
     session_title.gsub! /\s+/, ' '
-    session_title
+    # only capitalize first word
+    session_title[0].upcase + session_title[1, session_title.size-1].downcase
   end
   
   def normalize_speaker name
