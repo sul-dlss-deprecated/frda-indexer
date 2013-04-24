@@ -45,7 +45,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
       rescue => e
         @error_count+=1
         logger.error "Failed to index #{druid}: #{e.message}"
-        p e.backtrace
+        logger.error e.backtrace
       end
     end
   end
