@@ -1,7 +1,7 @@
 # Settings for BnF Images
 
 # log_dir:  directory for log file  (default logs, relative to harvestdor gem path)
-log_dir: logs  
+log_dir: logs/images
 
 # log_name: name of log file  (default: harvestdor.log)
 log_name: bnf-images.log
@@ -13,18 +13,18 @@ purl: http://purl.stanford.edu
 solr:
   url: https://sul-solr-test.stanford.edu/solr/frda
   # timeouts are in seconds;  read_timeout -> open/read, open_timeout -> connection open
-  read_timeout: 60
-  open_timeout: 60
+  read_timeout: 90
+  open_timeout: 90
 
 # ---------- White and Black list parameters -----
 
 # name of file containing druids that will NOT be profiled even if they are harvested via OAI
 #  either give absolute directory, or directory relative to where the command will be executed
-blacklist: config/bnf-images.blacklist.txt
+#blacklist: config/bnf-images.blacklist.txt
 
 # name of file containing druids that WILL be profiled (all others will be ignored)
 #  either give absolute directory, or directory relative to where the command will be executed
-whitelist: config/bnf-images.whitelist.txt
+whitelist: config/bnf-images-druids.txt
 
 
 # ---------- OAI harvesting parameters -----------

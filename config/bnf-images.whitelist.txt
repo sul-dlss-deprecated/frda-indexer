@@ -1,4 +1,4 @@
-# whitelist containing the druids to be processed
+# whitelist containing the druids to be processed - OLD, incomplete
 #  for FRDA BnF Images
 # druids should be in the form aa111bb2222
 bb016nw8128
