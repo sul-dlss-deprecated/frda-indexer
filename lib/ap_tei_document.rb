@@ -43,6 +43,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @page_num_s = nil
     @page_num_i = nil
     @need_div2_title = false
+    @div2_type = nil
     @need_session_govt = false
     @need_session_title = false
     @need_first_page = true
@@ -72,7 +73,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @div2_counter = @div2_counter + 1
       @div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
       @div2_doc_type = DIV2_TYPE[@div2_type] if @div2_type
-      @need_div2_title = true
       if @div2_type == 'session'
         if @page_buffer.empty? || !@page_session_fields
           @page_session_fields = {}
@@ -83,8 +83,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         @need_session_title = true
         @need_session_first_page = true
         @session_title = ''
+        # have copyfield for session title -> div2_title field
       else
         @page_session_fields = nil
+        @need_div2_title = true
       end
       add_value_to_page_doc_hash(:doc_type_ssim, @div2_doc_type)
       init_div2_doc_hash
@@ -156,8 +158,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         case @div2_type
           when "alpha"
             add_value_to_div2_doc_hash(:div2_title_ssi, text.strip)
+#          when "contents"
+            # TODO
           when "introduction"
             add_value_to_div2_doc_hash(:div2_title_ssi, 'Introduction')
+          when "other"
+            val = remove_trailing_and_leading_characters text
+            add_value_to_div2_doc_hash(:div2_title_ssi, sentence_case(val))
           when "table_alpha"
             val = remove_trailing_and_leading_characters text
             if val.size >= 10 && val[0, 9] == UnicodeUtils.upcase(val[0, 9])
@@ -167,9 +174,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
             else
               add_value_to_div2_doc_hash(:div2_title_ssi, val)
             end
-          when "session"
-            # have copyfield for session title
-            add_unspoken_text_to_doc_hashes text 
+          # NOTE: have copyfield for session div2_title, so no need to have it here
         end
         @need_div2_title = false
       else
@@ -188,6 +193,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         end
         @need_session_title = false
         @got_date = false
+      elsif @in_div2 && @need_div2_title && @div2_type == 'other' 
+        val = remove_trailing_and_leading_characters text
+        add_value_to_div2_doc_hash(:div2_title_ssi, sentence_case(val))
+        @need_div2_title = false
       elsif text
         if @in_session && @need_session_govt && text == text.upcase
           add_session_govt_ssim(text)

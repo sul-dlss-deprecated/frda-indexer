@@ -34,7 +34,9 @@ describe ApTeiDocument do
   context "prefix" do
     before(:all) do
       @start_session_doc =  @start_tei_body_div1 + "<div2 type=\"other\"><pb n=\"5\" id=\"#{@page_id}\"/>"
-      @x = @start_session_doc + "<p>blather</p>" + @end_div2_body_tei
+      @x = @start_session_doc + 
+            "<head>DIV2 HEAD</head>
+            <p>blather</p>" + @end_div2_body_tei
     end
     it "should start with page_id for div2 docs" do
       @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => ["#{@page_id}-|-blather"], :id => "#{@druid}_div2_1"))
@@ -55,6 +57,7 @@ describe ApTeiDocument do
   context "unspoken_text field" do
     it "should include <p> session text when there is no speaker" do
       x = @start_tei_body_div1 + "<div2 type=\"other\">
+            <head>DIV2 HEAD</head>
             <pb n=\"812\" id=\"#{@page_id}\"/>
             <p>before</p>
             <p><date value=\"2013-01-01\">pretending to care</date></p>
