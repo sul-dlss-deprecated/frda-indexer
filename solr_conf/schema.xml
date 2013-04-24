@@ -109,6 +109,8 @@
   <copyField source="title_short_ftsi" dest="title_short_ti" />
   <copyField source="title_long_ftsi" dest="title_long_ti" />
   <copyField source="vol_title_ssi" dest="result_group_ssi" />
+  <copyField source="vol_title_ssi" dest="vol_title_fti" />
+  <copyField source="vol_title_ssi" dest="vol_title_ti" />
 
   <types>
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" />

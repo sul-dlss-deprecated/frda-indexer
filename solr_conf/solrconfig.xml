@@ -171,6 +171,8 @@
         title_long_ti^5
         title_short_ftsi
         title_long_ftsi
+        vol_title_ti^5
+        vol_title_fti
         catalog_heading_timv^3
         catalog_heading_ftsimv
         catalog_heading_etsimv
@@ -193,6 +195,8 @@
         title_long_ti^20
         title_short_ftsi^15
         title_long_ftsi^15
+        vol_title_ti^20
+        vol_title_fti^15
         catalog_heading_timv^20
         catalog_heading_ftsimv^15
         catalog_heading_etsimv^15
@@ -208,6 +212,7 @@
       <str name="qf_exact">
         title_short_ti
         title_long_ti
+        vol_title_ti
         catalog_heading_timv
         spoken_text_timv
         unspoken_text_timv
@@ -220,6 +225,7 @@
       <str name="pf_exact">
         title_short_ti^5
         title_long_ti^5
+        vol_title_ti^5
         catalog_heading_timv^5
         spoken_text_timv^5
         unspoken_text_timv^5
@@ -232,20 +238,26 @@
         title_long_ti^5
         title_short_ftsi
         title_long_ftsi
+        vol_title_ti^5
+        vol_title_fti
       </str>
       <str name="pf_title">
         title_short_ti^10
         title_long_ti^10
         title_short_ftsi^5
         title_long_ftsi^5
+        vol_title_ti^10
+        vol_title_fti^5
       </str>
       <str name="qf_title_exact">
         title_short_ti
         title_long_ti
+        vol_title_ti
       </str>
       <str name="pf_title_exact">
         title_short_ti^5
         title_long_ti^5
+        vol_title_ti^5
       </str>
 
       <str name="qf_name">
