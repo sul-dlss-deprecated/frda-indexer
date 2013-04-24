@@ -194,8 +194,10 @@ describe ApTeiDocument do
     
     context 'type="alpha"' do
       before(:all) do
-        @x = "#{@start_tei_back_div1}<div2 type=\"alpha\">
+        @x = "#{@start_tei_back_div1}
                 <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                <div2 type=\"alpha\">
+                <head>B </head>
                 <p>blah blah</p>" + @end_div2_back_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['alpha'] 
@@ -203,7 +205,12 @@ describe ApTeiDocument do
         @rsolr_client.should_not_receive(:add).with(hash_including(:session_date_dtsi))
         @parser.parse(@x)
       end
-    end
+      it "should have div2_title_ssi of the letter in the first <head> " do
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+        @rsolr_client.should_receive(:add).with(hash_including(:div2_title_ssi => 'B'))
+        @parser.parse(@x)
+      end
+    end # alpha
     context 'type="contents"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"contents\">
@@ -211,7 +218,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['contents'] 
-    end
+    end # contents
     context 'type="other"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"other\">
@@ -219,7 +226,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['other'] 
-    end
+    end # other
     context 'type="table_alpha"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
@@ -227,7 +234,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['table_alpha'] 
-    end
+    end # table_alpha
     context 'type="introduction"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"introduction\">
@@ -241,7 +248,7 @@ describe ApTeiDocument do
         @rsolr_client.should_receive(:add).with(hash_including(:div2_title_ssi => 'Introduction'))
         @parser.parse(@x)
       end
-    end
+    end # introduction
   end # <div2> element
   
   context "div2 solr doc pages_ssim" do

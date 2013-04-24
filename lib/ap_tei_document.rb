@@ -153,6 +153,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         add_session_govt_ssim(text)
       elsif @in_div2 && @need_div2_title
         case @div2_doc_type
+          when DIV2_TYPE["alpha"]
+            add_value_to_div2_doc_hash(:div2_title_ssi, text.strip)
           when DIV2_TYPE["introduction"]
             add_value_to_div2_doc_hash(:div2_title_ssi, 'Introduction')
           when DIV2_TYPE["session"]
