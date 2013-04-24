@@ -9,6 +9,7 @@ gem 'stanford-mods'
 gem 'nokogiri'
 gem 'rake'
 gem 'rsolr'
+gem 'unicode_utils'
 
 # documentation
 group :doc do

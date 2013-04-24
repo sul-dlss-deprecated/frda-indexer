@@ -1,4 +1,5 @@
 # encoding: UTF-8
+require 'unicode_utils'
 
 module NormalizationHelper
   
@@ -17,6 +18,18 @@ module NormalizationHelper
       @logger.warn("Found <date> tag with unparseable date value: '#{date_str}' in page #{page_doc_hash[:id]}") if @in_body || @in_back
       nil
     end
+  end
+  
+  # @param str [String] 
+  # @return a version of the String with the first char in uppercase and all the rest in lowercase
+  def sentence_case str
+    if str 
+      if str.size > 1
+        str[0].upcase + UnicodeUtils.downcase(str[1, str.size - 1]) 
+      else
+        str.upcase
+      end
+    end  
   end
 
   # normalize the session title (date) text by 
@@ -103,11 +116,7 @@ module NormalizationHelper
     # normalize remaing whitespace
     session_title.gsub! /\s+/, ' '
     # only capitalize first word
-    if session_title && session_title.size > 1
-      session_title[0].upcase + session_title[1, session_title.size-1].downcase 
-    else
-      session_title
-    end
+    sentence_case(session_title)
   end
   
   def normalize_speaker name

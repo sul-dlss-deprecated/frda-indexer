@@ -5,6 +5,16 @@ describe NormalizationHelper do
   
   include NormalizationHelper
 
+  context "sentence_case" do
+    it "should leave the first letter capitalized and make all other letters lowercase" do
+      sentence_case("Dimanche 1er Décembre 1793").should == "Dimanche 1er décembre 1793"
+      sentence_case("Séance au LUNDI 3 DÉCEMBRE 1792").should == "Séance au lundi 3 décembre 1792"
+      sentence_case("Séance du dimanche 30 JUIN 1793").should == "Séance du dimanche 30 juin 1793"
+      sentence_case("Noblesse du bailliage scondaire de Conches.").should == "Noblesse du bailliage scondaire de conches."
+      sentence_case("PENSIONS AU-DESSOUS DE SIX CENTS LIVRES SEPTIÈME CLASSE. (Suite.)").should == "Pensions au-dessous de six cents livres septième classe. (suite.)"
+    end
+  end
+
   context "#normalize_session_title" do
     it "should strip outer whitespace" do
       normalize_session_title(' Séance du mardi 29 décembre 1789  ').should == "Séance du mardi 29 décembre 1789"
