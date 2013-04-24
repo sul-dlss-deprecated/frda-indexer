@@ -102,6 +102,7 @@
   <copyField source="session_date_dtsi" dest="search_date_dtsim" />
   <copyField source="session_date_dtsim" dest="search_date_dtsim" />
   <copyField source="session_title_ftsi" dest="session_title_si" />
+  <copyField source="session_title_ftsi" dest="div2_title_ssi" />
   <copyField source="session_title_ftsim" dest="session_title_sim" />
   <copyField source="text_tiv" dest="text_ftsiv" />
   <copyField source="spoken_text_timv" dest="spoken_text_ftsimv" />
