@@ -92,6 +92,7 @@ describe ApTeiDocument do
       before(:all) do
         @page_id = "#{@druid}_00_0001"
         @x = @start_tei_body_div1 + "<div2 type=\"other\">
+              <head>DIV2 TITLE</head>
               <pb n=\"5\" id=\"#{@page_id}\"/>
               <p>actual content</p>
               <div3 type=\"annexe\">
@@ -123,12 +124,12 @@ describe ApTeiDocument do
     context "when shouldn't it include a head element?" do
       it "when it's a session government heading" do
         x = @start_session_doc + "<head>CONVENTION NATIONALE</head><head>yes</head>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => ["#{@page_id}-|-yes"],
-                                                                :session_govt_ssi => 'CONVENTION NATIONALE',
-                                                                :id => "#{@druid}_div2_1"))
         @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => ["yes"], 
                                                                 :session_govt_ssim => ['CONVENTION NATIONALE'],
                                                                 :id => @page_id))
+        @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => ["#{@page_id}-|-yes"],
+                                                                :session_govt_ssi => 'CONVENTION NATIONALE',
+                                                                :id => "#{@druid}_div2_1"))
         @parser.parse(x)
       end
     end
@@ -159,7 +160,7 @@ describe ApTeiDocument do
     
     context "what is included" do
       before(:all) do
-        @start_doc =  @start_tei_body_div1 + "<div2 type=\"other\"><pb n=\"5\" id=\"#{@page_id}\"/>"
+        @start_doc =  @start_tei_body_div1 + "<div2 type=\"other\"><pb n=\"5\" id=\"#{@page_id}\"/><head>DIV2 TITLE</head>"
       end
       it "should include the contents of <p> element" do
         x = @start_doc + "<p>blather</p>" + @end_div2_body_tei

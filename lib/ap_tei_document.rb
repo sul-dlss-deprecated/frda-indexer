@@ -41,6 +41,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @page_id = nil
     @page_num_s = nil
     @page_num_i = nil
+    @need_div2_title = false
     @need_session_govt = false
     @need_session_title = false
     @need_first_page = true
@@ -70,6 +71,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @div2_counter = @div2_counter + 1
       div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
       @div2_doc_type = DIV2_TYPE[div2_type] if div2_type
+      @need_div2_title = true
       if div2_type == 'session'
         if @page_buffer.empty? || !@page_session_fields
           @page_session_fields = {}
@@ -149,6 +151,15 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     when 'head'
       if @in_session && @need_session_govt
         add_session_govt_ssim(text)
+      elsif @in_div2 && @need_div2_title
+        case @div2_doc_type
+          when DIV2_TYPE["introduction"]
+            add_value_to_div2_doc_hash(:div2_title_ssi, 'Introduction')
+          when DIV2_TYPE["session"]
+            # have copyfield for session title
+            add_unspoken_text_to_doc_hashes text 
+        end
+        @need_div2_title = false
       else
         add_unspoken_text_to_doc_hashes text 
       end

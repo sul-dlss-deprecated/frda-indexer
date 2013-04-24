@@ -232,9 +232,15 @@ describe ApTeiDocument do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"introduction\">
                 <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                <head>INTRODUCTION</head>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['introduction'] 
+      it "should have div2_title_ssi of 'Introduction'" do
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+        @rsolr_client.should_receive(:add).with(hash_including(:div2_title_ssi => 'Introduction'))
+        @parser.parse(@x)
+      end
     end
   end # <div2> element
   
