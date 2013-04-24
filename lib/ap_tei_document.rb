@@ -1,6 +1,7 @@
 # encoding: UTF-8
 require 'date'
 require 'nokogiri'
+require 'unicode_utils'
 
 require 'ap_vol_dates'
 require 'ap_vol_sort'
@@ -69,10 +70,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
       @in_div2 = true
       @div2_counter = @div2_counter + 1
-      div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
-      @div2_doc_type = DIV2_TYPE[div2_type] if div2_type
+      @div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
+      @div2_doc_type = DIV2_TYPE[@div2_type] if @div2_type
       @need_div2_title = true
-      if div2_type == 'session'
+      if @div2_type == 'session'
         if @page_buffer.empty? || !@page_session_fields
           @page_session_fields = {}
         end
@@ -152,12 +153,21 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       if @in_session && @need_session_govt
         add_session_govt_ssim(text)
       elsif @in_div2 && @need_div2_title
-        case @div2_doc_type
-          when DIV2_TYPE["alpha"]
+        case @div2_type
+          when "alpha"
             add_value_to_div2_doc_hash(:div2_title_ssi, text.strip)
-          when DIV2_TYPE["introduction"]
+          when "introduction"
             add_value_to_div2_doc_hash(:div2_title_ssi, 'Introduction')
-          when DIV2_TYPE["session"]
+          when "table_alpha"
+            val = remove_trailing_and_leading_characters text
+            if val.size >= 10 && val[0, 9] == UnicodeUtils.upcase(val[0, 9])
+              add_value_to_div2_doc_hash(:div2_title_ssi, sentence_case(val))
+            elsif val == UnicodeUtils.upcase(val)
+              add_value_to_div2_doc_hash(:div2_title_ssi, sentence_case(val))
+            else
+              add_value_to_div2_doc_hash(:div2_title_ssi, val)
+            end
+          when "session"
             # have copyfield for session title
             add_unspoken_text_to_doc_hashes text 
         end
