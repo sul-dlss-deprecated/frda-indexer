@@ -182,6 +182,7 @@ describe NormalizationHelper do
       normalize_session_title("Séance du jeudi 4 novembre 1790, ou soir").should == "Séance du jeudi 4 novembre 1790, au soir"
       normalize_session_title("Séance du samedi 17 juillet 1790, où soir").should == "Séance du samedi 17 juillet 1790, au soir"
       normalize_session_title("Lundi 9 septembre 1792, an soir").should == "Séance du lundi 9 septembre 1792, au soir"
+      normalize_session_title("Séance du jeudi 18 avril 1793, cm matin. ").should == "Séance du jeudi 18 avril 1793, au matin"
 #      normalize_session_title("Séance du lundi 31 décembre 1792, s au soir").should == "Séance du lundi 31 décembre 1792 au soir"
     end
     it "should correct OCR for matin" do

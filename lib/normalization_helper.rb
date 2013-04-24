@@ -84,11 +84,11 @@ module NormalizationHelper
     # punctuation
     session_title.gsub! /[»;\.',]/, ''   
     # au matin
-    session_title.gsub! /(.*?) [',\. \*\[]*([dao][uùwyn][\.]? ?[\*']?m[aâàdu][lt]i[nft]).*/i, '\1, au matin'
+    session_title.gsub! /(.*?) [',\. \*\[]*([daoc][uùwynm][\.]? ?[\*']?m[aâàdu][lt]i[nft]).*/i, '\1, au matin'
     # OCR 4 letter matin
-    session_title.gsub! /(.*?) [',\. \*\[]*([dao][uùwyn][\.]? ?[\*']?matm).*/i, '\1, au matin'
+    session_title.gsub! /(.*?) [',\. \*\[]*([daoc][uùwynm][\.]? ?[\*']?matm).*/i, '\1, au matin'
     # au soir
-    session_title.gsub! /(.*?) [',\. \*\[]*([dao][uùwyn][\.]? ?[slv$][odàù0][iîfl][rftn\?]).*/i, '\1, au soir'
+    session_title.gsub! /(.*?) [',\. \*\[]*([daoc][uùwynm][\.]? ?[slv$][odàù0][iîfl][rftn\?]).*/i, '\1, au soir'
     session_title.gsub! /(.*?) (au ?snr).*/i, '\1, au soir'
     # 3 letter OCR for au
     session_title.gsub! /(.*?) [alo][euit][ufilt] (matin|soir)/i, '\1, au \2'
