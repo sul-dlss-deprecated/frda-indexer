@@ -151,7 +151,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       # NOTE: can't add @div2_doc_hash to Solr here, because <pb> within closing tag(s) might not be part of THIS div2?
       @in_div2 = false
       @in_session = false
-      @div2_contents_title_buffer = nil
+      @div2_title_buffer = nil
     when 'head'
       if @in_session && @need_session_govt
         add_session_govt_ssim(text)
@@ -162,10 +162,10 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
             @need_div2_title = false
           when "contents"
             # sometimes the div2 title is split across multiple <head> elements
-            @div2_contents_title_buffer = add_chars_to_buffer(text, @div2_contents_title_buffer)
-#p @div2_contents_title_buffer
-            if @div2_contents_title_buffer.match(/\ATable.*tome/i)
-              val = sentence_case(@div2_contents_title_buffer)
+            @div2_title_buffer = @div2_title_buffer ? "#{@div2_title_buffer} #{text}" : text
+#p @div2_title_buffer
+            if @div2_title_buffer.match(/\ATable.*tome/i)
+              val = sentence_case(remove_trailing_and_leading_characters(@div2_title_buffer))
 #p val              
               if val.match(/\ATable chronologique.*tome/i) || val.match(/\ATable générale chronologique des tomes.*/i)
                 # capitalize Tome
