@@ -548,7 +548,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       # add :div2_ssort
       title = @div2_doc_hash[:div2_title_ssi] ? @div2_doc_hash[:div2_title_ssi] : @session_title
       image_id = @div2_doc_hash[:pages_ssim].first.split(SEP).first
-      add_value_to_div2_doc_hash(:div2_ssort, "#{image_id}#{SEP}#{title}") 
+      add_value_to_div2_doc_hash(:div2_ssort, "#{image_id}#{SEP}#{title}")
       @rsolr_client.add(@div2_doc_hash)
       @last_div2_added = @div2_doc_hash[:id]
     end
