@@ -121,6 +121,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       end
     when 'speaker'
       @in_speaker = true
+    when 'list'
+      # if we still don't have a div2 title for 'contents', and we have some text, then do it here
+      if @in_div2 && @need_div2_title && @div2_type == "contents" && @div2_title_buffer
+        val = sentence_case(remove_trailing_and_leading_characters(@div2_title_buffer))
+        add_value_to_div2_doc_hash(:div2_title_ssi, val)
+        @need_div2_title = false
+      end
     end
     @element_just_started = true unless name == 'hi'  # we don't want to add spaces at beginning of <hi> elements
   end
@@ -163,7 +170,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
           when "contents"
             # sometimes the div2 title is split across multiple <head> elements
             @div2_title_buffer = @div2_title_buffer ? "#{@div2_title_buffer} #{text}" : text
-#p @div2_title_buffer            
+            # there are three formats of expected titles
             if @div2_title_buffer.match(/\ATable.*tome/i)
               val = sentence_case(remove_trailing_and_leading_characters(@div2_title_buffer))
               if val.match(/\ATable chronologique.*tome/i) || val.match(/\ATable générale chronologique des tomes.*/i)
@@ -182,7 +189,6 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
               @need_div2_title = false
             elsif @div2_title_buffer.match(/Table par ordre des? mati(e|è)res du tome/i)
               val = remove_trailing_and_leading_characters(@div2_title_buffer)
-#p val
               parts = val.split('. ')
               new_val = ''
               parts.each { |part| 
@@ -252,6 +258,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         add_value_to_div2_doc_hash(:speaker_ssim, @speaker) unless @div2_doc_hash && @div2_doc_hash[:speaker_ssim] && @div2_doc_hash[:speaker_ssim].include?(@speaker)
       end
       @in_speaker = false
+    when 'list'
+      # if we still don't have a div2 title for 'contents', and we have some text, then do it here
+      if @in_div2 && @need_div2_title && @div2_type == "contents" && @div2_title_buffer
+        val = sentence_case(remove_trailing_and_leading_characters(@div2_title_buffer))
+        add_value_to_div2_doc_hash(:div2_title_ssi, val)
+        @need_div2_title = false
+      end
     when 'hi', 'note', 'item', 'signed'
       add_unspoken_text_to_doc_hashes text
     end # case name

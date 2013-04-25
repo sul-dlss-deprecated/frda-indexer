@@ -342,7 +342,7 @@ describe ApTeiDocument do
                            Dieppe...................................... 1 </item>
                   </list>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Dimanche 25 aout 1793'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Dimanche 25 août 1793'))
           @parser.parse(x)
         end
         it "<head> before <list>" do
