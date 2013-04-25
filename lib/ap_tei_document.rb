@@ -481,6 +481,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     hash.merge!(@vol_constants_hash)
     hash[:vol_title_ssi] = VOL_TITLES[@volume]
     hash[:vol_ssort] = VOL_SORT[@volume]
+    hash[:result_group_ssort] = "#{VOL_SORT[@volume]}#{SEP}#{VOL_TITLES[@volume]}"
     hash[:vol_date_start_dti] = VOL_DATES[@volume].first
     hash[:vol_date_end_dti] = VOL_DATES[@volume].last
   end

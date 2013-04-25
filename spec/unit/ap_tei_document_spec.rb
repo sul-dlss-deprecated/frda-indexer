@@ -32,6 +32,7 @@ describe ApTeiDocument do
       @parser.parse(x)
       @hash = {}
       @atd.add_vol_fields_to_hash(@hash)
+      @vol_num = @volume.sub(/^Volume /i, '')
     end
     it "should populate druid_ssi field" do
       @hash[:druid_ssi].should == @druid
@@ -40,15 +41,19 @@ describe ApTeiDocument do
       @hash[:collection_ssi].should == ApTeiDocument::COLL_VAL
     end
     it "should populate vol_ssort" do
-      @hash[:vol_ssort].should == VOL_SORT[@volume.sub(/^Volume /i, '')]
+      @hash[:vol_ssort].should == VOL_SORT[@vol_num]
       @hash[:vol_ssort].should == '0360'
     end
+    it "should populate result_group_ssort" do
+      @hash[:result_group_ssort].should == VOL_SORT[@vol_num] + '-|-' + VOL_TITLES[@vol_num]
+      @hash[:result_group_ssort].should == "0360-|-#{VOL_TITLES[@vol_num]}"
+    end
     it "should populate vol_num_ssi field" do
-      @hash[:vol_num_ssi].should == @volume.sub(/^Volume /i, '')
+      @hash[:vol_num_ssi].should == @vol_num
       @hash[:vol_num_ssi].should == '36'
     end
     it "should populate vol_title_ssi" do
-      @hash[:vol_title_ssi].should == VOL_TITLES[@volume.sub(/^Volume /i, '')]
+      @hash[:vol_title_ssi].should == VOL_TITLES[@vol_num]
     end
     it "should get volume date fields in UTC form (1995-12-31T23:59:59Z)" do
       val = @hash[:vol_date_start_dti]
