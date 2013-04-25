@@ -151,6 +151,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       # NOTE: can't add @div2_doc_hash to Solr here, because <pb> within closing tag(s) might not be part of THIS div2?
       @in_div2 = false
       @in_session = false
+      @div2_contents_title_buffer = nil
     when 'head'
       if @in_session && @need_session_govt
         add_session_govt_ssim(text)
@@ -160,18 +161,37 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
             add_value_to_div2_doc_hash(:div2_title_ssi, text.strip)
             @need_div2_title = false
           when "contents"
-p text
+            # sometimes the div2 title is split across multiple <head> elements
+            @div2_contents_title_buffer = add_chars_to_buffer(text, @div2_contents_title_buffer)
+#p @div2_contents_title_buffer
+            if @div2_contents_title_buffer.match(/\ATable.*tome/i)
+              val = sentence_case(@div2_contents_title_buffer)
+#p val              
+              if val.match(/\ATable chronologique.*tome/i)
+                # capitalize Tome
+                val.sub!(' tome', ' Tome')
+                # capitalize last token (roman numeral)
+                roman_num_str = val.split.last
+                val.sub!(roman_num_str, roman_num_str.upcase)
+              end
+              add_value_to_div2_doc_hash(:div2_title_ssi, val)
+              @need_div2_title = false
+            end
+            
+=begin            
             #  'Table chronologique du tome...'  OR 'Table générale chronologique des tomes VIII a XXXII'
-            if text.match(/\ATable chronologique.*tome/i) || text.match(/\ATable générale chronologique des tomes.*/i)
-              val = sentence_case(text)
+            if @div2_contents_title_buffer.match(/\ATable chronologique.*tome/i) || @div2_contents_title_buffer.match(/\ATable générale chronologique des tomes.*/i)
+              val = sentence_case(@div2_contents_title_buffer)
+              # capitalize Tome
               val.sub!(' tome', ' Tome')
+              # capitalize last token (roman numeral)
               roman_num_str = val.split.last
               val.sub!(roman_num_str, roman_num_str.upcase)
-              # capitalize Tome
               add_value_to_div2_doc_hash(:div2_title_ssi, val)
               @need_div2_title = false
             elsif text
             end
+=end
             # 'Table par ordre de matières du tome ...'
             # other
           when "introduction"
