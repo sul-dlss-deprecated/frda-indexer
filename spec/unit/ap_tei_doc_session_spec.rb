@@ -168,18 +168,6 @@ describe ApTeiDocument do
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
-          it "should get the text from a surrounding <head> element" do
-            # <head>SÉANCE DU VINGT-DEUXIÈME JOUR DU PREMIER MOIS DE L'AN II (DIMANCHE <date
-            # <head>présidence de m. le franc de pompignaf, archevêque de vienne.Séance du <date
-            pending "to be implemented if we have a lot of bad values due to this"
-            x = @start_tei_body_div2_session + 
-                "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
-                <head>Séance du <date value=\"1792-04-19\">jeudi 19 avril 1792</date>, au soir, </head>
-                <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
-            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du jeudi 19 avril 1792, au soir"]))
-            @rsolr_client.should_receive(:add).at_least(1).times
-            @parser.parse(x)
-          end
         end # session_title
          
         context "session_date_title_ssim" do

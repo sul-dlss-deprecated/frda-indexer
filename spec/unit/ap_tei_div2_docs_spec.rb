@@ -1311,15 +1311,6 @@ describe ApTeiDocument do
     end # empty pages
   end # div2 knows its pages
 
-  it "should know first text snippet" do
-    # grab first x chars of text_tiv?
-    pending "to be implemented"
-  end
-  it "should know last text snippet" do
-    # grab last x chars of text_tiv?
-    pending "to be implemented"
-  end
-  
   context "add_div2_doc_to_solr" do
     before(:all) do
       @x = @start_tei_body_div2_session +
