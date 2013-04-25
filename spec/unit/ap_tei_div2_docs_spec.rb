@@ -128,6 +128,13 @@ describe ApTeiDocument do
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['session']
       
+      it "should have :div2_ssort of first image id + SEP + session title" do
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => @session_type, 
+                      :div2_ssort => "#{@druid}_00_0816-|-Séance du samedi 5 octobre 1793"))
+        @parser.parse(@x)
+      end
+
       # NOTE:  many session field specifics are tested in ap-tei_doc_session_spec
       it "div2 doc should have session fields when it's a session" do
         @rsolr_client.should_receive(:add).with(hash_including(
@@ -196,7 +203,7 @@ describe ApTeiDocument do
     context 'type="alpha"' do
       before(:all) do
         @x = "#{@start_tei_back_div1}
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
                 <div2 type=\"alpha\">
                 <head>B </head>
                 <p>blah blah</p>" + @end_div2_back_tei
@@ -212,16 +219,30 @@ describe ApTeiDocument do
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'B'))
         @parser.parse(@x)
       end
+      it "should have :div2_ssort of first image id + SEP + div2 title" do
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
+                      :div2_ssort => "#{@druid}_00_0008-|-B"))
+        @parser.parse(@x)
+      end
     end # alpha
 
     context 'type="contents"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"contents\">
                 <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                <head>TABLE CHRONOLOGIQUE DU TOME LXXYI </head>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['contents']
       
+      it "should have :div2_ssort of first image id + SEP + div2 title" do
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
+                      :div2_ssort => "#{@druid}_00_0008-|-Table chronologique du Tome LXXYI"))
+        @parser.parse(@x)
+      end
+
       context "should have div2_title_ssi of 'Table chronologique du tome...'" do
         it "in one <head>" do
           x = @start_tei_body_div1 + "<div2 type=\"contents\">
@@ -365,11 +386,19 @@ describe ApTeiDocument do
     context 'type="other"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"other\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                <head>ERRATA. </head>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['other'] 
       
+      it "should have :div2_ssort of first image id + SEP + div2 title" do
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
+                      :div2_ssort => "#{@druid}_00_0008-|-Errata"))
+        @parser.parse(@x)
+      end
+
       context "first non-pb tag is <head>" do
         it "should have div2_title_ssi of 'Errata'" do
           x = @start_tei_body_div1 + "<div2 type=\"other\">
@@ -458,11 +487,19 @@ describe ApTeiDocument do
     context 'type="table_alpha"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                <head>LISTE ALPHABÉTIQUE </head>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['table_alpha']
       
+      it "should have :div2_ssort of first image id + SEP + div2 title" do
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
+                      :div2_ssort => "#{@druid}_00_0008-|-Liste alphabétique"))
+        @parser.parse(@x)
+      end
+
       it "should have div2_title_ssi of the first <head> - Liste" do
         x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
                 <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
@@ -605,6 +642,12 @@ describe ApTeiDocument do
       it "should have div2_title_ssi of 'Introduction'" do
         @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Introduction'))
+        @parser.parse(@x)
+      end      
+      it "should have :div2_ssort of first image id + SEP + div2 title" do
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
+                      :div2_ssort => "#{@druid}_00_0001-|-Introduction"))
         @parser.parse(@x)
       end
     end # introduction
@@ -1348,7 +1391,7 @@ describe ApTeiDocument do
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).twice
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @session_type, :text_tiv => 'actual content'))
       @parser.parse(@x)
-    end    
+    end
   end # add_div2_doc_to_solr
   
   it "unspoken_text field" do
