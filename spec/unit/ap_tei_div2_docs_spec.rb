@@ -256,7 +256,7 @@ describe ApTeiDocument do
       end
       
       context "should have div2_title_ssi of 'Table par ordre de matières du tome ...'" do
-        it "in two <heads> ?" do
+        it "in two <heads>" do
           x = @start_tei_body_div1 + "<div2 type=\"contents\">
                   <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
                   <head>PREMIÈRE SÉRIE. </head>

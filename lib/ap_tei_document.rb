@@ -163,10 +163,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
           when "contents"
             # sometimes the div2 title is split across multiple <head> elements
             @div2_title_buffer = @div2_title_buffer ? "#{@div2_title_buffer} #{text}" : text
-#p @div2_title_buffer
             if @div2_title_buffer.match(/\ATable.*tome/i)
               val = sentence_case(remove_trailing_and_leading_characters(@div2_title_buffer))
-#p val              
               if val.match(/\ATable chronologique.*tome/i) || val.match(/\ATable générale chronologique des tomes.*/i)
                 # capitalize Tome
                 val.sub!(' tome', ' Tome')
@@ -181,8 +179,18 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
               end
               add_value_to_div2_doc_hash(:div2_title_ssi, val)
               @need_div2_title = false
+            elsif @div2_title_buffer.match(/Table par ordre de matières du tome/i)
+#p val
+              val = remove_trailing_and_leading_characters(@div2_title_buffer)
+              parts = val.split('. ')
+              new_val = ''
+              parts.each { |part| 
+                new_val << sentence_case(part) + '. '
+              }
+              val = remove_trailing_and_leading_characters(new_val.strip)
+              add_value_to_div2_doc_hash(:div2_title_ssi, val)
+              @need_div2_title = false
             end
-            # 'Table par ordre de matières du tome ...'
             # other
           when "introduction"
             add_value_to_div2_doc_hash(:div2_title_ssi, 'Introduction')
