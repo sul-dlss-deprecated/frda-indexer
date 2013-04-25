@@ -158,13 +158,29 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         case @div2_type
           when "alpha"
             add_value_to_div2_doc_hash(:div2_title_ssi, text.strip)
-#          when "contents"
-            # TODO
+            @need_div2_title = false
+          when "contents"
+p text
+            #  'Table chronologique du tome...'  OR 'Table générale chronologique des tomes VIII a XXXII'
+            if text.match(/\ATable chronologique.*tome/i) || text.match(/\ATable générale chronologique des tomes.*/i)
+              val = sentence_case(text)
+              val.sub!(' tome', ' Tome')
+              roman_num_str = val.split.last
+              val.sub!(roman_num_str, roman_num_str.upcase)
+              # capitalize Tome
+              add_value_to_div2_doc_hash(:div2_title_ssi, val)
+              @need_div2_title = false
+            elsif text
+            end
+            # 'Table par ordre de matières du tome ...'
+            # other
           when "introduction"
             add_value_to_div2_doc_hash(:div2_title_ssi, 'Introduction')
+            @need_div2_title = false
           when "other"
             val = remove_trailing_and_leading_characters text
             add_value_to_div2_doc_hash(:div2_title_ssi, sentence_case(val))
+            @need_div2_title = false
           when "table_alpha"
             val = remove_trailing_and_leading_characters text
             if val.size >= 10 && val[0, 9] == UnicodeUtils.upcase(val[0, 9])
@@ -174,9 +190,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
             else
               add_value_to_div2_doc_hash(:div2_title_ssi, val)
             end
+            @need_div2_title = false
           # NOTE: have copyfield for session div2_title, so no need to have it here
         end
-        @need_div2_title = false
       else
         add_unspoken_text_to_doc_hashes text 
       end

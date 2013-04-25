@@ -213,14 +213,155 @@ describe ApTeiDocument do
         @parser.parse(@x)
       end
     end # alpha
+
     context 'type="contents"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"contents\">
                 <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
-      it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['contents'] 
+      it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['contents']
+      
+      context "should have div2_title_ssi of 'Table chronologique du tome...'" do
+        it "in one <head>" do
+          x = @start_tei_body_div1 + "<div2 type=\"contents\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                  <head>TABLE CHRONOLOGIQUE DU TOME LXXYI </head>
+                  <head>TOME SOIXANTE-SEIZIÈME (du<date value=\"1793-10-04\">4 octobre 1793</date>
+                          au 27e jour du premier mois de l'an II<date value=\"1793-10-08\">vendredi 18
+                          octobre 1793</date>) </head>
+                  <list>
+                    <head>Pages. </head>
+                    <item>du vendredi 4 octobre 1793 </item>
+                  </list>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Table chronologique du Tome LXXYI'))
+          @parser.parse(x)
+        end
+        it "in two <head>" do
+          x = @start_tei_body_div1 + "<div2 type=\"contents\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                  <head>TABLE CHRONOLOGIQUE </head>
+                  <head>DU TOME VIII </head>
+                  <head>ToME HUITIÈME </head>
+                  <head>ÉTATS-GÉNÉRAUX.</head>
+                  <head>5 mai 1789. </head>
+                  <list>
+                    <item>Pages. </item>
+                  </list>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Table chronologique du Tome VIII'))
+          @parser.parse(x)
+        end
+      end
+      
+      context "should have div2_title_ssi of 'Table par ordre de matières du tome ...'" do
+        it "in two <heads> ?" do
+          x = @start_tei_body_div1 + "<div2 type=\"contents\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                  <head>PREMIÈRE SÉRIE. </head>
+                  <head>TABLE PAR ORDRE DE MATIÈRES du TOME DEUXIÈME. </head>
+                  <p>Pages. </p>
+                  <list>
+                    <item>stuff </item>
+                  </list>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", 
+                :div2_title_ssi => 'Première série. Table par ordre de matières du tome deuxième'))
+          @parser.parse(x)
+        end
+        it "in second <head>" do
+          x = @start_tei_body_div1 + "<div2 type=\"contents\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                  <head>ARCHIVES PARLEMENTAIRES. </head>
+                  <head>PREMIÈRE SÉRIE. TABLE PAR ORDRE DES MATIÈRES DU TOME PREMIER. </head>
+                  <list>
+                    <item>stuff </item>
+                  </list>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", 
+                :div2_title_ssi => 'Archives Parlementaires. Première série. Table par ordre de matières du tome premier'))
+          @parser.parse(x)
+        end
+        it "in three <head>" do
+          x = @start_tei_body_div1 + "<div2 type=\"contents\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                  <head>TABLE PAR ORDRE DE MATIÈRES </head>
+                  <head>DU </head>
+                  <head>TOME SIXIÈME. </head>
+                  <list>
+                    <head>Tool (Bailliage de); </head>
+                    <item>Pages. </item>
+                    <item>Cahier de l'ordre du clergé..........................1 </item>
+                  </list>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", 
+                 :div2_title_ssi => 'Table par ordre de matières du tome sixième'))
+          @parser.parse(x)
+          x = @start_tei_body_div1 + "<div2 type=\"contents\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                  <head>PREMIÈRE SÉRIE. </head>
+                  <head>TABLE PAR ORDRE DE MATIERES </head>
+                  <head>du </head>
+                  <head>TOME TROISIÈME </head>
+                  <list>
+                    <item>Pages. </item>
+                  </list>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", 
+                :div2_title_ssi => 'Première série. Table par ordre de matières du tome troisième'))
+          @parser.parse(x)
+        end
+      end
+      
+      it "should have div2_title_ssi of 'Table générale chronologique des tomes VIII a XXXII'" do
+        x = @start_tei_body_div1 + "<div2 type=\"contents\">
+                <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                <head>TABLE GÉNÉRALE CHRONOLOGIQUE DES TOMES VIII A XXXII </head>
+                <head>ÉTATS GÉNÉRAUX ET ASSEMBLÉE NATIONALE (Du <date value=\"1789-05-05\">5 mai 1789
+                     </date>au <date value=\"1791-09-30\">30 septembre 1791</date>)
+                </head>
+                <head>TOMS HUITIÈME </head>
+                <list>
+                  <head>ÉTATS GÉNÉRAUX. </head>
+                </list>" + @end_div2_body_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", 
+              :div2_title_ssi => 'Table générale chronologique des Tomes VIII a XXXII'))
+        @parser.parse(x)
+      end
+      
+      context "should have div2_title_ssi of something else" do
+        it "<list> first" do
+          x = @start_tei_body_div1 + "<div2 type=\"contents\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                  <list>
+                    <head>DIMANCHE 25 AOÛT 1793. </head>
+                    <item>Pages. </item>
+                    <item>Adresse du conseil général de la commune de
+                           Dieppe...................................... 1 </item>
+                  </list>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Dimanche 25 aout 1793'))
+          @parser.parse(x)
+        end
+        it "<head> before <list>" do
+          x = @start_tei_body_div1 + "<div2 type=\"contents\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                  <head>TOME NEUVIÈME. </head>
+                  <list>
+                    <head>16 SEPTEMBRE 1789.</head>
+                    <item> Assemblée nationale. </item>
+                    <item>Suite delà discussion sur l'hérédité de la couronne et l'inviolabilité royale. M.
+                    de Cazalès, etc... 2 </item>
+                  </list>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Tome neuvième'))
+          @parser.parse(x)
+        end
+      end
     end # contents
+
     context 'type="other"' do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"other\">
