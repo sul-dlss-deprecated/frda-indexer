@@ -167,31 +167,21 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
             if @div2_contents_title_buffer.match(/\ATable.*tome/i)
               val = sentence_case(@div2_contents_title_buffer)
 #p val              
-              if val.match(/\ATable chronologique.*tome/i)
+              if val.match(/\ATable chronologique.*tome/i) || val.match(/\ATable générale chronologique des tomes.*/i)
                 # capitalize Tome
                 val.sub!(' tome', ' Tome')
                 # capitalize last token (roman numeral)
                 roman_num_str = val.split.last
                 val.sub!(roman_num_str, roman_num_str.upcase)
               end
+              if val.match(/\ATable générale chronologique des tomes.*/i)
+                # capitalize 3rd-to-last token
+                roman_num_str = (val.split)[-3]
+                val.sub!(roman_num_str, roman_num_str.upcase)
+              end
               add_value_to_div2_doc_hash(:div2_title_ssi, val)
               @need_div2_title = false
             end
-            
-=begin            
-            #  'Table chronologique du tome...'  OR 'Table générale chronologique des tomes VIII a XXXII'
-            if @div2_contents_title_buffer.match(/\ATable chronologique.*tome/i) || @div2_contents_title_buffer.match(/\ATable générale chronologique des tomes.*/i)
-              val = sentence_case(@div2_contents_title_buffer)
-              # capitalize Tome
-              val.sub!(' tome', ' Tome')
-              # capitalize last token (roman numeral)
-              roman_num_str = val.split.last
-              val.sub!(roman_num_str, roman_num_str.upcase)
-              add_value_to_div2_doc_hash(:div2_title_ssi, val)
-              @need_div2_title = false
-            elsif text
-            end
-=end
             # 'Table par ordre de matières du tome ...'
             # other
           when "introduction"
