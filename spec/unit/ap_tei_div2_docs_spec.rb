@@ -280,7 +280,7 @@ describe ApTeiDocument do
                   </list>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", 
-                :div2_title_ssi => 'Archives Parlementaires. Première série. Table par ordre de matières du tome premier'))
+                :div2_title_ssi => 'Archives parlementaires. Première série. Table par ordre des matières du tome premier'))
           @parser.parse(x)
         end
         it "in three <head>" do
