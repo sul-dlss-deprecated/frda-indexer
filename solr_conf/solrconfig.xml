@@ -165,7 +165,7 @@
       <int name="ps">0</int>
       <float name="tie">0.01</float>
       <str name="fl">score, *</str>
-      <bool name="debugQuery">true</int>
+      <bool name="debugQuery">true</bool>
 
       <str name="qf">
         title_short_ti^5
@@ -347,7 +347,7 @@
       <int name="rows">20</int>
 
       <str name="fl">score, *</str>
-      <bool name="debugQuery">true</int>
+      <bool name="debugQuery">true</bool>
       
       <bool name="facet">true</bool>
       <int name="facet.mincount">1</int>
