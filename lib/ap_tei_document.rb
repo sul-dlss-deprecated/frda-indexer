@@ -163,6 +163,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
           when "contents"
             # sometimes the div2 title is split across multiple <head> elements
             @div2_title_buffer = @div2_title_buffer ? "#{@div2_title_buffer} #{text}" : text
+#p @div2_title_buffer            
             if @div2_title_buffer.match(/\ATable.*tome/i)
               val = sentence_case(remove_trailing_and_leading_characters(@div2_title_buffer))
               if val.match(/\ATable chronologique.*tome/i) || val.match(/\ATable générale chronologique des tomes.*/i)
@@ -179,9 +180,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
               end
               add_value_to_div2_doc_hash(:div2_title_ssi, val)
               @need_div2_title = false
-            elsif @div2_title_buffer.match(/Table par ordre de matières du tome/i)
-#p val
+            elsif @div2_title_buffer.match(/Table par ordre des? mati(e|è)res du tome/i)
               val = remove_trailing_and_leading_characters(@div2_title_buffer)
+#p val
               parts = val.split('. ')
               new_val = ''
               parts.each { |part| 

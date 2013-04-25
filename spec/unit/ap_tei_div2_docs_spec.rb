@@ -309,7 +309,7 @@ describe ApTeiDocument do
                   </list>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", 
-                :div2_title_ssi => 'Première série. Table par ordre de matières du tome troisième'))
+                :div2_title_ssi => 'Première série. Table par ordre de matieres du tome troisième'))
           @parser.parse(x)
         end
       end
