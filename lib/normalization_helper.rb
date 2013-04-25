@@ -129,7 +129,7 @@ module NormalizationHelper
     name[0]=name[0].capitalize # capitalize first letter
     name.sub! /\AL\'?abb[eé]/i, "L'abbé"
     name="Le Président" if president_alternates.include?(name) # this should come last so we complete all other normalization
-    return name
+    name
   end
   
   def president_alternates
