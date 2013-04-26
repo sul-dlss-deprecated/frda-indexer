@@ -154,10 +154,12 @@ module NormalizationHelper
   end  
   
   def remove_trailing_and_leading_characters name
-    name.strip! # strip leading and trailing spaces
-    name.sub! /\A['\(\)><«\.:,]+/, '' # lop off any beginning periods, colons, commas and other special characters
-    name.sub! /[\.,:]+\z/, '' # lop off any ending periods, colons or commas
-    name.strip!
+    if (name)
+      name.strip! # strip leading and trailing spaces
+      name.sub! /\A['\(\)><«\.:,]+/, '' # lop off any beginning periods, colons, commas and other special characters
+      name.sub! /[\.,:]+\z/, '' # lop off any ending periods, colons or commas
+      name.strip!
+    end
     name
   end
 end
