@@ -64,7 +64,7 @@
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">search_date_dtsim</str>
           <str name="facet.field">session_title_si</str>
-          <str name="facet.field">div2_title_si</str>
+          <str name="facet.field">div2_title_ssi</str>
           <str name="facet.field">vol_title_ssi</str>
           <str name="facet.field">medium_ssi</str>
           <str name="facet.field">genre_ssim</str>
@@ -85,7 +85,7 @@
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">search_date_dtsim</str>
           <str name="facet.field">session_title_si</str>
-          <str name="facet.field">div2_title_si</str>
+          <str name="facet.field">div2_title_ssi</str>
           <str name="facet.field">vol_title_ssi</str>
           <str name="facet.field">medium_ssi</str>
           <str name="facet.field">genre_ssim</str>
@@ -112,7 +112,7 @@
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">search_date_dtsim</str>
           <str name="facet.field">session_title_si</str>
-          <str name="facet.field">div2_title_si</str>
+          <str name="facet.field">div2_title_ssi</str>
           <str name="facet.field">vol_title_ssi</str>
           <str name="facet.field">medium_ssi</str>
           <str name="facet.field">genre_ssim</str>
@@ -133,7 +133,7 @@
           <str name="facet.field">speaker_ssim</str>
           <str name="facet.field">search_date_dtsim</str>
           <str name="facet.field">session_title_si</str>
-          <str name="facet.field">div2_title_si</str>
+          <str name="facet.field">div2_title_ssi</str>
           <str name="facet.field">vol_title_ssi</str>
           <str name="facet.field">medium_ssi</str>
           <str name="facet.field">genre_ssim</str>
@@ -286,8 +286,8 @@
       <str name="facet.field">speaker_ssim</str>
       <str name="facet.field">session_title_si</str>
       <str name="f.session_title_si.facet.limit">-1</str>
-      <str name="facet.field">div2_title_si</str>
-      <str name="f.div2_title_si.facet.limit">-1</str>
+      <str name="facet.field">div2_title_ssi</str>
+      <str name="f.div2_title_ssi.facet.limit">-1</str>
       <str name="facet.field">vol_title_ssi</str>
       <str name="facet.field">medium_ssi</str>
       <str name="facet.field">genre_ssim</str>
@@ -316,12 +316,15 @@
       <str name="hl.fl">spoken_text_ftsimv, unspoken_text_ftsimv, title_long_ftsi, title_short_ftsi, session_title_ftsi</str>
       <str name="hl.snippets">500</str>
 <!-- uncomment the line below and remove hl.fragsize for the NEW way with better performance -->
-      <!--<str name="hl.useFastVectorHighlighter">true</str>-->
+<!--
+      <str name="hl.useFastVectorHighlighter">true</str>
+      <str name="hl.fragListBuilder">single</str>
+-->
       <str name="hl.fragsize">0</str>
     </lst>    
   </requestHandler>
 
-<!-- NEW way to highlight with better performance
+<!--
   <searchComponent class="solr.HighlightComponent" name="highlight">
     <fragListBuilder name="single" default="true" class="solr.highlight.SingleFragListBuilder"/>
     <boundaryScanner name="breakIterator" default="true" class="solr.highlight.BreakIteratorBoundaryScanner">
@@ -380,8 +383,8 @@
       <str name="facet.field">speaker_ssim</str>
       <str name="facet.field">session_title_si</str>
       <str name="f.session_title_si.facet.limit">-1</str>
-      <str name="facet.field">div2_title_si</str>
-      <str name="f.div2_title_si.facet.limit">-1</str>
+      <str name="facet.field">div2_title_ssi</str>
+      <str name="f.div2_title_ssi.facet.limit">-1</str>
       <str name="facet.field">vol_title_ssi</str>
       <str name="facet.field">medium_ssi</str>
       <str name="facet.field">genre_ssim</str>
