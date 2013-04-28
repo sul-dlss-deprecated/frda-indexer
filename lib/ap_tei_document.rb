@@ -198,24 +198,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
               add_value_to_div2_doc_hash(:div2_title_ssi, val)
               @need_div2_title = false
             end
-            # other
           when "introduction"
             add_value_to_div2_doc_hash(:div2_title_ssi, 'Introduction')
             @need_div2_title = false
           when "other"
-            val = remove_trailing_and_leading_characters text
-            add_value_to_div2_doc_hash(:div2_title_ssi, sentence_case(val))
-            @need_div2_title = false
+            add_sentence_case_div2_title text
           when "table_alpha"
-            val = remove_trailing_and_leading_characters text
-            if val.size >= 10 && val[0, 9] == UnicodeUtils.upcase(val[0, 9])
-              add_value_to_div2_doc_hash(:div2_title_ssi, sentence_case(val))
-            elsif val == UnicodeUtils.upcase(val)
-              add_value_to_div2_doc_hash(:div2_title_ssi, sentence_case(val))
-            else
-              add_value_to_div2_doc_hash(:div2_title_ssi, val)
-            end
-            @need_div2_title = false
+            add_div2_title_table_alpha text
           # NOTE: have copyfield for session div2_title, so no need to have it here
         end
       else
@@ -272,7 +261,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @element_just_ended = true
     @element_buffer = ''
   end
-  
+    
   # ensure we output the last page / div2 documents
   def end_document
     # write out last page, if we didn't already
@@ -426,6 +415,28 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     end
   end
 
+  # normalize text to be div2_title_ssi, add it to div2_doc_hash, and change @need_div2_title to false
+  def add_sentence_case_div2_title text
+    val = remove_trailing_and_leading_characters text
+    add_value_to_div2_doc_hash(:div2_title_ssi, sentence_case(val))
+    @need_div2_title = false
+  end
+  
+  # normalize** text to be div2_title_ssi, add it to div2_doc_hash, and change @need_div2_title to false
+  # **only normalize case of text if it isn't already mixed case 
+  def add_div2_title_table_alpha text
+    if text
+      val = remove_trailing_and_leading_characters text
+      if (val.size >= 10 && val[0, 9] == UnicodeUtils.upcase(val[0, 9])) || 
+          val == UnicodeUtils.upcase(val)
+        add_sentence_case_div2_title text
+      else
+        add_value_to_div2_doc_hash(:div2_title_ssi, val)
+      end
+      @need_div2_title = false
+    end
+  end
+  
   # @return [String] the value for a div2 doc's pages_ssim field for the current page
   def current_page_pages_ssim_val
     @page_id + SEP + (@page_num_s ? @page_num_s : "") if @page_id
