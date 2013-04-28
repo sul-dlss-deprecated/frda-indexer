@@ -128,11 +128,52 @@ describe ApTeiDocument do
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['session']
       
-      it "should have :div2_ssort of first image id + SEP + session title" do
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => @session_type, 
-                      :div2_ssort => "#{@druid}_00_0816-|-Séance du samedi 5 octobre 1793"))
-        @parser.parse(@x)
+      context ":div2_ssort" do
+        it "should have :div2_ssort of first image id + SEP + session title" do
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => @session_type, 
+                        :div2_ssort => "#{@druid}_00_0816-|-Séance du samedi 5 octobre 1793"))
+          @parser.parse(@x)
+        end
+        it "should have correct :div2_sort for sessions (realistic example from fy968mm6633)" do
+          x = @start_tei_body_div2_session + 
+                "<pb n=\"1\" id=\"#{@druid}_00_0004\"/>
+                <head>CONVENTION NATIONALE </head>
+                <p>Séance du <date value=\"1793-10-05\">27 décembre 1789</date>. </p>
+                <p>blah</p>
+                <sp>
+                  <speaker>M. Guadet</speaker>
+                  <p>blah blah</p>
+                  <pb n=\"2\" id=\"#{@druid}_00_0005\"/>
+                  <p>blah blah</p>
+                </sp>
+                <p>blah blah</p>
+                <pb n=\"3\" id=\"#{@druid}_00_0006\"/>
+                <p>blah blah</p>
+                <div3 type=\"annexe\">
+                  <head> ANNEXE </head>
+                  <p>blah blah</p>
+                </div3>
+                <p>blah blah</p>
+                <sp>
+                  <speaker>M. le Président</speaker>
+                  <p>blah blah</p>
+                  <pb n=\"4\" id=\"#{@druid}_00_0007\"/>
+                </sp>
+              </div2>
+              <div2>
+                <head>ASSEMBLÉE NATIONALE. </head>
+                <p>Séance du  <date value=\"1789-12-28\">lundi 28 décembre 1789 </date></p>
+                <p>blah blah</p>
+              </div2>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page')).exactly(3).times
+          @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => @session_type, 
+                        :div2_ssort => "#{@druid}_00_0004-|-Séance du 27 décembre 1789"))
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:doc_type_ssi => @session_type, 
+                        :div2_ssort => "#{@druid}_00_0007-|-Séance du lundi 28 décembre 1789"))
+          @parser.parse(x)
+        end
       end
 
       # NOTE:  many session field specifics are tested in ap-tei_doc_session_spec

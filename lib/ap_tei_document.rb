@@ -546,8 +546,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       text = @div2_buffer.strip.gsub(/\s+/, ' ') if @div2_buffer && @div2_buffer.strip
       add_value_to_div2_doc_hash(:text_tiv, text)
       # add :div2_ssort
-      title = @div2_doc_hash[:div2_title_ssi] ? @div2_doc_hash[:div2_title_ssi] : @session_title
-      image_id = @div2_doc_hash[:pages_ssim].first.split(SEP).first
+      title = @div2_doc_hash[:div2_title_ssi] ? @div2_doc_hash[:div2_title_ssi] : @div2_doc_hash[:session_title_ftsi]
+      image_id = @div2_doc_hash[:pages_ssim].first.split(SEP).first if @div2_doc_hash[:pages_ssim]
       add_value_to_div2_doc_hash(:div2_ssort, "#{image_id}#{SEP}#{title}")
       @rsolr_client.add(@div2_doc_hash)
       @last_div2_added = @div2_doc_hash[:id]
