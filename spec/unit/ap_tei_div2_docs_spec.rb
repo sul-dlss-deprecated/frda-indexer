@@ -260,11 +260,14 @@ describe ApTeiDocument do
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'B'))
         @parser.parse(@x)
       end
-      it "should have :div2_ssort of first image id + SEP + div2 title" do
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
-                      :div2_ssort => "#{@druid}_00_0008-|-B"))
-        @parser.parse(@x)
+      
+      context "div2_ssort" do
+        it "should have :div2_ssort of first image id + SEP + div2 title" do
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
+                        :div2_ssort => "#{@druid}_00_0008-|-B"))
+          @parser.parse(@x)
+        end
       end
     end # alpha
 
@@ -440,89 +443,151 @@ describe ApTeiDocument do
         @parser.parse(@x)
       end
 
-      context "first non-pb tag is <head>" do
-        it "should have div2_title_ssi of 'Errata'" do
-          x = @start_tei_body_div1 + "<div2 type=\"other\">
-                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                  <head>ERRATA. </head>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Errata"))
+      context "div2_title_ssi" do
+        context "first non-pb tag is <head>" do
+          it "should have div2_title_ssi of 'Errata'" do
+            x = @start_tei_body_div1 + "<div2 type=\"other\">
+                    <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                    <head>ERRATA. </head>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Errata"))
+            @parser.parse(x)
+          end
+          it "should have div2_title_ssi of 'Balliage d'...'" do
+            x = @start_tei_body_div1 + "<div2 type=\"other\">
+                    <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                    <head>BAILLIAGE D'AVAL </head>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Bailliage d'aval"))
+            @parser.parse(x)
+          end
+          it "should have div2_title_ssi of 'Balliage du ...'" do
+            x = @start_tei_body_div1 + "<div2 type=\"other\">
+                    <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                    <head>BAILLIAGE DE REVIN </head>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Bailliage de revin'))
+            @parser.parse(x)
+          end
+          it "should have div2_title_ssi of 'Sénéchaussée ...'" do
+            x = @start_tei_body_div1 + "<div2 type=\"other\">
+                    <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                    <head>SÉNÉCHAUSSÉE D'ANJOU. </head>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Sénéchaussée d'anjou"))
+            @parser.parse(x)
+          end
+          it "should have div2_title_ssi of 'Table par ordre de matières'" do
+            x = @start_tei_body_div1 + "<div2 type=\"other\">
+                    <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                    <head>TABLE PAR ORDRE DE MATIÈRES </head>
+                    <head>DES CAHIERS DES SÉNÉCHAUSSÉES ET BAILLIAGES </head>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Table par ordre de matières"))
+            @parser.parse(x)
+          end
+          it "should have div2_title_ssi of (awesome)" do
+            x = @start_tei_body_div1 + "<div2 type=\"other\">
+                    <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                    <head>IV. </head>
+                    <head>SUITE DU COMPTE RENDU </head>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Iv"))
+            @parser.parse(x)
+          end
+          it "should have correct div2_title_ssi when there is a div3" do
+            x = @start_tei_body_div1 + "<div2 type=\"other\">
+                    <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                    <div3 type=\"other\">
+                      <head>DISCOURS</head>
+                      <head>Something</head>
+                      <p>blah blah</p></div3>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Discours"))
+            @parser.parse(x)
+          end
+        end # first tag is <head>
+
+        context "first non-pb tag is <p>" do
+          it "should have div2_title_ssi of first p - example 1" do
+            x = @start_tei_body_div2_session + 
+                  "<pb n=\"270\" id=\"#{@druid}_00_0279\"/>
+                  <head>CONVENTION NATIONALE </head>
+                  <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
+                  <p>blah blah</p>
+                </div2>
+                <div2 type=\"other\">
+                    <pb n=\"271\" id=\"#{@druid}_00_0280\"/>
+                    <p>Plusieurs membres demandent l'ajournement de la troisième lecture à huitaine. </p>
+                    <sp>
+                      <speaker>M. Kersaint.</speaker>
+                      <p>blah blah</p>
+                    </sp>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page')).twice
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1"))
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2", 
+                  :div2_title_ssi => "Plusieurs membres demandent l'ajournement de la troisième lecture à huitaine"))
+            @parser.parse(x)
+          end
+          it "should have div2_title_ssi of first p - example 2" do
+            x = @start_tei_body_div2_session + 
+                  "<pb n=\"270\" id=\"#{@druid}_00_0279\"/>
+                  <head>CONVENTION NATIONALE </head>
+                  <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
+                  <p>blah blah</p>
+                </div2>
+                <div2 type=\"other\">
+                  <pb n=\"271\" id=\"#{@druid}_00_0280\"/>
+                  <p>Compte rendu du Moniteur universel (1). </p>
+                  <p>blah blah</p>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page')).twice
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1")) 
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2", 
+                  :div2_title_ssi => "Compte rendu du moniteur universel (1)"))
+            @parser.parse(x)
+          end
+          it "should have div2_title_ssi of first p with div3 - example 3" do
+            x = @start_tei_body_div2_session + 
+                  "<pb n=\"270\" id=\"#{@druid}_00_0279\"/>
+                  <head>CONVENTION NATIONALE </head>
+                  <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
+                  <p>blah blah</p>
+                </div2>
+                <div2 type=\"other\">
+                  <p>DISTRICTS DE BELFORT ET HUNINGUE. </p>
+                  <pb n=\"271\" id=\"#{@druid}_00_0280\"/>
+                  <div3 type=\"other\">
+                    <head>EXTRAIT</head>
+                    <head>blah blah</head>
+                    <p>blah blah</p>
+                  </div3>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page')).twice
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1")) 
+            @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2", 
+                  :div2_title_ssi => "Districts de belfort et huningue"))
+            @parser.parse(x)
+          end
+        end # first tag is <p>
+
+        it "first non-pb tag is <sp>" do
+          # mv564yx2059, pd817cv1860, wz883qs5666
+          x = @start_tei_body_div2_session + 
+                "<pb n=\"270\" id=\"#{@druid}_00_0279\"/>
+                <head>CONVENTION NATIONALE </head>
+                <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
+                <p>blah blah</p>
+              </div2>
+              <div2 type=\"other\">
+                  <pb n=\"271\" id=\"#{@druid}_00_0280\"/>
+                  <sp>
+                    <speaker>M. de Vismes</speaker>
+                    <p>blah blah</p></sp>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page')).twice
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1"))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2", :div2_title_ssi => "Blah blah"))
           @parser.parse(x)
-        end
-        it "should have div2_title_ssi of 'Balliage d'...'" do
-          x = @start_tei_body_div1 + "<div2 type=\"other\">
-                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                  <head>BAILLIAGE D'AVAL </head>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Bailliage d'aval"))
-          @parser.parse(x)
-        end
-        it "should have div2_title_ssi of 'Balliage du ...'" do
-          x = @start_tei_body_div1 + "<div2 type=\"other\">
-                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                  <head>BAILLIAGE DE REVIN </head>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Bailliage de revin'))
-          @parser.parse(x)
-        end
-        it "should have div2_title_ssi of 'Sénéchaussée ...'" do
-          x = @start_tei_body_div1 + "<div2 type=\"other\">
-                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                  <head>SÉNÉCHAUSSÉE D'ANJOU. </head>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Sénéchaussée d'anjou"))
-          @parser.parse(x)
-        end
-        it "should have div2_title_ssi of 'Table par ordre de matières'" do
-          x = @start_tei_body_div1 + "<div2 type=\"other\">
-                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                  <head>TABLE PAR ORDRE DE MATIÈRES </head>
-                  <head>DES CAHIERS DES SÉNÉCHAUSSÉES ET BAILLIAGES </head>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Table par ordre de matières"))
-          @parser.parse(x)
-        end
-        it "should have div2_title_ssi of (awesome)" do
-          x = @start_tei_body_div1 + "<div2 type=\"other\">
-                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                  <head>IV. </head>
-                  <head>SUITE DU COMPTE RENDU </head>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Iv"))
-          @parser.parse(x)
-        end
-      end
-      
-      context "first non-pb tag is <p>" do
-        it "should have div2_title_ssi of first p" do
-          x = @start_tei_body_div1 + "<div2 type=\"other\">
-                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                  <p>Plusieurs membres demandent l'ajournement de la troisième lecture à huitaine. </p>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", 
-                :div2_title_ssi => "Plusieurs membres demandent l'ajournement de la troisième lecture à huitaine"))
-          @parser.parse(x)
-          x = @start_tei_body_div1 + "<div2 type=\"other\">
-                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                  <p>Compte rendu du Moniteur universel (1). </p>" + @end_div2_body_tei
-          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", 
-                :div2_title_ssi => "Compte rendu du moniteur universel (1)"))
-          @parser.parse(x)
-        end
-      end
-      
-      it "first non-pb tag is <sp>" do
-        # mv564yx2059, wz883qs5666
-        x = @start_tei_body_div1 + "<div2 type=\"other\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                <sp>
-                  <speaker>M. de Vismes</speaker>
-                  <p>blah blah</p></sp>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => "Blah blah"))
-        @parser.parse(x)
-      end      
+        end # first tag is <sp>
+      end # div2_title_ssi
     end # other
 
     context 'type="table_alpha"' do
@@ -531,144 +596,188 @@ describe ApTeiDocument do
                 <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
                 <head>LISTE ALPHABÉTIQUE </head>
                 <p>blah blah</p>" + @end_div2_body_tei
+        # from vj818xc6811
+        @x_w_div3 = "#{@start_tei_body_div1}
+                <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                <p>ARCHIVES PARLEMENTAIRES</p>
+                <p>REPUBLIQUE FRANGAISE</p>
+                <div2 type=\"table_alpha\">
+                  <head>LISTE</head>
+                  <head>PAR ORDRE ALPHABfiTIQUE DE NOMS</head>
+                  <head>DES DEPUTES</head>
+                  <div3 type=\"alpha\">
+                    <head>A </head>
+                    <p><term>AGNES</term>blah blah</p>
+                  </div3>
+                  <div3 type=\"alpha\">
+                     <head>Z</head>
+                     <p><term>ZANGIACOMI</term> blah blah</p>
+                  </div3>
+                </div2>
+                <pb n=\"6\" id=\"#{@druid}_00_0009\"/>
+                <div2 type=\"table_alpha\">
+                  <head>LISTE</head>
+                  <head>PAR ORDRE ALPHABETIQUE DE DEPARTEMENTS</head>
+                  <div3 type=\"alpha\">
+                    <p>AIN (6 deputes)</p>
+                  </div3>" + @end_div2_body_tei
       end
       it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['table_alpha']
       
-      it "should have :div2_ssort of first image id + SEP + div2 title" do
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
-                      :div2_ssort => "#{@druid}_00_0008-|-Liste alphabétique"))
-        @parser.parse(@x)
+      context "div2_title_ssi" do
+        it "should have correct div2_title_ssi when there is a <div3>" do
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page')).twice
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Liste'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2", :div2_title_ssi => 'Liste'))
+          @parser.parse(@x_w_div3)
+        end
+        it "should have div2_title_ssi of the first <head> - Liste" do
+          x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                  <head>LISTE </head>
+                  <head>DE MESSIEURS LES DÉPUTÉS ET SUPPLÉANTS A L'ASSEMBLÉE NATIONALE </head>
+                  <head>DRESSÉE PAR ORDRE ALPHABETIQUE DE NOMS. </head>
+                  <div3 type=\"alpha\">
+                    <head>B </head>
+                    <p>blah blah</p>
+                  </div3>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Liste'))
+          @parser.parse(x)
+        end
+        it "should have div2_title_ssi of the first <head> - Liste alphabétique" do
+          x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                  <head>LISTE ALPHABÉTIQUE </head>
+                  <head>des députés aux états généraux de 1789, convoqués par le
+                    roi louis xvi. CLERGÉ. </head>
+                  <div3 type=\"alpha\">
+                    <head>B </head>
+                    <p>blah blah</p>
+                  </div3>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Liste alphabétique'))
+          @parser.parse(x)
+        end
+        it "should have div2_title_ssi of the first <head> - whatever" do
+          x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                  <head>TIERS-ÉTAT</head>
+                  <div3 type=\"alpha\">
+                    <head>B </head>
+                    <p>blah blah</p>
+                  </div3>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Tiers-état'))
+          @parser.parse(x)
+          x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                  <head>ORDRE DE LA NOBLESSE. </head>
+                  <p>Président: M. le comte de Vienne. </p>
+                  <p>Secrétaires : M. le comte de Bataille de Mandelot. M. le comte de Jaquot
+                   d'Andelarre. M. Lemulier de Bressey. </p>
+                  <div3 type=\"alpha\">
+                    <head>B </head>
+                    <p>blah blah</p>
+                  </div3>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Ordre de la noblesse'))
+          @parser.parse(x)
+          x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                  <head>Bailliage de Dijon </head>
+                  <div3 type=\"alpha\">
+                    <head>B </head>
+                    <p>blah blah</p>
+                  </div3>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Bailliage de Dijon'))
+          @parser.parse(x)
+        end
+        it "should have div2_title_ssi of the first <head> - Noblesse" do
+          x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                  <head>NOBLESSE </head>
+                  <div3 type=\"alpha\">
+                    <head>B </head>
+                    <p>blah blah</p>
+                  </div3>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Noblesse'))
+          @parser.parse(x)
+          x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                  <head>Noblesse du bailliage scondaire de Conches. </head>
+                  <div3 type=\"alpha\">
+                    <head>B </head>
+                    <p>blah blah</p>
+                  </div3>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Noblesse du bailliage scondaire de Conches'))
+          @parser.parse(x)
+        end      
+        it "should have div2_title_ssi of the first <head> - Pensions" do
+          x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                  <head> PENSIONS AU-DESSOUS DE SIX CENTS LIVRES SEPTIÈME CLASSE. (Suite.) </head>
+                  <p>Ces pensions sont .soumises à la retonuft H'iin diyîpmp. aarif lac ovno, *-- — portées
+                    par les articles 12 et 13 de l'arrêt du Conseil du 13 octobre 1787. </p>
+                  <div3 type=\"alpha\">
+                    <head>B </head>
+                    <p>blah blah</p>
+                  </div3>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Pensions au-dessous de six cents livres septième classe. (suite.)'))
+          @parser.parse(x)
+          x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                  <head>PENSIONS </head>
+                  <head>AU-DESSOUS DE SIX CENTS LIVRES </head>
+                  <head>SEPTIÈME CLASSE. </head>
+                  <p>Ces pensions sont .soumises à la retonuft H'iin diyîpmp. aarif lac ovno, *-- — portées
+                    par les articles 12 et 13 de l'arrêt du Conseil du 13 octobre 1787. </p>
+                  <div3 type=\"alpha\">
+                    <head>B </head>
+                    <p>blah blah</p>
+                  </div3>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Pensions'))
+          @parser.parse(x)
+        end
+        it "should have div2_title_ssi of the first <head> - Table générale" do
+          x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
+                  <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                  <head>TABLE GÉNÉRALE </head>
+                  <head>ALPHABÉTIQUE ET ANALYTIQUE 
+                    Des Matières contenues dans les six premiers volumes </head>
+                  <head>DES ARCHIVES PARLEMENTAIRES </head>
+                  <div3 type=\"alpha\">
+                    <head>B </head>
+                    <p>blah blah</p>
+                  </div3>" + @end_div2_body_tei
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Table générale'))
+          @parser.parse(x)
+        end
+      end # div2_title
+
+      context ':div2_ssort' do
+        it "should have :div2_ssort of first image id + SEP + div2 title" do
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
+                        :div2_ssort => "#{@druid}_00_0008-|-Liste alphabétique"))
+          @parser.parse(@x)
+        end
+        it "should have correct :div2_ssort when there's a div3" do
+          @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page')).twice
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
+                        :div2_ssort => "#{@druid}_00_0008-|-Liste"))
+          @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
+                        :div2_ssort => "#{@druid}_00_0009-|-Liste"))
+          @parser.parse(@x_w_div3)
+        end
       end
 
-      it "should have div2_title_ssi of the first <head> - Liste" do
-        x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                <head>LISTE </head>
-                <head>DE MESSIEURS LES DÉPUTÉS ET SUPPLÉANTS A L'ASSEMBLÉE NATIONALE </head>
-                <head>DRESSÉE PAR ORDRE ALPHABETIQUE DE NOMS. </head>
-                <div3 type=\"alpha\">
-                  <head>B </head>
-                  <p>blah blah</p>
-                </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Liste'))
-        @parser.parse(x)
-      end
-      it "should have div2_title_ssi of the first <head> - Liste alphabétique" do
-        x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                <head>LISTE ALPHABÉTIQUE </head>
-                <head>des députés aux états généraux de 1789, convoqués par le
-                  roi louis xvi. CLERGÉ. </head>
-                <div3 type=\"alpha\">
-                  <head>B </head>
-                  <p>blah blah</p>
-                </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Liste alphabétique'))
-        @parser.parse(x)
-      end
-      it "should have div2_title_ssi of the first <head> - whatever" do
-        x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                <head>TIERS-ÉTAT</head>
-                <div3 type=\"alpha\">
-                  <head>B </head>
-                  <p>blah blah</p>
-                </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Tiers-état'))
-        @parser.parse(x)
-        x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                <head>ORDRE DE LA NOBLESSE. </head>
-                <p>Président: M. le comte de Vienne. </p>
-                <p>Secrétaires : M. le comte de Bataille de Mandelot. M. le comte de Jaquot
-                 d'Andelarre. M. Lemulier de Bressey. </p>
-                <div3 type=\"alpha\">
-                  <head>B </head>
-                  <p>blah blah</p>
-                </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Ordre de la noblesse'))
-        @parser.parse(x)
-        x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                <head>Bailliage de Dijon </head>
-                <div3 type=\"alpha\">
-                  <head>B </head>
-                  <p>blah blah</p>
-                </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Bailliage de Dijon'))
-        @parser.parse(x)
-      end
-      it "should have div2_title_ssi of the first <head> - Noblesse" do
-        x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                <head>NOBLESSE </head>
-                <div3 type=\"alpha\">
-                  <head>B </head>
-                  <p>blah blah</p>
-                </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Noblesse'))
-        @parser.parse(x)
-        x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                <head>Noblesse du bailliage scondaire de Conches. </head>
-                <div3 type=\"alpha\">
-                  <head>B </head>
-                  <p>blah blah</p>
-                </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Noblesse du bailliage scondaire de Conches'))
-        @parser.parse(x)
-      end      
-      it "should have div2_title_ssi of the first <head> - Pensions" do
-        x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                <head> PENSIONS AU-DESSOUS DE SIX CENTS LIVRES SEPTIÈME CLASSE. (Suite.) </head>
-                <p>Ces pensions sont .soumises à la retonuft H'iin diyîpmp. aarif lac ovno, *-- — portées
-                  par les articles 12 et 13 de l'arrêt du Conseil du 13 octobre 1787. </p>
-                <div3 type=\"alpha\">
-                  <head>B </head>
-                  <p>blah blah</p>
-                </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Pensions au-dessous de six cents livres septième classe. (suite.)'))
-        @parser.parse(x)
-        x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                <head>PENSIONS </head>
-                <head>AU-DESSOUS DE SIX CENTS LIVRES </head>
-                <head>SEPTIÈME CLASSE. </head>
-                <p>Ces pensions sont .soumises à la retonuft H'iin diyîpmp. aarif lac ovno, *-- — portées
-                  par les articles 12 et 13 de l'arrêt du Conseil du 13 octobre 1787. </p>
-                <div3 type=\"alpha\">
-                  <head>B </head>
-                  <p>blah blah</p>
-                </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Pensions'))
-        @parser.parse(x)
-      end
-      it "should have div2_title_ssi of the first <head> - Table générale" do
-        x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
-                <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
-                <head>TABLE GÉNÉRALE </head>
-                <head>ALPHABÉTIQUE ET ANALYTIQUE 
-                  Des Matières contenues dans les six premiers volumes </head>
-                <head>DES ARCHIVES PARLEMENTAIRES </head>
-                <div3 type=\"alpha\">
-                  <head>B </head>
-                  <p>blah blah</p>
-                </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
-        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Table générale'))
-        @parser.parse(x)
-      end
     end # table_alpha
 
     context 'type="introduction"' do
