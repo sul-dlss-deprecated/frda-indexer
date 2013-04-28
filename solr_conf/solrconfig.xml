@@ -315,7 +315,7 @@
       <str name="hl">on</str>
       <str name="hl.fl">spoken_text_ftsimv, unspoken_text_ftsimv, title_long_ftsi, title_short_ftsi, session_title_ftsi</str>
       <str name="hl.snippets">500</str>
-<!-- uncomment the line below and remove hl.fragsize for the NEW way with better performance -->
+<!-- uncomment 2 lines below and remove hl.fragsize for the NEW way with better performance -->
 <!--
       <str name="hl.useFastVectorHighlighter">true</str>
       <str name="hl.fragListBuilder">single</str>
@@ -326,14 +326,9 @@
 
 <!--
   <searchComponent class="solr.HighlightComponent" name="highlight">
-    <fragListBuilder name="single" default="true" class="solr.highlight.SingleFragListBuilder"/>
-    <boundaryScanner name="breakIterator" default="true" class="solr.highlight.BreakIteratorBoundaryScanner">
-      <lst name="defaults">
-        <str name="hl.bs.type">WORD</str>
-        <str name="hl.bs.language">fr</str>
-        <str name="hl.bs.country">FR</str>
-      </lst>
-    </boundaryScanner>
+    <highlighting>
+      <fragListBuilder name="single" default="true" class="solr.highlight.SingleFragListBuilder"/>
+    </highlighting>
   </searchComponent>
 -->
 
@@ -412,8 +407,11 @@
       <str name="hl">on</str>
       <str name="hl.fl">spoken_text_ftsimv, unspoken_text_ftsimv, title_long_ftsi, title_short_ftsi, session_title_ftsi</str>
       <str name="hl.snippets">500</str>
-<!-- uncomment the line below and remove hl.fragsize for the NEW way with better performance -->
-      <!--<str name="hl.useFastVectorHighlighter">true</str>-->
+<!-- uncomment 2 lines below and remove hl.fragsize for the NEW way with better performance -->
+<!--
+      <str name="hl.useFastVectorHighlighter">true</str>
+      <str name="hl.fragListBuilder">single</str>
+-->
       <str name="hl.fragsize">0</str>
     </lst>
   </requestHandler>
