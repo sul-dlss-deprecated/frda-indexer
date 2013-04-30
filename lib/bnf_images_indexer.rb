@@ -60,37 +60,10 @@ class BnfImagesIndexer < Harvestdor::Indexer
     doc_hash[:title_long_ftsi] = smods_rec_obj.sw_full_title if smods_rec_obj.sw_full_title
     doc_hash[:genre_ssim] = smods_rec_obj.genre.map {|n| n.text } if smods_rec_obj.genre && !smods_rec_obj.genre.empty?
     
-    phys_desc_nodeset = smods_rec_obj.physical_description if smods_rec_obj.physical_description
-    unless phys_desc_nodeset.empty?
-      # <form> maps to doc_type_ssi
-      forms = phys_desc_nodeset.form.map {|n| n.text } if !phys_desc_nodeset.form.empty?
-      forms.each { |form|
-        f = form.gsub(/\s+/, ' ').strip
-        case f
-          when /\A(Image fixe|Monnaie ou médaille|Objet)\z/i
-            doc_hash[:doc_type_ssi] = f.downcase
-            break
-        end
-      }
-
-      # <extent> maps to medium_ssi
-      extents = phys_desc_nodeset.extent.map {|n| n.text} if !phys_desc_nodeset.extent.empty?
-      if extents && extents.size > 1
-        logger.warn("#{druid} unexpectedly has multiple <physicalDescription><extent> fields; using first only for :medium_ssi")
-      end
-      if extents
-        full_str = extents.first
-        desired = full_str[/.*\:(.*?);.*/, 1]
-        if desired
-          doc_hash[:medium_ssi] = desired.strip
-        else
-          logger.warn("#{druid} has no :medium_ssi; MODS <physicalDescription><extent> has unexpected format: '#{full_str}'")
-        end
-      end
-    end
-
     pub_date = search_dates(smods_rec_obj, druid)
     doc_hash[:search_date_dtsim] = pub_date if pub_date
+    
+    doc_hash.merge!(phys_desc_field_hash(smods_rec_obj, druid))
     
     doc_hash.merge!(name_field_hash(smods_rec_obj, druid))
     
@@ -147,6 +120,43 @@ class BnfImagesIndexer < Harvestdor::Indexer
     else
       results
     end
+  end
+  
+  # create a Hash of Solr fields based on MODS top level <physicalDescription> fields
+  # @param [Stanford::Mods::Record] smods_rec_obj (for a particular druid)
+  # @param [String] druid e.g. ab123cd4567 (for error reporting)
+  # @return [Hash<String, String>] with the Solr fields derived from the MODS top level <physicalDescription> fields
+  def phys_desc_field_hash smods_rec_obj, druid
+    doc_hash = {}
+    phys_desc_nodeset = smods_rec_obj.physical_description if smods_rec_obj.physical_description
+    unless phys_desc_nodeset.empty?
+      # <form> maps to doc_type_ssi
+      forms = phys_desc_nodeset.form.map {|n| n.text } if !phys_desc_nodeset.form.empty?
+      forms.each { |form|
+        f = form.gsub(/\s+/, ' ').strip
+        case f
+          when /\A(Image fixe|Monnaie ou médaille|Objet)\z/i
+            doc_hash[:doc_type_ssi] = f.downcase
+            break
+        end
+      }
+
+      # <extent> maps to medium_ssi
+      extents = phys_desc_nodeset.extent.map {|n| n.text} if !phys_desc_nodeset.extent.empty?
+      if extents && extents.size > 1
+        logger.warn("#{druid} unexpectedly has multiple <physicalDescription><extent> fields; using first only for :medium_ssi")
+      end
+      if extents
+        full_str = extents.first
+        desired = full_str[/.*\:(.*?);.*/, 1]
+        if desired
+          doc_hash[:medium_ssi] = desired.strip
+        else
+          logger.warn("#{druid} has no :medium_ssi; MODS <physicalDescription><extent> has unexpected format: '#{full_str}'")
+        end
+      end
+    end
+    doc_hash
   end
   
   # create a Hash of Solr fields based on MODS top level <name> fields
