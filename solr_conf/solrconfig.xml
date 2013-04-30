@@ -295,7 +295,7 @@
       <str name="facet.field">collector_ssim</str>
       <str name="facet.field">result_group_ssi</str>
       <str name="f.result_group_ssi.facet.limit">-1</str>
-      <str name="facet.pivot">result_group_ssi,session_title_si</str>
+      <str name="facet.pivot">result_group_ssort,div2_title_ssi</str>
       <str name="facet.query">search_date_dtsim:[1787-02-22T00:00:00Z TO 1789-01-25T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-05-05T00:00:00Z TO 1789-07-15T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-07-17T00:00:00Z TO 1791-10-01T00:00:00Z]</str>
@@ -316,21 +316,19 @@
       <str name="hl.fl">spoken_text_ftsimv, unspoken_text_ftsimv, title_long_ftsi, title_short_ftsi, session_title_ftsi</str>
       <str name="hl.snippets">500</str>
 <!-- uncomment 2 lines below and remove hl.fragsize for the NEW way with better performance -->
-<!--
       <str name="hl.useFastVectorHighlighter">true</str>
       <str name="hl.fragListBuilder">single</str>
--->
+<!--
       <str name="hl.fragsize">0</str>
+-->
     </lst>    
   </requestHandler>
 
-<!--
   <searchComponent class="solr.HighlightComponent" name="highlight">
     <highlighting>
       <fragListBuilder name="single" default="true" class="solr.highlight.SingleFragListBuilder"/>
     </highlighting>
   </searchComponent>
--->
 
   <!-- single document requests; use id=666 instead of q=id:666 -->
   <requestHandler name="document" class="solr.SearchHandler" >
@@ -387,7 +385,7 @@
       <str name="facet.field">collector_ssim</str>
       <str name="facet.field">result_group_ssi</str>
       <str name="f.result_group_ssi.facet.limit">-1</str>
-      <str name="facet.pivot">result_group_ssi,session_title_si</str>
+      <str name="facet.pivot">result_group_ssort,div2_title_ssi</str>
       <str name="facet.query">search_date_dtsim:[1787-02-22T00:00:00Z TO 1789-01-25T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-05-05T00:00:00Z TO 1789-07-15T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-07-17T00:00:00Z TO 1791-10-01T00:00:00Z]</str>
@@ -408,11 +406,11 @@
       <str name="hl.fl">spoken_text_ftsimv, unspoken_text_ftsimv, title_long_ftsi, title_short_ftsi, session_title_ftsi</str>
       <str name="hl.snippets">500</str>
 <!-- uncomment 2 lines below and remove hl.fragsize for the NEW way with better performance -->
-<!--
       <str name="hl.useFastVectorHighlighter">true</str>
       <str name="hl.fragListBuilder">single</str>
--->
+<!--
       <str name="hl.fragsize">0</str>
+-->
     </lst>
   </requestHandler>
 
