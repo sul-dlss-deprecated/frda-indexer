@@ -130,6 +130,7 @@ describe ApTeiDocument do
     it "should log a warning for direct non-whitespace text children of <pb>" do
       x = @start_tei_body_div2_session + 
           "<pb n=\"812\" id=\"#{@druid}_00_0816\">
+          <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
           <p>foo</p>
           mistake
           </pb>
@@ -141,6 +142,7 @@ describe ApTeiDocument do
     it "should log a warning for direct non-whitespace text children when not last" do
       x = @start_tei_body_div2_session + 
           "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
+          <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
           <list>
           <head>bar</head>
           <item>1</item>

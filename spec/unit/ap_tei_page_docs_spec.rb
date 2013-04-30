@@ -126,6 +126,7 @@ describe ApTeiDocument do
           @x = @start_tei_body_div1 +
                    "<pb n=\"1\" id=\"#{@id}\"/>
                    <div2 type=\"session\">
+                     <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                      <p>La séance est ouverte à neuf heures du matin. </p>
                      <pb n=\"2\" id=\"#{@druid}_00_1235\"/>" + @end_div2_body_tei
         end
@@ -145,7 +146,7 @@ describe ApTeiDocument do
           x = @start_tei_back_div1 +
               "<pb n=\"813\" id=\"#{@druid}_00_0816\"/>
               <div2 type=\"contents\">
-                <head>TABLE CHRONOLOGIQUE</head>
+                <head>TABLE CHRONOLOGIQUE DU TOME LXXYI </head>
                 <p>blah blah</p>
               </div2>
             </div1>
@@ -159,14 +160,14 @@ describe ApTeiDocument do
           x = @start_tei_back_div1 +
             "<pb n=\"813\" id=\"#{@druid}_00_0816\"/>
               <div2 type=\"contents\">
-                <head>TABLE CHRONOLOGIQUE</head>
+                <head>TABLE CHRONOLOGIQUE DU TOME LXXYI </head>
                 <p>blah blah</p>
               </div2>
             </div1>
             <div1 type=\"volume\" n=\"14\">
               <pb n=\"814\" id=\"#{@druid}_00_0817\"/>
               <div2 type=\"contents\">
-                <head>TABLE CHRONOLOGIQUE</head>
+                <head>TABLE CHRONOLOGIQUE DU TOME LXXYI </head>
                 <p>blah blah</p>
               </div2>" + @end_div1_back_tei
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0816"))
@@ -183,12 +184,14 @@ describe ApTeiDocument do
       @page_id = "#{@druid}_00_0813"
       @x = @start_tei_body_div2_session + 
             "<pb n=\"1\" id=\"#{@page_id}\"/>
+             <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
              <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei        
     end
     context "page_num_ssi" do
       it "should be present when <pb> has non-empty n attribute" do
         x = @start_tei_body_div2_session + 
               "<pb n=\"1\" id=\"#{@druid}_00_0813\"/>
+               <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:page_num_ssi => '1'))
         @rsolr_client.should_receive(:add).at_least(1).times
@@ -198,6 +201,7 @@ describe ApTeiDocument do
         x = @start_tei_body_div1 +
               "<div2 type=\"session\">
                   <pb n=\"\" id=\"#{@druid}_00_0001\"/>
+                  <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                   <p>blah blah</p>" + @end_div2_body_tei 
         @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ssi))
         @rsolr_client.should_receive(:add).at_least(1).times
@@ -207,6 +211,7 @@ describe ApTeiDocument do
         x = @start_tei_body_div1 +
               "<div2 type=\"session\">
                   <pb id=\"#{@druid}_00_0001\"/>
+                  <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                   <p>blah blah</p>" + @end_div2_body_tei 
         @rsolr_client.should_receive(:add).with(hash_not_including(:page_num_ssi))
         @rsolr_client.should_receive(:add).at_least(1).times
@@ -225,6 +230,7 @@ describe ApTeiDocument do
       it "should be derived from the page_id_hash passed in" do
         x = @start_tei_body_div2_session + 
               "<pb n=\"1\" id=\"#{@druid}_00_0005\"/>
+               <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:page_sequence_isi => 7))
         @rsolr_client.should_receive(:add).at_least(1).times
@@ -233,6 +239,7 @@ describe ApTeiDocument do
       it "should not be present when page_id_hash has no matching value" do
         x = @start_tei_body_div2_session + 
               "<pb n=\"1\" id=\"#{@druid}_00_0002\"/>
+               <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_not_including(:page_sequence_isi))
         @rsolr_client.should_receive(:add).at_least(1).times
@@ -254,6 +261,7 @@ describe ApTeiDocument do
         x = @start_tei_body_div1 +
               "<div2 type=\"session\">
                   <pb id=\"oo000oo0000_00_0001\"/>
+                  <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                   <p>blah blah</p>" + @end_div2_body_tei 
         @logger.should_receive(:error).with("TEI for #{@druid} has <pb> element with incorrect druid: oo000oo0000_00_0001; continuing with given page id.")
         @rsolr_client.should_receive(:add).at_least(1).times
@@ -263,6 +271,7 @@ describe ApTeiDocument do
         x = @start_tei_body_div1 +
               "<div2 type=\"session\">
                   <pb n=\"4\" id=\"#{@druid}_00_00a\"/>
+                  <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                   <p>bleah bleah</p>" + @end_div2_body_tei 
         @logger.should_receive(:warn).with("Non-integer image sequence number: #{@druid}_00_00a; continuing with processing.")
         @rsolr_client.should_receive(:add).at_least(1).times
@@ -271,6 +280,7 @@ describe ApTeiDocument do
       it "should log a warning if an image sequence number isn't consecutively higher than its predecessor" do
         x = @start_tei_body_div1 +
               "<div2 type=\"session\">
+                  <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                   <pb n=\"4\" id=\"#{@druid}_00_0012\"/>
                   <p>blah blah</p>
                   <pb n=\"5\" id=\"#{@druid}_00_0011\"/>
@@ -282,6 +292,7 @@ describe ApTeiDocument do
       it "should log a warning if there is no page number after page numbers start" do
         x = @start_tei_body_div1 +
               "<div2 type=\"session\">
+                  <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                   <pb n=\"3\" id=\"#{@druid}_00_0012\"/>
                   <p>blah blah</p>
                   <pb id=\"#{@druid}_00_0013\"/>
@@ -294,6 +305,7 @@ describe ApTeiDocument do
         x = @start_tei_body_div1 +
               "<div2 type=\"session\">
                   <pb n=\"\" id=\"#{@druid}_00_0012\"/>
+                  <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                   <p>blah blah</p>
                   <pb n=\"3\" id=\"#{@druid}_00_0013\"/>
                   <p>bleah bleah</p>" + @end_div2_body_tei 
@@ -305,6 +317,7 @@ describe ApTeiDocument do
         x = @start_tei_body_div1 +
               "<div2 type=\"session\">
                   <pb n=\"4\" id=\"#{@druid}_00_0012\"/>
+                  <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                   <p>blah blah</p>
                   <pb n=\"8\" id=\"#{@druid}_00_0013\"/>
                   <p>bleah bleah</p>" + @end_div2_body_tei 
@@ -350,10 +363,10 @@ describe ApTeiDocument do
         <div1 type=\"volume\" n=\"14\">
           <pb n=\"814\" id=\"#{@druid}_00_0817\"/>
           <div2 type=\"contents\">
+            <head>TABLE CHRONOLOGIQUE DU TOME LXXYI </head>
             <p>in body</p>
       #{@end_div2_body_tei}"
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in body'))
-      @rsolr_client.should_receive(:add).at_least(1).times
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'TABLE CHRONOLOGIQUE DU TOME LXXYI in body')).twice
       @parser.parse(x)
     end
     it "should not get content from <front>" do
@@ -372,10 +385,11 @@ describe ApTeiDocument do
               <div1 type=\"volume\" n=\"14\">
                 <pb n=\"814\" id=\"#{@druid}_00_0003\"/>
                 <div2 type=\"contents\">
+                  <head>TABLE CHRONOLOGIQUE DU TOME LXXYI </head>
                   <p>in body</p>
             #{@end_div2_body_tei}"
-      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'in body'))
-      @rsolr_client.should_receive(:add).at_least(1).times
+      @rsolr_client.should_receive(:add).with(hash_including(:text_tiv => 'TABLE CHRONOLOGIQUE DU TOME LXXYI in body')).twice
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page')).at_least(1).times
       @parser.parse(x)
     end
     it "should not include the contents of any attributes" do
@@ -462,6 +476,7 @@ describe ApTeiDocument do
       before(:all) do
         @x = @start_tei_body_div2_session +
             "<pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+            <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
             <p>actual content</p>
             <pb n=\"6\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
       end
@@ -471,6 +486,7 @@ describe ApTeiDocument do
       before(:all) do
         @x = "#{@start_tei_back_div1}<div2 type=\"alpha\">
                 <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                <head>LISTE</head>
                 <p>blah blah</p>
                 <pb n=\"6\" id=\"#{@druid}_00_0002\"/>" + @end_div2_back_tei
       end
@@ -480,6 +496,7 @@ describe ApTeiDocument do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"contents\">
                 <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                <head>TABLE CHRONOLOGIQUE DU TOME LXXYI </head>
                 <p>blah blah</p>
                 <pb n=\"6\" id=\"#{@druid}_00_0009\"/>" + @end_div2_body_tei
       end
@@ -489,6 +506,7 @@ describe ApTeiDocument do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"other\">
                 <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                <head>LISTE ALPHABÉTIQUE </head>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "solr doc for page with div2", ApTeiDocument::DIV2_TYPE['other'] 
@@ -497,6 +515,7 @@ describe ApTeiDocument do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"table_alpha\">
                 <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                <head>LISTE ALPHABÉTIQUE </head>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "solr doc for page with div2", ApTeiDocument::DIV2_TYPE['table_alpha'] 
@@ -505,6 +524,7 @@ describe ApTeiDocument do
       before(:all) do
         @x = @start_tei_body_div1 + "<div2 type=\"introduction\">
                 <pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+                <head>INTRODUCTION</head>
                 <p>blah blah</p>" + @end_div2_body_tei
       end
       it_should_behave_like "solr doc for page with div2", ApTeiDocument::DIV2_TYPE['introduction'] 

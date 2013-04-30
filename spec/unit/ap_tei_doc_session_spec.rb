@@ -29,6 +29,7 @@ describe ApTeiDocument do
       before(:all) do
         @x = @start_tei_body_div2_session +
             "<pb n=\"010\" id=\"#{@druid}_00_0010\"/>
+            <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
             <p>actual content</p>" + @end_div2_body_tei
       end
       it "should have doc_type_ssim of 'séance'" do
@@ -195,6 +196,7 @@ describe ApTeiDocument do
           x = @start_tei_body_div2_session + 
                 "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <head>CONVENTION NATIONALE</head>
+                <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"#{@druid}_00_0814\"/>
                 <p>blah blah</p>
@@ -229,6 +231,7 @@ describe ApTeiDocument do
           x = @start_tei_body_div2_session + 
                 "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <head>CONVENTION NATIONALE</head>
+                <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
@@ -240,6 +243,7 @@ describe ApTeiDocument do
                 "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <head>CONVENTION NATIONALE</head>
                 <head>PRESIDENCE DE M. MERLIN</head>
+                <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_not_including(:session_govt_ssim => ["PRESIDENCE DE M. MERLIN"]))
@@ -251,6 +255,7 @@ describe ApTeiDocument do
                 "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <head> 
                 ASSEMBLÉE NATIONALE LÉGISLATIVE. </head>
+                <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["ASSEMBLÉE NATIONALE LÉGISLATIVE"]))
@@ -262,6 +267,7 @@ describe ApTeiDocument do
                 "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 
                 <head>CONVENTION NATIONALE</head>
+                <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
@@ -272,6 +278,7 @@ describe ApTeiDocument do
           x = @start_tei_body_div2_session + 
                 "<pb n=\"810\" id=\"#{@druid}_00_0813\"/>
                 <p>ASSEMBLÉE NATIONALE LÉGISLATIVE. </p>
+                <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["ASSEMBLÉE NATIONALE LÉGISLATIVE"]))
@@ -284,6 +291,7 @@ describe ApTeiDocument do
                 <p>blah blah</p>
                 <div2 type=\"session\">
                 <head>CONVENTION NATIONALE</head>
+                <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
                 <p>blah blah</p>
                 <pb n=\"811\" id=\"#{@druid}_00_0814\"/>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:session_govt_ssim => ["CONVENTION NATIONALE"]))
@@ -366,6 +374,7 @@ describe ApTeiDocument do
       it "should not be present if there is no <speaker> element" do
         x = @start_tei_body_div2_session + 
             "<pb n=\"010\" id=\"#{@druid}_00_0016\"/>
+            <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
             <p>La séance est ouverte à neuf heures du matin. </p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_not_including(:speaker_ssim)).twice # div2 and page
         @parser.parse(x)

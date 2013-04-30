@@ -202,9 +202,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
             add_value_to_div2_doc_hash(:div2_title_ssi, 'Introduction')
             @need_div2_title = false
           when "other"
-            add_sentence_case_div2_title text
+            add_div2_title_sc_if_caps text
           when "table_alpha"
-            add_div2_title_table_alpha text
+            add_div2_title_sc_if_caps text
           # NOTE: have copyfield for session div2_title, so no need to have it here
         end
       else
@@ -408,11 +408,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @return true if @div2_buffer is empty or nil
   def div2_buffer_empty?
     div2_text = @div2_buffer.strip.gsub(/\s+/, ' ') if @div2_buffer && @div2_buffer.strip
-    if div2_text && !div2_text.empty?
-      true
-    else
-      false
-    end
+    div2_text && !div2_text.empty?
   end
 
   # normalize text to be div2_title_ssi, add it to div2_doc_hash, and change @need_div2_title to false
@@ -424,7 +420,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   
   # normalize** text to be div2_title_ssi, add it to div2_doc_hash, and change @need_div2_title to false
   # **only normalize case of text if it isn't already mixed case 
-  def add_div2_title_table_alpha text
+  def add_div2_title_sc_if_caps text
     if text
       val = remove_trailing_and_leading_characters text
       if (val.size >= 10 && val[0, 9] == UnicodeUtils.upcase(val[0, 9])) || 
@@ -434,6 +430,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         add_value_to_div2_doc_hash(:div2_title_ssi, val)
       end
       @need_div2_title = false
+    else
+      @logger.error("div2_title is unexpectedly nil for #{@div2_doc_hash[:id]}, #{@div2_doc_hash[:doc_type_ssi]}")
     end
   end
   
@@ -516,13 +514,13 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # @param [String] value the value to add to the hash for the key
   # @param [Hash<Symbol, String>] hash the hash to receive the field value
   def add_field_value_to_hash(key, value, hash)
-    fname = key.to_s
-    unless value.is_a?(String) && value.strip.empty?
+    unless !value || (value.is_a?(String) && value.strip.empty?)
       if value.is_a?(String)
         val = value.strip.gsub(/\s+/, ' ')
       else
         val = value
       end
+      fname = key.to_s
       if hash[key]
         if fname.end_with?('m') || fname.end_with?('mv')
           hash[key] << val if !hash[key].include?(val)
@@ -558,7 +556,9 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       add_value_to_div2_doc_hash(:text_tiv, text)
       # add :div2_ssort
       title = @div2_doc_hash[:div2_title_ssi] ? @div2_doc_hash[:div2_title_ssi] : @div2_doc_hash[:session_title_ftsi]
+      @logger.error("#{@div2_doc_hash[:id]} div2_ssort missing title") unless title
       image_id = @div2_doc_hash[:pages_ssim].first.split(SEP).first if @div2_doc_hash[:pages_ssim]
+      @logger.error("#{@div2_doc_hash[:id]} div2_ssort missing image_id for #{title}") unless image_id
       add_value_to_div2_doc_hash(:div2_ssort, "#{image_id}#{SEP}#{title}")
       @rsolr_client.add(@div2_doc_hash)
       @last_div2_added = @div2_doc_hash[:id]

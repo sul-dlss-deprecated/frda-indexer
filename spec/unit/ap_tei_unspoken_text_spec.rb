@@ -18,7 +18,8 @@ describe ApTeiDocument do
     @logger = Logger.new(STDOUT)
     @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, @vol_constants_hash, @page_id_hash, @logger)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
-    @start_tei_body_div1 = "<TEI.2><text><body><div1 type=\"volume\" n=\"36\">"
+    @start_div1 = "<div1 type=\"volume\" n=\"36\">"
+    @start_tei_body_div1 = "<TEI.2><text><body>" + @start_div1
     @start_tei_body_div2_session = @start_tei_body_div1 + "<div2 type=\"session\">"
     @end_div1_body_tei = "</div1></body></text></TEI.2>"
     @end_div2_body_tei = "</div2>#{@end_div1_body_tei}"
@@ -126,7 +127,10 @@ describe ApTeiDocument do
     
     context "when shouldn't it include a head element?" do
       it "when it's a session government heading" do
-        x = @start_session_doc + "<head>CONVENTION NATIONALE</head><head>yes</head>" + @end_div2_body_tei
+        x = @start_session_doc + 
+              "<head>CONVENTION NATIONALE</head>
+              <head>yes</head>
+              <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:unspoken_text_timv => ["yes"], 
                                                                 :session_govt_ssim => ['CONVENTION NATIONALE'],
                                                                 :id => @page_id))
@@ -237,6 +241,66 @@ describe ApTeiDocument do
         @parser.parse(x)
       end
     end # what is included
+     
+    context "<back> has long <div1> before <div2>" do
+      it "should not include pages after the closing </div2> tag", :fixme => true do
+        x = @start_tei_body_div1 + 
+            "<div2 type=\"session\">
+              <pb n=\"740\" id=\"#{@druid}_00_0744\"/>
+              <p> Séance du<date value=\"1790-03-30\"> dimanche 30 mai 1790 </date>(1). </p>
+              <p>first unspoken</p>
+              <sp>
+                <speaker>M. le baron de Rathsamhausen</speaker>
+                <p>blah blah</p>
+                <pb n=\"741\" id=\"#{@druid}_00_0745\"/>
+              </sp>
+              <div3 type=\"annexe\">
+                <head>ANNEXE</head>
+                <p>second unspoken</p>
+                <pb n=\"742\" id=\"#{@druid}_00_0746\"/>
+                <p>third unspoken</p>
+              </div3>
+            <div2>
+          <div1>
+        </body>
+        <back>
+          #{@start_div1}
+            <p>FOURTH UNSPOKEN</p>
+            <div2 type=\"other\">
+            <p>fifth unspoken</p>
+            <pb n=\"743\" id=\"#{@druid}_00_0747\"/>
+            <list>
+              <head>sixth head</head>
+              <item>seventh unspoken</item>
+            </list>
+            </div2>
+          </div1>
+          #{@start_div1}
+            <pb n=\"744\" id=\"#{@druid}_00_0748\"/>
+            <head>TABLE ALPHABÉTIQUE ET ANALYTIQUE DU TOME QUINZIÈME. </head>
+            <div2 type=\"alpha\">
+              <head>A </head>
+              <p>eighth unspoken</p>" + @end_div2_back_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
+                      :pages_ssim => ["#{@druid}_00_0744-|-740",
+                                       "#{@druid}_00_0745-|-741",
+                                       "#{@druid}_00_0746-|-742"],
+                      :unspoken_text_timv => ["#{@druid}_00_0744-|-first unspoken",
+                                              "#{@druid}_00_0745-|-second unspoken",
+                                              "#{@druid}_00_0746-|-third unspoken"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).exactly(3).times
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
+                      :pages_ssim => ["#{@druid}_00_0746-|-742",
+                                      "#{@druid}_00_0747-|-743"],
+                      :unspoken_text_timv => ["#{@druid}_00_0748-|-eighth unspoken"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_3",
+                      :pages_ssim => ["#{@druid}_00_0748-|-744"],
+                      :unspoken_text_timv => ["#{@druid}_00_0748-|-eighth unspoken"]))
+        @parser.parse(x)
+      end
+    end
+    
   end # unspoken text field
 
 end

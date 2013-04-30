@@ -19,7 +19,8 @@ describe ApTeiDocument do
     @atd = ApTeiDocument.new(@rsolr_client, @druid, @volume, @vol_constants_hash, @page_id_hash, @logger)
     @parser = Nokogiri::XML::SAX::Parser.new(@atd)
     @start_tei_body = "<TEI.2><text><body>"
-    @start_tei_body_div1 = @start_tei_body+ "<div1 type=\"volume\" n=\"36\">"
+    @start_div1 = "<div1 type=\"volume\" n=\"36\">"
+    @start_tei_body_div1 = @start_tei_body + @start_div1
     @start_tei_body_div2_session = @start_tei_body_div1 + "<div2 type=\"session\">"
     @end_div1_body_tei = "</div1></body></text></TEI.2>"
     @end_div2_body_tei = "</div2>#{@end_div1_body_tei}"
@@ -35,6 +36,7 @@ describe ApTeiDocument do
     before(:all) do
       @x = @start_tei_body_div2_session +
           "<pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+          <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
           <p>actual content</p>
           <pb n=\"6\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
     end
@@ -66,7 +68,8 @@ describe ApTeiDocument do
   context "<div2> element" do
     it "start of <div2> element should call init_div2_doc_hash" do
       x = @start_tei_body_div2_session +
-          "<p>actual content</p>" + @end_div1_body_tei
+          "<p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
+          <p>actual content</p>" + @end_div1_body_tei
       @atd.should_receive(:init_div2_doc_hash)
       @parser.parse(x)
     end
@@ -79,6 +82,7 @@ describe ApTeiDocument do
     it "end of <div2> element should call add_div2_doc_to_solr" do
       x = @start_tei_body_div2_session +
           "<pb n=\"316\" id=\"#{@druid}_00_0320\"/>
+          <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
           <p>actual content</p>" + @end_div2_body_tei
       @atd.should_receive(:add_div2_doc_to_solr).and_call_original # once for end of <div2>; not redundantly called at end of doc
       @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0320"))
@@ -88,6 +92,7 @@ describe ApTeiDocument do
     it "start of <div2> element should not call add_div2_doc_to_solr" do
       x = @start_tei_body_div2_session +
           "<pb n=\"316\" id=\"#{@druid}_00_0320\"/>
+          <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
           <p>actual content</p>" + @end_div1_body_tei
       @atd.should_receive(:add_div2_doc_to_solr)  # once at end of document
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
@@ -96,9 +101,11 @@ describe ApTeiDocument do
     it "multiple <div2> elements create multiple div2 docs" do
       x = @start_tei_body_div2_session +
           "<pb n=\"316\" id=\"#{@druid}_00_0320\"/>
+          <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
           <p>actual content</p>
           </div2>
           <div2 type=\"session\">
+            <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
             <p>more</p>" + @end_div2_body_tei
       @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :type_ssi => 'séance'))
       @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2", :type_ssi => 'séance'))
@@ -289,7 +296,7 @@ describe ApTeiDocument do
 
       context "should have div2_title_ssi of 'Table chronologique du tome...'" do
         it "in one <head>" do
-          x = @start_tei_body_div1 + "<div2 type=\"contents\">
+          x = @start_tei_back_div1 + "<div2 type=\"contents\">
                   <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
                   <head>TABLE CHRONOLOGIQUE DU TOME LXXYI </head>
                   <head>TOME SOIXANTE-SEIZIÈME (du<date value=\"1793-10-04\">4 octobre 1793</date>
@@ -298,13 +305,13 @@ describe ApTeiDocument do
                   <list>
                     <head>Pages. </head>
                     <item>du vendredi 4 octobre 1793 </item>
-                  </list>" + @end_div2_body_tei
+                  </list>" + @end_div2_back_tei
           @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Table chronologique du Tome LXXYI'))
           @parser.parse(x)
         end
         it "in two <head>" do
-          x = @start_tei_body_div1 + "<div2 type=\"contents\">
+          x = @start_tei_back_div1 + "<div2 type=\"contents\">
                   <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
                   <head>TABLE CHRONOLOGIQUE </head>
                   <head>DU TOME VIII </head>
@@ -313,7 +320,7 @@ describe ApTeiDocument do
                   <head>5 mai 1789. </head>
                   <list>
                     <item>Pages. </item>
-                  </list>" + @end_div2_body_tei
+                  </list>" + @end_div2_back_tei
           @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => 'page'))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1", :div2_title_ssi => 'Table chronologique du Tome VIII'))
           @parser.parse(x)
@@ -815,6 +822,7 @@ describe ApTeiDocument do
                 <head>ARCHIVES PARLEMENTAIRES </head>
                 <head>RÉPUBLIQUE FRANÇAISE </head>
                   <div2 type=\"table_alpha\">
+                  <head>TABLE CHRONOLOGIQUE DU TOME LXXYI </head>
                   <p>something</p>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0007"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
@@ -882,6 +890,7 @@ describe ApTeiDocument do
                 <head>ARCHIVES PARLEMENTAIRES </head>
                 <head>RÉPUBLIQUE FRANÇAISE </head>
                   <div2 type=\"table_alpha\">
+                  <head>LISTE </head>
                   <p>something</p>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0007"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
@@ -899,7 +908,7 @@ describe ApTeiDocument do
                 <head>ARCHIVES PARLEMENTAIRES </head>
                 <head>PREMIÈRE SÉRIE </head>
                 <div2 type=\"contents\">
-                  <head>TABLE CHRONOLOGIQUE </head>" + @end_div2_back_tei
+                  <head>TABLE CHRONOLOGIQUE DU TOME LXXYI </head>" + @end_div2_back_tei
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0771"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0772"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
@@ -915,6 +924,7 @@ describe ApTeiDocument do
                 <head>RÉPUBLIQUE FRANÇAISE </head>
                 <pb n=\"1\" id=\"#{@druid}_00_0007\"/>
                   <div2 type=\"table_alpha\">
+                  <head>LISTE </head>
                   <p>something</p>" + @end_div2_body_tei
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0006"))
           @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_00_0007"))
@@ -1294,6 +1304,7 @@ describe ApTeiDocument do
               <p>one</p>
             </div2>
             <div2 type=\"alpha\">
+              <head>LISTE</head>
               <p>two</p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                        :pages_ssim => ["#{@druid}_00_0754-|-748"]))
@@ -1329,9 +1340,11 @@ describe ApTeiDocument do
         x = @start_tei_body_div1 + 
             "<div2 type=\"other\">
               <pb n=\"713\" id=\"#{@druid}_00_0778\"/>
+              <head>LISTE</head>
               <p><term>Luynes</term>blah</p>
             </div2>
             <div2 type=\"alpha\">
+              <head>LISTE</head>
               <p><term>blah</term>blah</p>" + @end_div2_body_tei
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                         :pages_ssim => ["#{@druid}_00_0778-|-713"]))
@@ -1444,7 +1457,7 @@ describe ApTeiDocument do
                        :pages_ssim => ["#{@druid}_00_0321-|-317"]))
         @parser.parse(x)
       end
-    end
+    end # with div3
     
     context "empty pages" do
       it "within a div2" do
@@ -1457,12 +1470,12 @@ describe ApTeiDocument do
             </div2>
             <pb n=\"104\" id=\"#{@druid}_00_0114\"/>
             <div2 type=\"session\">" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).at_least(2).times
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
                         :pages_ssim => ["#{@druid}_00_0111-|-101",
                                         "#{@druid}_00_0112-|-102"]))
 # not sure what is "correct", but this is good enough.
 #                                        "#{@druid}_00_0113-|-103"]))
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).at_least(2).times
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                         :pages_ssim => ["#{@druid}_00_0114-|-104"]))
         @parser.parse(x)
@@ -1471,6 +1484,7 @@ describe ApTeiDocument do
         x = @start_tei_back_div1 + 
             "<div2 type=\"other\">
                <pb n=\"\" id=\"#{@druid}_00_0813\"/>
+               <head>LISTE</head>
                <p>Paris. — Rup. PAUL DUPONT (Thouzellier, Dr), 4, ru© du Bouloi. 3.8.1911. (Cl.) .</p>
                <pb n=\"\" id=\"#{@druid}_00_0814\"/>
                <pb n=\"\" id=\"#{@druid}_00_0815\"/>
@@ -1487,6 +1501,7 @@ describe ApTeiDocument do
         x = @start_tei_back_div1 + 
             "<div2 type=\"other\">
               <pb n=\"\" id=\"#{@druid}_00_0736\"/>
+              <head>LISTE</head>
                 <list>
                   <item>M. Gouges-Cartou, mémoire sur les subsistances....... 651 </item>
                   <item>fin de la table chronologique du tome viii. </item>
@@ -1501,13 +1516,14 @@ describe ApTeiDocument do
         @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
         @parser.parse(x)
       end
-    end # empty pages
+    end # empty pages 
   end # div2 knows its pages
 
   context "add_div2_doc_to_solr" do
     before(:all) do
       @x = @start_tei_body_div2_session +
           "<pb n=\"5\" id=\"#{@druid}_00_0001\"/>
+          <p>Séance du samedi <date value=\"1793-10-05\">5 octobre 1793</date>. </p>
           <p>actual content</p>
           <pb n=\"6\" id=\"#{@druid}_00_0002\"/>" + @end_div2_body_tei
     end
@@ -1539,7 +1555,7 @@ describe ApTeiDocument do
     end
     it "div2 solr doc should have catch all text fields" do
       @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).twice
-      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @session_type, :text_tiv => 'actual content'))
+      @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @session_type, :text_tiv => 'Séance du samedi 5 octobre 1793 . actual content'))
       @parser.parse(@x)
     end
   end # add_div2_doc_to_solr
