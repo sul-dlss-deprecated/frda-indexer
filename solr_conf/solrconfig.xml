@@ -295,7 +295,7 @@
       <str name="facet.field">collector_ssim</str>
       <str name="facet.field">result_group_ssi</str>
       <str name="f.result_group_ssi.facet.limit">-1</str>
-      <str name="facet.pivot">result_group_ssort,div2_title_ssi</str>
+      <str name="facet.pivot">result_group_ssort,div2_ssort</str>
       <str name="facet.query">search_date_dtsim:[1787-02-22T00:00:00Z TO 1789-01-25T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-05-05T00:00:00Z TO 1789-07-15T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-07-17T00:00:00Z TO 1791-10-01T00:00:00Z]</str>
@@ -385,7 +385,7 @@
       <str name="facet.field">collector_ssim</str>
       <str name="facet.field">result_group_ssi</str>
       <str name="f.result_group_ssi.facet.limit">-1</str>
-      <str name="facet.pivot">result_group_ssort,div2_title_ssi</str>
+      <str name="facet.pivot">result_group_ssort,div2_ssort</str>
       <str name="facet.query">search_date_dtsim:[1787-02-22T00:00:00Z TO 1789-01-25T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-05-05T00:00:00Z TO 1789-07-15T00:00:00Z]</str>
       <str name="facet.query">search_date_dtsim:[1789-07-17T00:00:00Z TO 1791-10-01T00:00:00Z]</str>
