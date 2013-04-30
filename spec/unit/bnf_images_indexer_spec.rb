@@ -122,20 +122,53 @@ describe BnfImagesIndexer do
                     </mods>"
       end
       context ":doc_type_ssim" do
-        it "should be the contents of the MODS <physicalDescription><form> fields" do
+        it "should be the lowercase non-English values of the MODS <physicalDescription><form> fields" do
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_pd))
-          @solr_client.should_receive(:add).with(hash_including(:doc_type_ssim => ['Image fixe', 'nonprojected graphic', 'print']))
+          @solr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'image fixe'))
+          @indexer.index(@fake_druid)
+        end
+        it "should not use any English values" do
+          mods_xml = "<mods #{@ns_decl}>
+                        <physicalDescription>
+                          <form authority=\"gmd\">Image fixe</form>
+                          <form authority=\"marccategory\">nonprojected graphic</form>
+                          <form authority=\"marcsmd\">print</form>
+                          <form authority=\"marcsmd\">painting</form>
+                          <form authority=\"marcsmd\">drawing</form>
+                        </physicalDescription>
+                      </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'image fixe'))
+          @indexer.index(@fake_druid)
+        end
+        it "should lowercase Objet" do
+          mods_xml = "<mods #{@ns_decl}><physicalDescription><form authority=\"gmd\">Objet</form></physicalDescription></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'objet'))
+          @indexer.index(@fake_druid)
+        end
+        it "should lowercase 'Monnaie ou médaille'" do
+          mods_xml = "<mods #{@ns_decl}><physicalDescription><form authority=\"gmd\">Monnaie ou médaille</form></physicalDescription></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'monnaie ou médaille'))
+          @indexer.index(@fake_druid)
+        end
+        it "should lowercase 'Monnaie ou médaille' - version 2" do
+          # FIXME: trying to avoid getting two of the same values in the field for no apparent reason
+          mods_xml = "<mods #{@ns_decl}><physicalDescription><form authority=\"gmd\">Monnaie ou médaille</form></physicalDescription></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'monnaie ou médaille'))
           @indexer.index(@fake_druid)
         end
         it "should be absent if there are no <physicalDescription> fields in the MODS record" do
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
-          @solr_client.should_receive(:add).with(hash_not_including(:doc_type_ssim))
+          @solr_client.should_receive(:add).with(hash_not_including(:doc_type_ssi))
           @indexer.index(@fake_druid)
         end
         it "should be absent if there are no <physicalDescription><form> fields in the MODS record" do
-          mods_xml = "<mods #{@ns_decl}><physicalDescription><extent>basic</extent></physicalDescription></mods>"
+          mods_xml = "<mods #{@ns_decl}><note>blah</note></mods><physicalDescription><extent>basic</extent></physicalDescription></mods>"
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
-          @solr_client.should_receive(:add).with(hash_not_including(:doc_type_ssim))
+          @solr_client.should_receive(:add).with(hash_not_including(:doc_type_ssi))
           @indexer.index(@fake_druid)
         end
       end
@@ -151,7 +184,7 @@ describe BnfImagesIndexer do
           @indexer.index(@fake_druid)
         end
         it "should be absent if there are no <physicalDescription><extent> fields in the MODS record" do
-          mods_xml = "<mods #{@ns_decl}><physicalDescription><form>basic</form></physicalDescription></mods>"
+          mods_xml = "<mods #{@ns_decl}><physicalDescription><form>Objet</form></physicalDescription></mods>"
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
           @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
           @indexer.index(@fake_druid)
@@ -159,6 +192,7 @@ describe BnfImagesIndexer do
         it "should log a warning message if more than one <physicalDescription><extent> field is found" do
           mods = "<mods #{@ns_decl}>
                     <physicalDescription>
+                      <form>Objet</form>
                       <extent>one : one ; one</extent>
                       <extent>two</extent>
                     </physicalDescription></mods>"
@@ -172,12 +206,13 @@ describe BnfImagesIndexer do
         it "should log a warning message if <physicalDescription><extent> doesn't match regex" do
           mods = "<mods #{@ns_decl}>
                     <physicalDescription>
+                      <form>Objet</form>
                       <extent>one</extent>
                     </physicalDescription></mods>"
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no :medium_ssi; MODS <physicalDescription><extent> has unexpected format: 'one'")
           @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} has no originInfo.dateIssued field/)
           @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} did not retrieve any contentMetadata/)
-          @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no :medium_ssi; MODS <physicalDescription><extent> has unexpected format: 'one'")
           @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
           @indexer.index(@fake_druid)
         end
