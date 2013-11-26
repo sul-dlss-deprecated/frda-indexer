@@ -128,6 +128,11 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         add_value_to_div2_doc_hash(:div2_title_ssi, val)
         @need_div2_title = false
       end
+    when 'hi'
+      # if it's within a session date value
+      if (@in_session && @need_session_title && @page_session_fields)
+        @session_title << @element_buffer
+      end
     end
     @element_just_started = true unless name == 'hi'  # we don't want to add spaces at beginning of <hi> elements
   end

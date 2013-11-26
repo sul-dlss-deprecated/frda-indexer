@@ -151,6 +151,15 @@ describe ApTeiDocument do
             @rsolr_client.should_receive(:add).at_least(1).times
             @parser.parse(x)
           end
+          it "should ignore <hi> tags inside the <date> tag" do
+            x = @start_tei_body_div2_session + 
+                "<pb n=\"812\" id=\"#{@druid}_00_0816\"/>
+                <p>Séance du <date value=\"1791-05-01\">dimanche 1<hi rend=\"superscript\">er</hi> mai 1791 (1).</date></p>
+                <pb n=\"813\" id=\"#{@druid}_00_0817\"/>" + @end_div2_body_tei
+            @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du dimanche 1 mai 1791"]))
+            @rsolr_client.should_receive(:add).at_least(1).times
+            @parser.parse(x)
+          end
           it "should call normalize_session_title" do
             @atd.should_receive(:normalize_session_title).and_call_original
             @rsolr_client.should_receive(:add).with(hash_including(:session_title_ftsim => ["Séance du samedi 5 octobre 1793"]))
