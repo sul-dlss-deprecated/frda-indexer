@@ -236,8 +236,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
         if @in_session && @need_session_govt && text == text.upcase
           add_session_govt_ssim(text)
         elsif @in_sp && @speaker
-          add_value_to_page_doc_hash(:spoken_text_timv, "#{@speaker}#{SEP}#{text}")
-          add_value_to_div2_doc_hash(:spoken_text_timv, "#{@page_id}#{SEP}#{@speaker}#{SEP}#{text}")
+          add_value_to_page_doc_hash(:spoken_text_timv, "aaa#{@speaker}zzz#{SEP}#{text}")
+          add_value_to_div2_doc_hash(:spoken_text_timv, "#{@page_id}#{SEP}aaa#{@speaker}zzz#{SEP}#{text}")
         else
           add_unspoken_text_to_doc_hashes text
         end

@@ -440,29 +440,30 @@ describe ApTeiDocument do
               <p>also no speaker</p>
             </sp>
             <p>after</p>" + @end_div2_body_tei
+        @speaker_val = "aaaGuadetzzz"
       end
-      it "should have a separate value, starting with the speaker, for each <p> inside a single <sp>" do
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...'], :id => @page_id))
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@page_id}-|-Guadet-|-blah blah ...", "#{@page_id}-|-Guadet-|-bleah bleah ..."], :id => "#{@druid}_div2_1"))
+      it "should have a separate value, starting with the anchored speaker, for each <p> inside a single <sp>" do
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@speaker_val}-|-blah blah ...", "#{@speaker_val}-|-bleah bleah ..."], :id => @page_id))
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@page_id}-|-#{@speaker_val}-|-blah blah ...", "#{@page_id}-|-#{@speaker_val}-|-bleah bleah ..."], :id => "#{@druid}_div2_1"))
         @parser.parse(@x)
       end
       it "should not include <p> text outside an <sp>" do
         @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['before']))
-        @rsolr_client.should_receive(:add)
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['before']))
         @parser.parse(@x)
         @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['middle']))
-        @rsolr_client.should_receive(:add)
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['middle']))
         @parser.parse(@x)
         @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['after']))
-        @rsolr_client.should_receive(:add).at_least(1).times
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['after']))
         @parser.parse(@x)
       end
       it "should not include <p> text when there is no speaker " do
         @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['no speaker']))
-        @rsolr_client.should_receive(:add)
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['no speaker']))
         @parser.parse(@x)
         @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['also no speaker']))
-        @rsolr_client.should_receive(:add).at_least(1).times
+        @rsolr_client.should_receive(:add).with(hash_not_including(:spoken_text_timv => ['also no speaker']))
         @parser.parse(@x)
       end
       it "should not include <p> text past </sp> element" do
@@ -475,8 +476,8 @@ describe ApTeiDocument do
                <p>bleah bleah ... </p>
             </sp>
             <p>after</p>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...'], :id => @page_id))
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@page_id}-|-Guadet-|-blah blah ...", "#{@page_id}-|-Guadet-|-bleah bleah ..."], :id => "#{@druid}_div2_1"))
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@speaker_val}-|-blah blah ...", "#{@speaker_val}-|-bleah bleah ..."], :id => @page_id))
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@page_id}-|-#{@speaker_val}-|-blah blah ...", "#{@page_id}-|-#{@speaker_val}-|-bleah bleah ..."], :id => "#{@druid}_div2_1"))
         @parser.parse(@x)
       end
       it "should not include <p> text past </sp> element", :jira => 'FRDA-107' do
@@ -492,8 +493,8 @@ describe ApTeiDocument do
               <head>PREMIÈRE ANNEXE (1)</head>
                 <p>after</p>
             </div3>" + @end_div2_body_tei
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ['Guadet-|-blah blah ...', 'Guadet-|-bleah bleah ...'], :id => @page_id))
-        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@page_id}-|-Guadet-|-blah blah ...", "#{@page_id}-|-Guadet-|-bleah bleah ..."], :id => "#{@druid}_div2_1"))
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@speaker_val}-|-blah blah ...", "#{@speaker_val}-|-bleah bleah ..."], :id => @page_id))
+        @rsolr_client.should_receive(:add).with(hash_including(:spoken_text_timv => ["#{@page_id}-|-#{@speaker_val}-|-blah blah ...", "#{@page_id}-|-#{@speaker_val}-|-bleah bleah ..."], :id => "#{@druid}_div2_1"))
         @parser.parse(@x)
       end
     end # spoken_text_timv
