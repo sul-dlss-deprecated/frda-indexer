@@ -344,7 +344,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   def add_unspoken_text_to_doc_hashes text
     if text && text.match(/\w+/)
       add_value_to_page_doc_hash(:unspoken_text_timv, "#{text}")
-      add_value_to_div2_doc_hash(:unspoken_text_timv, "#{@page_id}#{SEP}#{text}") if @div2_doc_hash
+      add_value_to_div2_doc_hash(:unspoken_text_timv, "#{@page_id}#{SEP}#{text}") if @in_div2 && @div2_doc_hash
     end
   end
   
@@ -423,7 +423,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
     @need_div2_title = false
   end
   
-  # normalize** text to be div2_title_ssi, add it to div2_doc_hash, and change @need_div2_title to false
+  # normalize/sentence case** text to be div2_title_ssi, add it to div2_doc_hash, and change @need_div2_title to false
   # **only normalize case of text if it isn't already mixed case 
   def add_div2_title_sc_if_caps text
     if text
