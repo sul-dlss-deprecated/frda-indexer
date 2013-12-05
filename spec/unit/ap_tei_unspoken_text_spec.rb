@@ -300,6 +300,59 @@ describe ApTeiDocument do
         @parser.parse(x)
       end
     end
+
+    context "spoken text fields shouldn't include text after last </div2> tag in <body>, jira FRDA-167" do
+      it "should not include pages after the last </div2> tag in <body>", :fixme => true do
+        x = @start_tei_body_div1 + 
+            "<div2 type=\"session\">
+              <pb n=\"762\" id=\"#{@druid}_00_0766\"/>
+              <sp>
+                  <speaker>M. le Président</speaker>
+                  <p>spoken</p>
+              </sp>
+              <div3 type=\"annexe\">
+                  <head>ANNEXE</head>
+                  <p>first annexe p</p>
+                  <pb n=\"763\" id=\"#{@druid}_00_0767\"/>
+                  <p>second annexe p</p>
+                  <note place=\"foot\">note</note>
+                  <p>final annexe p</p>
+              </div3>
+            </div2>
+          </div1>
+        </body>
+        <back>
+          #{@start_div1}
+          <pb n=\"\" id=\"#{@druid}_00_0768\"/>
+          <pb n=\"\" id=\"#{@druid}_00_0769\"/>
+          <p>first back p</p>
+          <div2 type=\"contents\">
+            <p>contents p</p>
+            <list>
+              <head>list head</head>
+              <item>list item</item>
+            </list>
+            <pb n=\"766\" id=\"#{@druid}_00_0770\"/>" + @end_div2_back_tei
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_1",
+                      :pages_ssim => ["#{@druid}_00_0766-|-762",
+                                       "#{@druid}_00_0767-|-763"],
+                      :unspoken_text_timv => ["#{@druid}_00_0766-|-first annexe p",
+                                              "#{@druid}_00_0767-|-second annexe p",
+                                              "#{@druid}_00_0767-|-note",
+                                              "#{@druid}_00_0767-|-final annexe p",
+                                              ]))
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).exactly(4).times
+        @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
+                      :pages_ssim => ["#{@druid}_00_0769-|-",
+                                      "#{@druid}_00_0770-|-766"],
+                      :unspoken_text_timv => ["#{@druid}_00_0769-|-contents p",
+                                              "#{@druid}_00_0769-|-list item",
+                                              ]))
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
+        @parser.parse(x)
+      end
+    end
+
     
   end # unspoken text field
 
