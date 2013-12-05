@@ -260,8 +260,8 @@ describe ApTeiDocument do
                 <pb n=\"742\" id=\"#{@druid}_00_0746\"/>
                 <p>third unspoken</p>
               </div3>
-            <div2>
-          <div1>
+            </div2>
+          </div1>
         </body>
         <back>
           #{@start_div1}
@@ -288,11 +288,12 @@ describe ApTeiDocument do
                       :unspoken_text_timv => ["#{@druid}_00_0744-|-first unspoken",
                                               "#{@druid}_00_0745-|-second unspoken",
                                               "#{@druid}_00_0746-|-third unspoken"]))
-        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).exactly(3).times
+        @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type)).exactly(4).times
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_2",
                       :pages_ssim => ["#{@druid}_00_0746-|-742",
                                       "#{@druid}_00_0747-|-743"],
-                      :unspoken_text_timv => ["#{@druid}_00_0748-|-eighth unspoken"]))
+                      :unspoken_text_timv => ["#{@druid}_00_0747-|-sixth head",
+                                              "#{@druid}_00_0747-|-seventh unspoken"]))
         @rsolr_client.should_receive(:add).with(hash_including(:type_ssi => @page_type))
         @rsolr_client.should_receive(:add).with(hash_including(:id => "#{@druid}_div2_3",
                       :pages_ssim => ["#{@druid}_00_0748-|-744"],
