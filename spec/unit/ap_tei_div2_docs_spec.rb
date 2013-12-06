@@ -808,6 +808,87 @@ describe ApTeiDocument do
         @parser.parse(@x)
       end
     end # introduction
+
+    context "vol 1-6 type=other are cahier" do
+      # if it is a div2 type=other in the body of one of the first 6 volumes,
+      # then it should be type cahier, with one exception for volume 1
+      before(:each) do
+        @vol2_druid = 'fz023dp4399'
+        vol_constants_hash = { :vol_pdf_name_ss => "#{@vol2_druid}.pdf",
+                                :vol_pdf_size_ls => 2218576614,
+                                :vol_tei_name_ss => "#{@vol2_druid}.xml",
+                                :vol_tei_size_is => 6885841,
+                                :vol_total_pages_is => 806 }
+        page_id_hash = { "#{@vol2_druid}_00_0001" => 1, 
+                          "#{@vol2_druid}_00_0008" => 8, 
+                          "#{@vol2_druid}_00_0805" => 805, 
+                          "#{@vol2_druid}_00_0806" => 806 }
+        atd = ApTeiDocument.new(@rsolr_client, @vol2_druid, @volume, vol_constants_hash, page_id_hash, @logger)
+        @parser = Nokogiri::XML::SAX::Parser.new(atd)
+      end    
+      context "doc type cahier if div2 type=other and in body" do
+        before(:each) do
+          @x = @start_tei_body_div1 + 
+              "<div2 type=\"other\">
+                <head>SÉNÉCHAUSSÉE D'ANGOUMOIS </head>
+                <pb n=\"5\" id=\"#{@vol2_druid}_00_0008\"/>
+                <div3 type=\"other\">
+                    <head>CAHIER</head>
+                    <head>div 3 head text</head>
+                    <p>blah blah</p>
+                </div3>" + @end_div2_body_tei
+        end
+        it_should_behave_like "doc for div2 type", 'cahier'
+      end
+      context "doc type left alone if div2 type isn't other and in body" do
+        before(:each) do
+          @x = @start_tei_body_div1 + 
+              "<div2 type=\"alpha\">
+                <head>SÉNÉCHAUSSÉE D'ANGOUMOIS </head>
+                <pb n=\"5\" id=\"#{@vol2_druid}_00_0008\"/>
+                <div3 type=\"other\">
+                    <head>CAHIER</head>
+                    <head>div 3 head text</head>
+                    <p>blah blah</p>
+                </div3>" + @end_div2_body_tei
+        end
+        it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['alpha']
+      end
+      context "doc type left alone if div2 type is other and in back" do
+        before(:each) do
+          @x = @start_tei_back_div1 + 
+              "<div2 type=\"other\">
+                <head>SÉNÉCHAUSSÉE D'ANGOUMOIS </head>
+                <pb n=\"5\" id=\"#{@vol2_druid}_00_0008\"/>
+                <div3 type=\"other\">
+                    <head>CAHIER</head>
+                    <head>div 3 head text</head>
+                    <p>blah blah</p>
+                </div3>" + @end_div2_back_tei
+        end
+        it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['other']
+      end        
+      
+      context "doc type left alone if div2 type is other and in body and druid is not one of first 6 vols" do
+        before(:each) do
+          @parser = Nokogiri::XML::SAX::Parser.new(@atd)
+          @x = @start_tei_body_div1 + 
+              "<div2 type=\"other\">
+                <head>SÉNÉCHAUSSÉE D'ANGOUMOIS </head>
+                <pb n=\"5\" id=\"#{@druid}_00_0008\"/>
+                <div3 type=\"other\">
+                    <head>CAHIER</head>
+                    <head>div 3 head text</head>
+                    <p>blah blah</p>
+                </div3>" + @end_div2_body_tei
+        end
+        it_should_behave_like "doc for div2 type", ApTeiDocument::DIV2_TYPE['other']
+      end
+      after(:all) do
+        @parser = Nokogiri::XML::SAX::Parser.new(@atd)
+      end
+    end # vol 1-6 body div2 type=other are cahier
+
   end # <div2> element
   
   context "div2 solr doc pages_ssim" do

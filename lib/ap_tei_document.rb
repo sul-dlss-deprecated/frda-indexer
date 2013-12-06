@@ -72,7 +72,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       @in_div2 = true
       @div2_counter = @div2_counter + 1
       @div2_type = attributes.select { |a| a[0] == 'type'}.first.last if !attributes.empty?
-      @div2_doc_type = DIV2_TYPE[@div2_type] if @div2_type
+      @div2_doc_type = div2_doc_type
       if @div2_type == 'session'
         if @page_buffer.empty? || !@page_session_fields
           @page_session_fields = {}
@@ -316,7 +316,7 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   PAGE_TYPE = "page"
   DIV2_TYPE = {'session' => 'séance',
                 'contents' => 'table des matières',
-                'other' => 'errata, rapport, cahier, etc.',
+                'other' => 'errata, rapport, etc.',
                 'table_alpha' => 'liste',
                 'alpha' => 'liste',
                 'introduction' => 'introduction'}
@@ -325,6 +325,8 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
   # ignore the contents of these elements
   IGNORE_ELEMENTS = ['trailer']
   SEP = '-|-'
+  # used to assign doc type cahier for volumes 1-6
+  CAHIER_VOL_DRUIDS = ['jt959wc5586', 'fz023dp4399', 'mc666yy3026', 'xg914wh0253', 'xx284sn7328', 'wg983ft3682']
 
   # @param [String] chars the characters to be concatenated to the buffer
   # @param [String] buffer the text buffer
@@ -357,6 +359,17 @@ class ApTeiDocument < Nokogiri::XML::SAX::Document
       add_value_to_div2_doc_hash(:session_govt_ssi, val)
     end
     @need_session_govt = false
+  end
+  
+  # @return the doc type for the div2 being processed
+  # if it is a div2 type=other in the body of one of the first 6 volumes,
+  # then it should be type cahier
+  def div2_doc_type
+    if CAHIER_VOL_DRUIDS.include?(@druid) && @in_body && @div2_type && @div2_type == "other"
+      'cahier'
+    else
+      DIV2_TYPE[@div2_type] if @div2_type
+    end
   end
   
   # add :id, :page_num_ssi, :image_id_ss and ocr_id_ss to doc_hash, based on attributes
