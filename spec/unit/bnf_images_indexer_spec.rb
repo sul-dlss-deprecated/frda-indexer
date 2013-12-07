@@ -292,53 +292,18 @@ describe BnfImagesIndexer do
             @indexer.index(@fake_druid)
           end
         end # lang attribute
-        context "<name> in subject" do
-          before(:all) do
-            @mods_sub_name = "<mods #{@ns_decl}>
-                          <subject>
-                            <name type=\"personal\">
-                              <namePart type=\"termsOfAddress\">term</namePart>
-                              <namePart>Napoléon</namePart>
-                              <namePart type=\"date\">1769-1821</namePart>
-                            </name>
-                          </subject>
-                          <subject type=\"corporate\">
-                            <name>
-                              <namePart>corporate</namePart>
-                            </name>
-                          </subject>
-                          <subject>
-                            <name>
-                              <namePart>untyped</namePart>
-                              <namePart>part2</namePart>
-                            </name>
-                          </subject>
-                        </mods>"
-          end
-          context ":speaker_ssim" do
-            it "should be personal name, without dates or termsOfAddress" do
-              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
-              @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Napoléon']))
-              @indexer.index(@fake_druid)
-            end
-            it "should cope with family, given and untyped <namePart>" do
-              mods = "<mods #{@ns_decl}>
+      end # context "<topic> displayLabel='Catalog heading'" do
+
+      context "<name> in subject" do
+        before(:all) do
+          @mods_sub_name = "<mods #{@ns_decl}>
                         <subject>
                           <name type=\"personal\">
                             <namePart type=\"termsOfAddress\">term</namePart>
-                            <namePart type=\"family\">family</namePart>
-                            <namePart type=\"given\">given</namePart>
+                            <namePart>Napoléon</namePart>
                             <namePart type=\"date\">1769-1821</namePart>
-                            <namePart>plain</namePart>
                           </name>
                         </subject>
-                      </mods>"
-              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-              @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Family, Given, Plain']))
-              @indexer.index(@fake_druid)
-            end
-            it "there should be none if there is no subject personal name" do
-              mods = "<mods #{@ns_decl}>
                         <subject type=\"corporate\">
                           <name>
                             <namePart>corporate</namePart>
@@ -347,217 +312,253 @@ describe BnfImagesIndexer do
                         <subject>
                           <name>
                             <namePart>untyped</namePart>
+                            <namePart>part2</namePart>
                           </name>
                         </subject>
                       </mods>"
-              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-              @solr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
-              @indexer.index(@fake_druid)
-            end
-            it "can have multiple values" do
-              mods = "<mods #{@ns_decl}>
-                        <subject>
-                          <name type=\"personal\">
-                            <namePart>plain1</namePart>
-                          </name>
-                        </subject>
-                        <subject>
-                          <name type=\"personal\">
-                            <namePart>plain2</namePart>
-                          </name>
-                          <name type=\"personal\">
-                            <namePart>plain3</namePart>
-                          </name>
-                        </subject>
-                      </mods>"
-              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-              @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Plain1', 'Plain2', 'Plain3']))
-              @indexer.index(@fake_druid)
-            end
-            it "should normalize the name to match AP names" do
-              pending "name normalization for images to be implemented"
-            end
-          end # :speaker_ssim
-          context ":subject_name_ssim" do
-            it ":subject_name_ssim should be any type other than personal name" do
-              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
-              @solr_client.should_receive(:add).with(hash_including(:subject_name_ssim => ['corporate', 'untyped, part2']))
-              @indexer.index(@fake_druid)
-            end
-            it "there should be none if there is no subject impersonal name" do
-              mods = "<mods #{@ns_decl}>
-                        <subject>
-                          <name type=\"personal\">
-                            <namePart>personal</namePart>
-                          </name>
-                        </subject>
-                      </mods>"
-              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-              @solr_client.should_receive(:add).with(hash_not_including(:subject_name_ssim))
-              @indexer.index(@fake_druid)
-            end
-            it "can have multiple values" do
-              # already tested for above
-            end
-          end # :subject_name_ssim
-        end # subject name
-      end # subjects
+        end
+        context ":speaker_ssim" do
+          it "should be personal name, without dates but with termsOfAddress" do
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
+            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Napoléon term']))
+            @indexer.index(@fake_druid)
+          end
+          it "should cope with family, given and untyped <namePart>" do
+            mods = "<mods #{@ns_decl}>
+                      <subject>
+                        <name type=\"personal\">
+                          <namePart type=\"termsOfAddress\">term</namePart>
+                          <namePart type=\"family\">family</namePart>
+                          <namePart type=\"given\">given</namePart>
+                          <namePart type=\"date\">1769-1821</namePart>
+                          <namePart>plain</namePart>
+                        </name>
+                      </subject>
+                    </mods>"
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Family, Given, Plain term']))
+            @indexer.index(@fake_druid)
+          end
+          it "there should be none if there is no subject personal name" do
+            mods = "<mods #{@ns_decl}>
+                      <subject type=\"corporate\">
+                        <name>
+                          <namePart>corporate</namePart>
+                        </name>
+                      </subject>
+                      <subject>
+                        <name>
+                          <namePart>untyped</namePart>
+                        </name>
+                      </subject>
+                    </mods>"
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+            @solr_client.should_receive(:add).with(hash_not_including(:speaker_ssim))
+            @indexer.index(@fake_druid)
+          end
+          it "can have multiple values" do
+            mods = "<mods #{@ns_decl}>
+                      <subject>
+                        <name type=\"personal\">
+                          <namePart>plain1</namePart>
+                        </name>
+                      </subject>
+                      <subject>
+                        <name type=\"personal\">
+                          <namePart>plain2</namePart>
+                        </name>
+                        <name type=\"personal\">
+                          <namePart>plain3</namePart>
+                        </name>
+                      </subject>
+                    </mods>"
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Plain1', 'Plain2', 'Plain3']))
+            @indexer.index(@fake_druid)
+          end
+          it "should normalize the name to match AP names" do
+            pending "name normalization for images to be implemented"
+          end
+        end # :speaker_ssim
+        context ":subject_name_ssim" do
+          it ":subject_name_ssim should be any type other than personal name" do
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
+            @solr_client.should_receive(:add).with(hash_including(:subject_name_ssim => ['corporate', 'untyped, part2']))
+            @indexer.index(@fake_druid)
+          end
+          it "there should be none if there is no subject impersonal name" do
+            mods = "<mods #{@ns_decl}>
+                      <subject>
+                        <name type=\"personal\">
+                          <namePart>personal</namePart>
+                        </name>
+                      </subject>
+                    </mods>"
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+            @solr_client.should_receive(:add).with(hash_not_including(:subject_name_ssim))
+            @indexer.index(@fake_druid)
+          end
+          it "can have multiple values" do
+            # already tested for above
+          end
+        end # :subject_name_ssim
+      end # subject name
+    end # subjects
       
-      context "names" do
-        before(:all) do
-          @mods_sub_name = "<mods #{@ns_decl}>
+    context "names" do
+      before(:all) do
+        @mods_sub_name = "<mods #{@ns_decl}>
+                  <name type=\"personal\">
+                    <namePart>Artist</namePart>
+                    <role><roleTerm authority=\"marcrelator\" type=\"code\">art</roleTerm></role>
+                  </name>
+                  <name type=\"personal\">
+                    <namePart>Collector</namePart>
+                    <role><roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm></role>
+                  </name>
+                  <name type=\"personal\">
+                    <namePart>Donor</namePart>
+                    <role><roleTerm authority=\"marcrelator\" type=\"code\">dnr</roleTerm></role>
+                  </name>
+                  <name type=\"personal\">
+                    <namePart>Draftsman</namePart>
+                    <role><roleTerm authority=\"marcrelator\" type=\"code\">drm</roleTerm></role>
+                  </name>
+                  <name type=\"personal\">
+                    <namePart>Engraver</namePart>
+                    <role><roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm></role>
+                  </name>
+                  <name type=\"personal\">
+                    <namePart>Illustrator</namePart>
+                    <role><roleTerm authority=\"marcrelator\" type=\"code\">ill</roleTerm></role>
+                  </name>
+                  <name type=\"personal\">
+                    <namePart>Publisher</namePart>
+                    <role><roleTerm authority=\"marcrelator\" type=\"code\">pbl</roleTerm></role>
+                  </name>
+                  <name type=\"personal\">
+                    <namePart>Sculptor</namePart>
+                    <role><roleTerm authority=\"marcrelator\" type=\"code\">scl</roleTerm></role>
+                  </name>
+                </mods>"
+        end
+      context ":collector_ssim (roles: col, dnr)" do
+        it "should be assigned for correct roles only" do
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
+          @solr_client.should_receive(:add).with(hash_including(:collector_ssim => ['Collector', 'Donor']))
+          @indexer.index(@fake_druid)
+        end
+        it "should do multiple values" do
+          mods = "<mods #{@ns_decl}>
                     <name type=\"personal\">
-                      <namePart>Artist</namePart>
-                      <role><roleTerm authority=\"marcrelator\" type=\"code\">art</roleTerm></role>
-                    </name>
-                    <name type=\"personal\">
-                      <namePart>Collector</namePart>
+                      <namePart>Vinck, Carl de</namePart>
                       <role><roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm></role>
                     </name>
                     <name type=\"personal\">
-                      <namePart>Donor</namePart>
+                      <namePart>Hennin, Michel</namePart>
+                      <role><roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm></role>
+                    </name>
+                  </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:collector_ssim => ['Vinck, Carl de', 'Hennin, Michel']))
+          @indexer.index(@fake_druid)
+        end
+        it "should use the right namePart pieces" do
+          mods = "<mods #{@ns_decl}>
+                    <name type=\"personal\" usage=\"primary\">
+                      <namePart type=\"termsOfAddress\">term</namePart>
+                      <namePart type=\"family\">family</namePart>
+                      <namePart type=\"given\">given</namePart>
+                      <namePart type=\"date\">1769-1821</namePart>
+                      <namePart>plain</namePart>
+                      <role><roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm></role>
+                    </name>
+                    <name type=\"personal\">
+                      <namePart>Hennin, Michel</namePart>
+                      <namePart type=\"date\">1777-1863</namePart>
                       <role><roleTerm authority=\"marcrelator\" type=\"code\">dnr</roleTerm></role>
                     </name>
+                  </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:collector_ssim => ['family, given', 'Hennin, Michel']))
+          @indexer.index(@fake_druid)
+        end
+        it "there should be none if there is no name with that role" do
+          mods = "<mods #{@ns_decl}>
                     <name type=\"personal\">
-                      <namePart>Draftsman</namePart>
-                      <role><roleTerm authority=\"marcrelator\" type=\"code\">drm</roleTerm></role>
+                      <namePart>egr</namePart>
+                      <role><roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm></role>
                     </name>
-                    <name type=\"personal\">
-                      <namePart>Engraver</namePart>
+                  </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_not_including(:collector_ssim))
+          @indexer.index(@fake_druid)
+        end
+        # as of 2013-03-04, all roles for BnF Images are of type code
+        #it "should work for role code or text"
+      end # collector_ssim
+      context ":artist_ssim (roles: art, drm, egr, ill, scl)" do
+        it "should be assigned for correct roles only" do
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
+          @solr_client.should_receive(:add).with(hash_including(:artist_ssim => ['Artist', 'Draftsman', 'Engraver', 'Illustrator', 'Sculptor']))
+          @indexer.index(@fake_druid)
+        end
+        it "should do multiple values" do
+          mods = "<mods #{@ns_decl}>
+                    <name type=\"personal\" usage=\"primary\">
+                      <namePart>Morret, Jean Baptiste</namePart>
                       <role><roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm></role>
                     </name>
                     <name type=\"personal\">
-                      <namePart>Illustrator</namePart>
-                      <role><roleTerm authority=\"marcrelator\" type=\"code\">ill</roleTerm></role>
-                    </name>
-                    <name type=\"personal\">
-                      <namePart>Publisher</namePart>
-                      <role><roleTerm authority=\"marcrelator\" type=\"code\">pbl</roleTerm></role>
-                    </name>
-                    <name type=\"personal\">
-                      <namePart>Sculptor</namePart>
-                      <role><roleTerm authority=\"marcrelator\" type=\"code\">scl</roleTerm></role>
+                      <namePart>Endner, Gustav Georg</namePart>
+                      <role><roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm></role>
                     </name>
                   </mods>"
-          end
-        context ":collector_ssim (roles: col, dnr)" do
-          it "should be assigned for correct roles only" do
-            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
-            @solr_client.should_receive(:add).with(hash_including(:collector_ssim => ['Collector', 'Donor']))
-            @indexer.index(@fake_druid)
-          end
-          it "should do multiple values" do
-            mods = "<mods #{@ns_decl}>
-                      <name type=\"personal\">
-                        <namePart>Vinck, Carl de</namePart>
-                        <role><roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm></role>
-                      </name>
-                      <name type=\"personal\">
-                        <namePart>Hennin, Michel</namePart>
-                        <role><roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm></role>
-                      </name>
-                    </mods>"
-            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-            @solr_client.should_receive(:add).with(hash_including(:collector_ssim => ['Vinck, Carl de', 'Hennin, Michel']))
-            @indexer.index(@fake_druid)
-          end
-          it "should use the right namePart pieces" do
-            mods = "<mods #{@ns_decl}>
-                      <name type=\"personal\" usage=\"primary\">
-                        <namePart type=\"termsOfAddress\">term</namePart>
-                        <namePart type=\"family\">family</namePart>
-                        <namePart type=\"given\">given</namePart>
-                        <namePart type=\"date\">1769-1821</namePart>
-                        <namePart>plain</namePart>
-                        <role><roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm></role>
-                      </name>
-                      <name type=\"personal\">
-                        <namePart>Hennin, Michel</namePart>
-                        <namePart type=\"date\">1777-1863</namePart>
-                        <role><roleTerm authority=\"marcrelator\" type=\"code\">dnr</roleTerm></role>
-                      </name>
-                    </mods>"
-            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-            @solr_client.should_receive(:add).with(hash_including(:collector_ssim => ['family, given', 'Hennin, Michel']))
-            @indexer.index(@fake_druid)
-          end
-          it "there should be none if there is no name with that role" do
-            mods = "<mods #{@ns_decl}>
-                      <name type=\"personal\">
-                        <namePart>egr</namePart>
-                        <role><roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm></role>
-                      </name>
-                    </mods>"
-            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-            @solr_client.should_receive(:add).with(hash_not_including(:collector_ssim))
-            @indexer.index(@fake_druid)
-          end
-          # as of 2013-03-04, all roles for BnF Images are of type code
-          #it "should work for role code or text"
-        end # collector_ssim
-        context ":artist_ssim (roles: art, drm, egr, ill, scl)" do
-          it "should be assigned for correct roles only" do
-            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
-            @solr_client.should_receive(:add).with(hash_including(:artist_ssim => ['Artist', 'Draftsman', 'Engraver', 'Illustrator', 'Sculptor']))
-            @indexer.index(@fake_druid)
-          end
-          it "should do multiple values" do
-            mods = "<mods #{@ns_decl}>
-                      <name type=\"personal\" usage=\"primary\">
-                        <namePart>Morret, Jean Baptiste</namePart>
-                        <role><roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm></role>
-                      </name>
-                      <name type=\"personal\">
-                        <namePart>Endner, Gustav Georg</namePart>
-                        <role><roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm></role>
-                      </name>
-                    </mods>"
-            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-            @solr_client.should_receive(:add).with(hash_including(:artist_ssim => ['Morret, Jean Baptiste', 'Endner, Gustav Georg']))
-            @indexer.index(@fake_druid)
-          end
-          it "should use the right namePart pieces" do
-            mods = "<mods #{@ns_decl}>
-                      <name type=\"personal\" usage=\"primary\">
-                        <namePart type=\"termsOfAddress\">term</namePart>
-                        <namePart type=\"family\">family</namePart>
-                        <namePart type=\"given\">given</namePart>
-                        <namePart type=\"date\">date</namePart>
-                        <namePart>plain</namePart>
-                        <role><roleTerm authority=\"marcrelator\" type=\"code\">art</roleTerm></role>
-                      </name>
-                      <name type=\"personal\" usage=\"primary\">
-                        <namePart>Endner, Gustav Georg</namePart>
-                        <namePart type=\"termsOfAddress\">graveur</namePart>
-                        <namePart type=\"date\">1754-1824</namePart>
-                        <role><roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm></role>
-                      </name>
-                      <name type=\"personal\" usage=\"primary\">
-                        <namePart>plain</namePart>
-                        <role><roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm></role>
-                      </name>
-                    </mods>"
-            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-            @solr_client.should_receive(:add).with(hash_including(:artist_ssim => ['family, given (date)', 'Endner, Gustav Georg (1754-1824)', 'plain']))
-            @indexer.index(@fake_druid)
-          end
-          it "there should be none if there is no name with that role" do
-            mods = "<mods #{@ns_decl}>
-                      <name type=\"personal\">
-                        <namePart>col</namePart>
-                        <role><roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm></role>
-                      </name>
-                    </mods>"
-            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-            @solr_client.should_receive(:add).with(hash_not_including(:artist_ssim))
-            @indexer.index(@fake_druid)
-          end
-          # as of 2013-03-04, all roles for BnF Images are of type code
-          # it "should work for role code or text"
-        end  # :artist_ssim
-      end # names
-       
-    end # fields from MODS
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:artist_ssim => ['Morret, Jean Baptiste', 'Endner, Gustav Georg']))
+          @indexer.index(@fake_druid)
+        end
+        it "should use the right namePart pieces" do
+          mods = "<mods #{@ns_decl}>
+                    <name type=\"personal\" usage=\"primary\">
+                      <namePart type=\"termsOfAddress\">term</namePart>
+                      <namePart type=\"family\">family</namePart>
+                      <namePart type=\"given\">given</namePart>
+                      <namePart type=\"date\">date</namePart>
+                      <namePart>plain</namePart>
+                      <role><roleTerm authority=\"marcrelator\" type=\"code\">art</roleTerm></role>
+                    </name>
+                    <name type=\"personal\" usage=\"primary\">
+                      <namePart>Endner, Gustav Georg</namePart>
+                      <namePart type=\"termsOfAddress\">graveur</namePart>
+                      <namePart type=\"date\">1754-1824</namePart>
+                      <role><roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm></role>
+                    </name>
+                    <name type=\"personal\" usage=\"primary\">
+                      <namePart>plain</namePart>
+                      <role><roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm></role>
+                    </name>
+                  </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:artist_ssim => ['family, given (date)', 'Endner, Gustav Georg (1754-1824)', 'plain']))
+          @indexer.index(@fake_druid)
+        end
+        it "there should be none if there is no name with that role" do
+          mods = "<mods #{@ns_decl}>
+                    <name type=\"personal\">
+                      <namePart>col</namePart>
+                      <role><roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm></role>
+                    </name>
+                  </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_not_including(:artist_ssim))
+          @indexer.index(@fake_druid)
+        end
+        # as of 2013-03-04, all roles for BnF Images are of type code
+        # it "should work for role code or text"
+      end  # :artist_ssim
+    end # names
+
   end # doc_hash_from_mods
   
   context "image_ids method" do

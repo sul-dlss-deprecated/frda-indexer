@@ -247,12 +247,17 @@ class BnfImagesIndexer < Harvestdor::Indexer
         if sub_name_node.type_at && sub_name_node.type_at == 'personal'
           # want non-date parts   (currently, Images have subject nameParts with explicit types of 'date' and 'termsOfAddress')
           parts = []
+          toa = nil
           sub_name_node.namePart.each { |namePart|
             if namePart.type_at != 'date' && namePart.type_at != 'termsOfAddress'
               parts << normalize_speaker(namePart.text) unless namePart.text.empty?
+            elsif namePart.type_at == 'termsOfAddress'
+              toa = namePart.text
             end
           }
-          doc_hash[:speaker_ssim] << parts.join(', ').strip unless parts.empty?
+          speaker = parts.join(', ').strip unless parts.empty?
+          speaker << " #{toa}" if speaker && !speaker.empty? && toa && !toa.empty?
+          doc_hash[:speaker_ssim] << speaker if speaker && !speaker.empty?
         else
           parts = sub_name_node.namePart.map { |npn| npn.text unless npn.text.empty? }
           doc_hash[:subject_name_ssim] << parts.join(', ').strip unless parts.empty?
