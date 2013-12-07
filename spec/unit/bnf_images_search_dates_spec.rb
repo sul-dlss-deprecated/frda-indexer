@@ -130,8 +130,8 @@ describe BnfImagesIndexer do
         @indexer.search_dates(@smr, @fake_druid).should == nil
       end
     end # log messages
-  end
-  
+  end # search_date
+
   context "in doc hash" do
     before(:each) do
       @hdor_client.should_receive(:content_metadata).and_return(nil)
@@ -158,7 +158,37 @@ describe BnfImagesIndexer do
       @solr_client.should_receive(:add).with(hash_including(:search_date_dtsim => ['1797-04-01T00:00:00Z']))
       @indexer.index(@fake_druid)
     end
-
+    context "sort_date_dti" do
+      it "if no search dates, it should be nil" do
+        mods = "<mods #{@ns_decl}><note>hi</note></mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+        @solr_client.should_receive(:add).with(hash_not_including(:sort_date_dti))
+        @indexer.index(@fake_druid)
+      end
+      it "if single search date, it should be the same" do
+        mods = "<mods #{@ns_decl}>
+                  <originInfo>
+                    <dateIssued>April 1 1797</dateIssued>
+                  </originInfo>
+                </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+        @solr_client.should_receive(:add).with(hash_including(:sort_date_dti => '1797-04-01T00:00:00Z'))
+        @indexer.index(@fake_druid)
+      end
+      it "if multiple search dates, it should be the earliest one" do
+        mods = "<mods #{@ns_decl}>
+                  <originInfo>
+                    <dateIssued>April 1 1797</dateIssued>
+                    <dateIssued encoding=\"marc\">1797</dateIssued>
+                    <dateIssued>April 1 1797</dateIssued>
+                    <dateIssued>Feb.y 5 1793</dateIssued>
+                  </originInfo>
+                </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+        @solr_client.should_receive(:add).with(hash_including(:sort_date_dti => '1793-02-05T00:00:00Z'))
+        @indexer.index(@fake_druid)
+      end
+    end # sort_date_dti
   end # in doc hash
 
 end

@@ -61,7 +61,10 @@ class BnfImagesIndexer < Harvestdor::Indexer
     doc_hash[:genre_ssim] = smods_rec_obj.genre.map {|n| n.text } if smods_rec_obj.genre && !smods_rec_obj.genre.empty?
     
     pub_date = search_dates(smods_rec_obj, druid)
-    doc_hash[:search_date_dtsim] = pub_date if pub_date
+    if pub_date
+      doc_hash[:search_date_dtsim] = pub_date
+      doc_hash[:sort_date_dti] = pub_date.sort.first
+    end
     
     doc_hash.merge!(phys_desc_field_hash(smods_rec_obj, druid))
     
