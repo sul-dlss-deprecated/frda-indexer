@@ -58,7 +58,10 @@ class BnfImagesIndexer < Harvestdor::Indexer
     doc_hash = {}
     doc_hash[:title_short_ftsi] = smods_rec_obj.sw_short_title if smods_rec_obj.sw_short_title
     doc_hash[:title_long_ftsi] = smods_rec_obj.sw_full_title if smods_rec_obj.sw_full_title
-    doc_hash[:genre_ssim] = smods_rec_obj.genre.map {|n| n.text } if smods_rec_obj.genre && !smods_rec_obj.genre.empty?
+    if smods_rec_obj.genre && !smods_rec_obj.genre.empty?
+      vals = smods_rec_obj.genre.map {|n| n.text.sub(/-1.*$/, '').chomp('.') } 
+      doc_hash[:genre_ssim] = vals.uniq
+    end
     
     pub_date = search_dates(smods_rec_obj, druid)
     if pub_date

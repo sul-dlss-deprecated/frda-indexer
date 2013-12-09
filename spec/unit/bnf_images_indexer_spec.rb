@@ -99,14 +99,67 @@ describe BnfImagesIndexer do
     end
     context ":genre_ssim" do
       it "should be the contents of the MODS <genre> fields" do
-        mods_xml = "<mods #{@ns_decl}><genre>one</genre><genre>two</genre></mods>"
+        mods_xml = "<mods #{@ns_decl}>
+                      <genre>one</genre>
+                    </mods>"
         @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
-        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['one', 'two']))
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['one']))
         @indexer.index(@fake_druid)
       end
       it "should be absent if there are no <genre> fields in the MODS record" do
         @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
         @solr_client.should_receive(:add).with(hash_not_including(:genre_ssim))
+        @indexer.index(@fake_druid)
+      end
+      it "should not have a trailing period" do
+        mods_xml = "<mods #{@ns_decl}>
+                      <genre authority="">Illustration.</genre>
+                    </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['Illustration']))
+        @indexer.index(@fake_druid)
+      end
+      it "should not have a trailing -1ne siècle." do
+        mods_xml = "<mods #{@ns_decl}>
+                      <genre authority="">Vues d'intérieur-18e siècle.</genre>
+                    </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ["Vues d'intérieur"]))
+        @indexer.index(@fake_druid)
+      end
+      it "should not have a trailing -yyyy-yyyy." do
+        mods_xml = "<mods #{@ns_decl}>
+                      <genre authority="">Scènes historiques-1789-1799.</genre>
+                    </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['Scènes historiques']))
+        @indexer.index(@fake_druid)
+      end
+      it "should cope with hyphens between letters" do
+        mods_xml = "<mods #{@ns_decl}>
+                      <genre authority="">Laissez-passer.</genre>
+                    </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['Laissez-passer']))
+        @indexer.index(@fake_druid)
+      end
+      it "should give a single value for variants" do
+        mods_xml = "<mods #{@ns_decl}>
+                      <genre authority="">Scènes historiques-1789-1799.</genre>
+                      <genre authority="">Scènes historiques-17e siècle.</genre>
+                      <genre authority="">Scènes historiques.</genre>
+                    </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['Scènes historiques']))
+        @indexer.index(@fake_druid)
+      end
+      it "should have multiple values for multiple MODS genre fields" do
+        mods_xml = "<mods #{@ns_decl}>
+                      <genre authority="">Scènes historiques-1789-1799.</genre>
+                      <genre authority="">Illustration.</genre>
+                    </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['Scènes historiques', 'Illustration']))
         @indexer.index(@fake_druid)
       end
     end
