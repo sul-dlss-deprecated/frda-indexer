@@ -228,7 +228,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
   # @return [Hash<String, String>] with the Solr fields derived from the MODS <subject> fields
   def subject_field_hash smods_rec_obj, druid
     doc_hash = {}
-    sub_flds = [:catalog_heading_etsimv, :catalog_heading_ftsimv, :speaker_ssim, :subject_name_ssim]
+    sub_flds = [:catalog_heading_etsimv, :catalog_heading_ftsimv, :speaker_ssim, :subject_name_ssim, :subject_ftsimv]
     sub_flds.each { |fld| doc_hash[fld] = [] }
     smods_rec_obj.subject.each { |subj_node|
       if subj_node.displayLabel && subj_node.displayLabel == 'Catalog heading'
@@ -244,6 +244,8 @@ class BnfImagesIndexer < Harvestdor::Indexer
               logger.warn("#{druid} has subject with @displayLabel 'Catalog heading' but @lang not 'fre' or 'eng': '#{subj_node.to_xml}'")
           end
         end
+      else
+        doc_hash[:subject_ftsimv] << subj_node.text.strip.sub(/\s+/, ' ') if subj_node.text || subj_node.text.size > 0
       end
 
       subj_node.name_el.each { |sub_name_node|

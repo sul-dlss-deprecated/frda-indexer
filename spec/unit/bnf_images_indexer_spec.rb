@@ -219,7 +219,7 @@ describe BnfImagesIndexer do
       end
     end # <physicalDescription>
     context "subjects" do
-      context "<topic> displayLabel='Catalog heading'" do
+      context ":catalog_heading_ (<topic> displayLabel='Catalog heading')" do
         before(:all) do
           @mods_sub_cat_head = "<mods #{@ns_decl}>
                         <subject lang=\"fre\" displayLabel=\"Catalog heading\">
@@ -252,7 +252,7 @@ describe BnfImagesIndexer do
                       <topic>one</topic>
                     </subject></mods>"
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
+          @solr_client.should_receive(:add).with(hash_not_including(:catalog_heading_etsimv))
           @indexer.index(@fake_druid)
         end
         context "lang attribute" do
@@ -292,7 +292,107 @@ describe BnfImagesIndexer do
             @indexer.index(@fake_druid)
           end
         end # lang attribute
-      end # context "<topic> displayLabel='Catalog heading'" do
+      end # context "<topic> displayLabel='Catalog heading'"
+      
+      context "all non '<topic> displayLabel='Catalog heading' subjects" do
+        it "should ignore <topic> with displayLabel='catalog heading'" do
+          mods = "<mods #{@ns_decl}>
+                        <subject authority=\"ram\">
+                          <topic>République</topic>
+                        </subject>
+                        <subject lang=\"eng\" displayLabel=\"Catalog heading\">
+                          <topic>Themes in art and culture</topic>
+                          <topic>Heroes</topic>
+                          <topic>The apotheosis of the \"philosophes\": Voltaire and Rousseau</topic>
+                          <topic>Voltaire (1694-1778)</topic>
+                        </subject>
+                      </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:subject_ftsimv => ['République']))
+          @indexer.index(@fake_druid)
+        end
+        it "should include <subject> with a different displayLabel value" do
+          mods = "<mods #{@ns_decl}>
+                    <subject displayLabel='other'>
+                      <topic>one</topic>
+                    </subject></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:subject_ftsimv => ['one']))
+          @indexer.index(@fake_druid)
+        end
+        it "should include <subject> with no displayLabel value" do
+          mods = "<mods #{@ns_decl}>
+                    <subject>
+                      <topic>one</topic>
+                    </subject></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:subject_ftsimv => ['one']))
+          @indexer.index(@fake_druid)
+        end
+        it "should include <topic>" do
+          mods = "<mods #{@ns_decl}>
+                    <subject authority=\"ram\">
+                      <topic>République</topic>
+                    </subject></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:subject_ftsimv => ['République']))
+          @indexer.index(@fake_druid)
+        end
+        it "should include <geographic>" do
+          mods = "<mods #{@ns_decl}>
+                    <subject authority=\"ram\">
+                      <geographic>France</geographic>
+                    </subject></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:subject_ftsimv => ['France']))
+          @indexer.index(@fake_druid)
+        end
+        it "should include <temporal>" do
+          mods = "<mods #{@ns_decl}>
+                    <subject authority=\"ram\">
+                      <geographic>France</geographic>
+                      <temporal>1797 (Coup d'état du 18 Fructidor)</temporal>
+                    </subject></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:subject_ftsimv => ["France 1797 (Coup d'état du 18 Fructidor)"]))
+          @indexer.index(@fake_druid)
+        end
+        it "should include <titleInfo>" do
+          mods = "<mods #{@ns_decl}>
+                    <subject authority=\"ram\">
+                      <titleInfo>
+                        <title>Déclaration des droits de l'homme et du citoyen</title>
+                      </titleInfo>
+                    </subject></mods"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:subject_ftsimv => ["Déclaration des droits de l'homme et du citoyen"]))
+          @indexer.index(@fake_druid)
+        end
+        it "should include <name>" do
+          mods = "<mods #{@ns_decl}>
+                    <subject>
+                      <name type=\"personal\">
+                        <namePart>Voltaire</namePart>
+                        <namePart type=\"date\">1694-1778</namePart>
+                      </name>
+                    </subject></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:subject_ftsimv => ['Voltaire 1694-1778']))
+          @indexer.index(@fake_druid)
+        end
+        it "multiple subject nodes should have multiple values" do
+          mods = "<mods #{@ns_decl}>
+                    <subject>
+                      <topic>one</topic>
+                    </subject>
+                    <subject>
+                      <geographic>France</geographic>
+                    </subject></mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+          @solr_client.should_receive(:add).with(hash_including(:subject_ftsimv => ['one', 'France']))
+          @indexer.index(@fake_druid)
+        end
+      end
 
       context "<name> in subject" do
         before(:all) do
