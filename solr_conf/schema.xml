@@ -107,6 +107,9 @@
   <copyField source="text_tiv" dest="text_ftsiv" />
   <copyField source="spoken_text_timv" dest="spoken_text_ftsimv" />
   <copyField source="unspoken_text_timv" dest="unspoken_text_ftsimv" />
+  <copyField source="catalog_heading_ftsimv" dest="catalog_heading_timv" />
+  <copyField source="catalog_heading_etsimv" dest="catalog_heading_timv" />
+  <copyField source="subject_ftsimv" dest="subject_timv" />
   <copyField source="title_short_ftsi" dest="title_short_ti" />
   <copyField source="title_long_ftsi" dest="title_long_ti" />
   <copyField source="vol_title_ssi" dest="result_group_ssi" />

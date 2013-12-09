@@ -181,6 +181,8 @@
         catalog_heading_timv^3
         catalog_heading_ftsimv
         catalog_heading_etsimv
+        subject_timv^3
+        subject_ftsimv
         spoken_text_timv^5
         spoken_text_ftsimv
         unspoken_text_timv^5
@@ -205,6 +207,8 @@
         catalog_heading_timv^20
         catalog_heading_ftsimv^15
         catalog_heading_etsimv^15
+        subject_timv^20
+        subject_ftsimv^15
         spoken_text_timv^20
         spoken_text_ftsimv^15
         unspoken_text_timv^20
@@ -219,6 +223,7 @@
         title_long_ti
         vol_title_ti
         catalog_heading_timv
+        subject_timv
         spoken_text_timv
         unspoken_text_timv
         session_title_si
@@ -232,6 +237,7 @@
         title_long_ti^5
         vol_title_ti^5
         catalog_heading_timv^5
+        subject_timv^5
         spoken_text_timv^5
         unspoken_text_timv^5
         session_title_si^5
