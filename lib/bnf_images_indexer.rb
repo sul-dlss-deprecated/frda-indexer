@@ -136,19 +136,15 @@ class BnfImagesIndexer < Harvestdor::Indexer
     doc_hash = {}
     phys_desc_nodeset = smods_rec_obj.physical_description if smods_rec_obj.physical_description
     unless phys_desc_nodeset.empty?
-      # <form> maps to doc_type_ssi
-      forms = phys_desc_nodeset.form.map {|n| n.text } if !phys_desc_nodeset.form.empty?
-      if forms
-        forms.each { |form|
-          f = form.gsub(/\s+/, ' ').strip
-          case f
-            when /\A(Image fixe|Monnaie ou médaille|Objet)\z/i
-              doc_hash[:doc_type_ssi] = f.downcase
-              break # only want one value
-          end
-        }
+      phys_desc_nodeset.form.each { |form_node|  
+        if form_node.authority == 'gmd'
+          doc_hash[:doc_type_ssi] = form_node.text.gsub(/\s+/, ' ').strip.downcase
+        end
+      }
+      if !doc_hash[:doc_type_ssi]
+        logger.warn("#{druid} has no :doc_type_ssi; MODS missing <physicalDescription><form authority=\"gmd\">")
       end
-
+      
       # <extent> maps to medium_ssi
       extents = phys_desc_nodeset.extent.map {|n| n.text} if !phys_desc_nodeset.extent.empty?
       if extents && extents.size > 1
