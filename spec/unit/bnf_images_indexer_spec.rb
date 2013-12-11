@@ -237,54 +237,99 @@ describe BnfImagesIndexer do
       end # :doc_type_ssi
 
       context ":medium_ssim" do
-        it "should be the contents for the MODS <physicalDescription><form type='material'> field" do
-          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_pd))
-          @solr_client.should_receive(:add).with(hash_including(:medium_ssi => 'manière noire'))
+        it "should include the contents of <physicalDescription><form type='material'>" do
+          mods_xml = "<mods #{@ns_decl}>
+                        <physicalDescription>
+                          <form type=\"material\">eau-forte</form>
+                          <form type=\"material\">burin</form>
+                        </physicalDescription>
+                      </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_including(:medium_ssim => ['eau-forte', 'burin']))
           @indexer.index(@fake_druid)
         end
-        it "should be the contents of the MODS <physicalDescription><extent> field between the colon and the semicolon" do
+        it "should include the contents of <physicalDescription><form type='technique'>" do
+          mods_xml = "<mods #{@ns_decl}>
+                        <physicalDescription>
+                          <form type=\"technique\">estampe</form>
+                        </physicalDescription>
+                      </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_including(:medium_ssim => ['estampe']))
+          @indexer.index(@fake_druid)
+        end
+        it "should include the contents of <physicalDescription><form authority='marcsmd'>" do
+          mods_xml = "<mods #{@ns_decl}>
+                        <physicalDescription>
+                          <form authority=\"marcsmd\">print</form>
+                        </physicalDescription>
+                      </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_including(:medium_ssim => ['print']))
+          @indexer.index(@fake_druid)
+        end
+        it "should not include the contents of <physicalDescription><form authority='gmd'>" do
+          mods_xml = "<mods #{@ns_decl}>
+                        <physicalDescription>
+                          <form authority=\"gmd\">Image fixe</form>
+                          <form authority=\"marcsmd\">print</form>
+                        </physicalDescription>
+                      </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_including(:medium_ssim => ['print']))
+          @indexer.index(@fake_druid)
+        end
+        it "should not include the contents of <physicalDescription><form authority='marccategory'>" do
+          mods_xml = "<mods #{@ns_decl}>
+                        <physicalDescription>
+                          <form authority=\"marccategory\">nonprojected graphic</form>
+                          <form authority=\"marcsmd\">print</form>
+                        </physicalDescription>
+                      </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_including(:medium_ssim => ['print']))
+          @indexer.index(@fake_druid)
+        end
+        it "should not include the contents of <physicalDescription><extent>" do
+          mods_xml = "<mods #{@ns_decl}>
+                        <physicalDescription>
+                          <form authority=\"marcsmd\">print</form>
+                        </physicalDescription>
+                        <extent>1 est. : manière noire ; 51 x 37,5 cm (tr. c.)</extent>
+                      </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+          @solr_client.should_receive(:add).with(hash_including(:medium_ssim => ['print']))
+          @indexer.index(@fake_druid)
+        end
+        it "should not include the contents of the MODS <physicalDescription><extent> field between the colon and the semicolon" do
+          # former algorithm
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_pd))
-          @solr_client.should_receive(:add).with(hash_including(:medium_ssi => 'manière noire'))
+          @solr_client.should_not_receive(:add).with(hash_including(:medium_ssim => 'manière noire'))
           @indexer.index(@fake_druid)
         end
         it "should be absent if there are no <physicalDescription> fields in the MODS record" do
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
-          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
+          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssim))
           @indexer.index(@fake_druid)
         end
-        it "should be absent if there are no <physicalDescription><extent> fields in the MODS record" do
-          mods_xml = "<mods #{@ns_decl}><physicalDescription><form>Objet</form></physicalDescription></mods>"
+        it "should be absent if there are no <physicalDescription><form> fields in the MODS record" do
+          mods_xml = "<mods #{@ns_decl}><physicalDescription><extent>extent</extent></physicalDescription></mods>"
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
-          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
+          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssim))
           @indexer.index(@fake_druid)
         end
-        it "should log a warning message if more than one <physicalDescription><extent> field is found" do
+        it "should log a warning message if no medium_ssim value is found" do
           mods = "<mods #{@ns_decl}>
                     <physicalDescription>
-                      <form>Objet</form>
-                      <extent>one : one ; one</extent>
-                      <extent>two</extent>
-                    </physicalDescription></mods>"
-          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-          @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} has no originInfo.dateIssued field/)
-          @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} did not retrieve any contentMetadata/)
-          @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no :doc_type_ssi; MODS missing <physicalDescription><form authority=\"gmd\">")
-          @indexer.logger.should_receive(:warn).with("#{@fake_druid} unexpectedly has multiple <physicalDescription><extent> fields; using first only for :medium_ssi")
-          @solr_client.should_receive(:add).with(hash_including(:medium_ssi))
-          @indexer.index(@fake_druid)
-        end
-        it "should log a warning message if <physicalDescription><extent> doesn't match regex" do
-          mods = "<mods #{@ns_decl}>
-                    <physicalDescription>
-                      <form>Objet</form>
+                      <form authority=\"gmd\">Image fixe</form>
+                      <form authority=\"marccategory\">nonprojected graphic</form>
                       <extent>one</extent>
                     </physicalDescription></mods>"
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-          @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no :medium_ssi; MODS <physicalDescription><extent> has unexpected format: 'one'")
-          @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no :doc_type_ssi; MODS missing <physicalDescription><form authority=\"gmd\">")
+          @indexer.logger.should_receive(:warn).with("#{@fake_druid} has no :medium_ssim; MODS missing <physicalDescription><form> that isn't authority=\"gmd\" or \"marccategory\"")
           @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} has no originInfo.dateIssued field/)
           @indexer.logger.should_receive(:warn).with(/^#{@fake_druid} did not retrieve any contentMetadata/)
-          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssi))
+          @solr_client.should_receive(:add).with(hash_not_including(:medium_ssim))
           @indexer.index(@fake_druid)
         end
       end # medium_ssim

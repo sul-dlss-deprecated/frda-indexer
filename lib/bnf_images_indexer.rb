@@ -134,30 +134,23 @@ class BnfImagesIndexer < Harvestdor::Indexer
   # @return [Hash<String, String>] with the Solr fields derived from the MODS top level <physicalDescription> fields
   def phys_desc_field_hash smods_rec_obj, druid
     doc_hash = {}
+    medium_vals = []
     phys_desc_nodeset = smods_rec_obj.physical_description if smods_rec_obj.physical_description
     unless phys_desc_nodeset.empty?
       phys_desc_nodeset.form.each { |form_node|  
         if form_node.authority == 'gmd'
           doc_hash[:doc_type_ssi] = form_node.text.gsub(/\s+/, ' ').strip.downcase
+        elsif form_node.authority == 'marcsmd' || form_node.type_at == 'material' || form_node.type_at == 'technique'
+          medium_vals << form_node.text.gsub(/\s+/, ' ').strip
         end
       }
       if !doc_hash[:doc_type_ssi]
         logger.warn("#{druid} has no :doc_type_ssi; MODS missing <physicalDescription><form authority=\"gmd\">")
       end
-      
-      # <extent> maps to medium_ssi
-      extents = phys_desc_nodeset.extent.map {|n| n.text} if !phys_desc_nodeset.extent.empty?
-      if extents && extents.size > 1
-        logger.warn("#{druid} unexpectedly has multiple <physicalDescription><extent> fields; using first only for :medium_ssi")
-      end
-      if extents
-        full_str = extents.first
-        desired = full_str[/.*\:(.*?);.*/, 1]
-        if desired
-          doc_hash[:medium_ssi] = desired.strip
-        else
-          logger.warn("#{druid} has no :medium_ssi; MODS <physicalDescription><extent> has unexpected format: '#{full_str}'")
-        end
+      if !medium_vals.empty?
+        doc_hash[:medium_ssim] = medium_vals 
+      else
+        logger.warn("#{druid} has no :medium_ssim; MODS missing <physicalDescription><form> that isn't authority=\"gmd\" or \"marccategory\"")
       end
     end
     doc_hash
