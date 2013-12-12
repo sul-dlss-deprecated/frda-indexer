@@ -149,7 +149,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
         if form_node.authority == 'gmd'
           doc_hash[:doc_type_ssi] = UnicodeUtils.nfkc(form_node.text.gsub(/\s+/, ' ').strip.downcase)
         elsif form_node.authority == 'marcsmd' || form_node.type_at == 'material' || form_node.type_at == 'technique'
-          medium_vals << form_node.text.gsub(/\s+/, ' ').strip
+          medium_vals << UnicodeUtils.nfkc(form_node.text.gsub(/\s+/, ' ').strip)
         end
       }
       if !doc_hash[:doc_type_ssi]
