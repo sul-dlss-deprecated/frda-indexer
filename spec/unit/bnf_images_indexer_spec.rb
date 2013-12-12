@@ -103,7 +103,7 @@ describe BnfImagesIndexer do
                       <genre>one</genre>
                     </mods>"
         @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
-        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['one']))
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['One']))
         @indexer.index(@fake_druid)
       end
       it "should be absent if there are no <genre> fields in the MODS record" do
@@ -160,6 +160,19 @@ describe BnfImagesIndexer do
                     </mods>"
         @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
         @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['Scènes historiques', 'Illustration']))
+        @indexer.index(@fake_druid)
+      end
+      it "should capitalize the first letter even when the data does not" do
+        mods_xml = "<mods #{@ns_decl}>
+                      <genre authority=\"marcgt\">art original</genre>
+                      <genre authority=\"marcgt\">graphic</genre>
+                      <genre authority=\"marcgt\">picture</genre>
+                      <genre authority=\"marcgt\">realia</genre>
+                      <genre authority=\"marcgt\">technical drawing</genre>
+                      <genre>one</genre>
+                    </mods"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml))
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['Art original', 'Graphic', 'Picture', 'Realia', 'Technical drawing', 'One']))
         @indexer.index(@fake_druid)
       end
     end
