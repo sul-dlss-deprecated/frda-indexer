@@ -183,7 +183,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
                 doc_hash[:collector_ssim] << val if val
               when 'art', 'drm', 'egr', 'ill', 'scl'
                 val = name_with_dates name_node
-                doc_hash[:artist_ssim] << val if val
+                doc_hash[:artist_ssim] << UnicodeUtils.nfkc(val) if val
             end
           end
         }

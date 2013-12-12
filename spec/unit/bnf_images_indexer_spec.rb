@@ -809,6 +809,34 @@ describe BnfImagesIndexer do
           @solr_client.should_receive(:add).with(hash_including(:artist_ssim => ['family, given (date)', 'Endner, Gustav Georg (1754-1824)', 'plain']))
           @indexer.index(@fake_druid)
         end
+        it "should have the same value for different unicode representations of a diacritic" do
+          nfkc = UnicodeUtils.nfkc("Chrétien, Gilles Louis (1754-1811)")
+          mods_xml_0301 = "<mods #{@ns_decl}>
+                            <name type=\"personal\" usage=\"primary\">
+                            <namePart>Chre\u0301tien, Gilles Louis</namePart>
+                              <namePart type=\"date\">1754-1811</namePart>
+                              <role>
+                                <roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm>
+                              </role>
+                            </name>
+                          </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml_0301))
+          @hdor_client.should_receive(:content_metadata).with(@fake_druid)
+          @solr_client.should_receive(:add).with(hash_including(:artist_ssim => [nfkc]))
+          @indexer.index(@fake_druid)
+          mods_xml_00E9 = "<mods #{@ns_decl}>
+                            <name type=\"personal\" usage=\"primary\">
+                              <namePart>Chr\u00E9tien, Gilles Louis</namePart>
+                              <namePart type=\"date\">1754-1811</namePart>
+                              <role>
+                                <roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm>
+                              </role>
+                            </name>
+                          </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml_00E9))
+          @solr_client.should_receive(:add).with(hash_including(:artist_ssim => [nfkc]))
+          @indexer.index(@fake_druid)
+        end
         it "there should be none if there is no name with that role" do
           mods = "<mods #{@ns_decl}>
                     <name type=\"personal\">
