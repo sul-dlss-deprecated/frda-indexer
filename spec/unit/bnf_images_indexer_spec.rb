@@ -642,6 +642,30 @@ describe BnfImagesIndexer do
             @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Plain1', 'Plain2', 'Plain3']))
             @indexer.index(@fake_druid)
           end
+          it "should have the same value for different unicode representations of a diacritic" do
+            nfkc = UnicodeUtils.nfkc("Rohan, Louis-René-Édouard de")
+            mods_xml_0301 = "<mods #{@ns_decl}>
+                              <subject>
+                                <name type=\"personal\">
+                                  <namePart>Rohan, Louis-Rene\u0301-E\u0301douard de</namePart>
+                                </name>
+                              </subject>
+                            </mods>"
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml_0301))
+            @hdor_client.should_receive(:content_metadata).with(@fake_druid)
+            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => [nfkc]))
+            @indexer.index(@fake_druid)
+            mods_xml_00E9 = "<mods #{@ns_decl}>
+                              <subject>
+                                <name type=\"personal\">
+                                  <namePart>Rohan, Louis-Ren\u00E9-\u00C9douard de</namePart>
+                                </name>
+                              </subject>
+                            </mods>"
+            @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml_00E9))
+            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => [nfkc]))
+            @indexer.index(@fake_druid)
+          end
           it "should normalize the name to match AP names" do
             pending "name normalization for images to be implemented"
           end

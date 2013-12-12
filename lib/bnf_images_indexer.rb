@@ -262,10 +262,10 @@ class BnfImagesIndexer < Harvestdor::Indexer
           }
           speaker = parts.join(', ').strip unless parts.empty?
           speaker << " #{toa}" if speaker && !speaker.empty? && toa && !toa.empty?
-          doc_hash[:speaker_ssim] << speaker if speaker && !speaker.empty?
+          doc_hash[:speaker_ssim] << UnicodeUtils.nfkc(speaker) if speaker && !speaker.empty?
         else
           parts = sub_name_node.namePart.map { |npn| npn.text unless npn.text.empty? }
-          doc_hash[:subject_name_ssim] << parts.join(', ').strip unless parts.empty?
+          doc_hash[:subject_name_ssim] << UnicodeUtils.nfkc(parts.join(', ').strip) unless parts.empty?
         end
       }
     } # each subject node
