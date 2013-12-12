@@ -1,7 +1,7 @@
 # encoding: utf-8
 require 'harvestdor-indexer'
 require 'date'
-
+require 'unicode_utils'
 require 'normalization_helper'
 
 # Indexer for BnF Images data
@@ -60,13 +60,14 @@ class BnfImagesIndexer < Harvestdor::Indexer
   def doc_hash_from_mods druid
     smods_rec_obj = smods_rec(druid)
     doc_hash = {}
-    doc_hash[:title_short_ftsi] = smods_rec_obj.sw_short_title if smods_rec_obj.sw_short_title
-    doc_hash[:title_long_ftsi] = smods_rec_obj.sw_full_title if smods_rec_obj.sw_full_title
+    doc_hash[:title_short_ftsi] = UnicodeUtils.nfkc(smods_rec_obj.sw_short_title) if smods_rec_obj.sw_short_title
+    doc_hash[:title_long_ftsi] = UnicodeUtils.nfkc(smods_rec_obj.sw_full_title) if smods_rec_obj.sw_full_title
     if smods_rec_obj.genre && !smods_rec_obj.genre.empty?
       # don't include anything after -1  (e.g. Silhouettes-1789-1799. ==> Silhouettes)
       # don't include trailing period  (e.g. Sculpture. ==> Sculpture)
       # capitalize first letter (e.g. technical drawing ==> Technical drawing)
-      vals = smods_rec_obj.genre.map {|n| n.text.sub(/-1.*$/, '').chomp('.').sub(/^./, &:upcase) } 
+      # normalize unicode
+      vals = smods_rec_obj.genre.map {|n| UnicodeUtils.nfkc(n.text.sub(/-1.*$/, '').chomp('.').sub(/^./, &:upcase)) } 
       doc_hash[:genre_ssim] = vals.uniq
     end
     

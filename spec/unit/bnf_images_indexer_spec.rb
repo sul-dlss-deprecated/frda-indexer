@@ -175,6 +175,22 @@ describe BnfImagesIndexer do
         @solr_client.should_receive(:add).with(hash_including(:genre_ssim => ['Art original', 'Graphic', 'Picture', 'Realia', 'Technical drawing', 'One']))
         @indexer.index(@fake_druid)
       end
+      it "should have the same value for different unicode representations of a diacritic" do
+        nfkc = UnicodeUtils.nfkc("Portraits armoriés")
+        mods_xml_0301 = "<mods #{@ns_decl}>
+                          <genre authority="">Portraits armorie\u0301s</genre>
+                        </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml_0301))
+        @hdor_client.should_receive(:content_metadata).with(@fake_druid)
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => [nfkc]))
+        @indexer.index(@fake_druid)
+        mods_xml_00E9 = "<mods #{@ns_decl}>
+                          <genre authority="">Portraits armori\u00e9s</genre>
+                        </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml_00E9))
+        @solr_client.should_receive(:add).with(hash_including(:genre_ssim => [nfkc]))
+        @indexer.index(@fake_druid)
+      end
     end
     context "<physicalDescription>" do
       before(:all) do
