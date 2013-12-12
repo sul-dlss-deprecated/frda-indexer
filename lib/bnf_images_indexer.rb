@@ -180,7 +180,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
             case code.strip
               when 'col', 'dnr'
                 val = name_no_dates name_node
-                doc_hash[:collector_ssim] << val if val
+                doc_hash[:collector_ssim] << UnicodeUtils.nfkc(val) if val
               when 'art', 'drm', 'egr', 'ill', 'scl'
                 val = name_with_dates name_node
                 doc_hash[:artist_ssim] << UnicodeUtils.nfkc(val) if val

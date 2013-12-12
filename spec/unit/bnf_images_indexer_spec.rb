@@ -749,6 +749,34 @@ describe BnfImagesIndexer do
           @solr_client.should_receive(:add).with(hash_including(:collector_ssim => ['family, given', 'Hennin, Michel']))
           @indexer.index(@fake_druid)
         end
+        it "should have the same value for different unicode representations of a diacritic" do
+          nfkc = UnicodeUtils.nfkc("Lesouëf, Auguste")
+          mods_xml_0308 = "<mods #{@ns_decl}>
+                            <name type=\"personal\">
+                              <namePart>Lesoue\u0308f, Auguste</namePart>
+                              <namePart type=\"date\">1829-1906</namePart>
+                              <role>
+                                <roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm>
+                              </role>
+                            </name>
+                          </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml_0308))
+          @hdor_client.should_receive(:content_metadata).with(@fake_druid)
+          @solr_client.should_receive(:add).with(hash_including(:collector_ssim => [nfkc]))
+          @indexer.index(@fake_druid)
+          mods_xml_00E9 = "<mods #{@ns_decl}>
+                            <name type=\"personal\">
+                              <namePart>Lesou\u00EBf, Auguste</namePart>
+                              <namePart type=\"date\">1829-1906</namePart>
+                              <role>
+                                <roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm>
+                              </role>
+                            </name>
+                          </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml_00E9))
+          @solr_client.should_receive(:add).with(hash_including(:collector_ssim => [nfkc]))
+          @indexer.index(@fake_druid)
+        end
         it "there should be none if there is no name with that role" do
           mods = "<mods #{@ns_decl}>
                     <name type=\"personal\">
@@ -763,6 +791,7 @@ describe BnfImagesIndexer do
         # as of 2013-03-04, all roles for BnF Images are of type code
         #it "should work for role code or text"
       end # collector_ssim
+
       context ":artist_ssim (roles: art, drm, egr, ill, scl)" do
         it "should be assigned for correct roles only" do
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
@@ -813,7 +842,7 @@ describe BnfImagesIndexer do
           nfkc = UnicodeUtils.nfkc("Chrétien, Gilles Louis (1754-1811)")
           mods_xml_0301 = "<mods #{@ns_decl}>
                             <name type=\"personal\" usage=\"primary\">
-                            <namePart>Chre\u0301tien, Gilles Louis</namePart>
+                              <namePart>Chre\u0301tien, Gilles Louis</namePart>
                               <namePart type=\"date\">1754-1811</namePart>
                               <role>
                                 <roleTerm authority=\"marcrelator\" type=\"code\">egr</roleTerm>
