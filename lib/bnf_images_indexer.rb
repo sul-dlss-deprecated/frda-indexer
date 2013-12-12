@@ -22,8 +22,8 @@ class BnfImagesIndexer < Harvestdor::Indexer
       logger.info("BnF Images Druid #{druid} is on the blacklist and will have no Solr doc created")
     else
       begin
-        start_time=Time.now
         logger.info("Beginning processing of #{druid}")
+        start_time=Time.now
         doc_hash = {
           :id => druid, 
           :druid_ssi => druid,
@@ -35,10 +35,14 @@ class BnfImagesIndexer < Harvestdor::Indexer
         }
         mods_doc_hash = doc_hash_from_mods druid
         doc_hash.merge!(mods_doc_hash) if mods_doc_hash
-        logger.info("Finished retrieving public metadata and parsing #{druid}, elapsed time: #{elapsed_time(start_time)} seconds")
-        start_time_solr=Time.now
+        parsing_time = elapsed_time(start_time)
+        @total_time_to_parse+=parsing_time
+        logger.info("Finished retrieving public metadata and parsing #{druid}, elapsed time: #{parsing_time} seconds")
+        start_time_solr = Time.now
         solr_client.add(doc_hash)
-        logger.info("Sent commit to Solr for #{druid}, elapsed time: #{elapsed_time(start_time_solr)} seconds")
+        solr_time = elapsed_time(start_time_solr)
+        @total_time_to_solr+=solr_time
+        logger.info("Sent commit to Solr for #{druid}, elapsed time: #{solr_time} seconds")
         logger.info("Total index time for druid #{druid}: elapsed time: #{elapsed_time(start_time)} seconds")
         @success_count+=1
         # TODO: provide call to code to update DOR object's workflow datastream??
