@@ -209,6 +209,26 @@ describe BnfImagesIndexer do
           @solr_client.should_receive(:add).with(hash_including(:doc_type_ssi => 'monnaie ou médaille'))
           @indexer.index(@fake_druid)
         end
+        it "should have the same value for different unicode representations of a diacritic" do
+          nfkc = UnicodeUtils.nfkc("monnaie ou médaille")
+          mods_xml_0301 = "<mods #{@ns_decl}>
+                        <physicalDescription>
+                          <form authority=\"gmd\">monnaie ou me\u0301daille</form>
+                        </physicalDescription>
+                      </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml_0301))
+          @hdor_client.should_receive(:content_metadata).with(@fake_druid)
+          @solr_client.should_receive(:add).with(hash_including(:doc_type_ssi => nfkc))
+          @indexer.index(@fake_druid)
+          mods_xml_00E9 = "<mods #{@ns_decl}>
+                        <physicalDescription>
+                          <form authority=\"gmd\">monnaie ou m\u00E9daille</form>
+                        </physicalDescription>
+                      </mods>"
+          @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods_xml_00E9))
+          @solr_client.should_receive(:add).with(hash_including(:doc_type_ssi => nfkc))
+          @indexer.index(@fake_druid)
+        end
         it "should be absent if there are no <physicalDescription> fields" do
           @hdor_client.should_receive(:mods).with(@fake_druid).and_return(@ng_mods_xml)
           @solr_client.should_receive(:add).with(hash_not_including(:doc_type_ssi))

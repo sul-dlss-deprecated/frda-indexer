@@ -146,7 +146,7 @@ class BnfImagesIndexer < Harvestdor::Indexer
     unless phys_desc_nodeset.empty?
       phys_desc_nodeset.form.each { |form_node|  
         if form_node.authority == 'gmd'
-          doc_hash[:doc_type_ssi] = form_node.text.gsub(/\s+/, ' ').strip.downcase
+          doc_hash[:doc_type_ssi] = UnicodeUtils.nfkc(form_node.text.gsub(/\s+/, ' ').strip.downcase)
         elsif form_node.authority == 'marcsmd' || form_node.type_at == 'material' || form_node.type_at == 'technique'
           medium_vals << form_node.text.gsub(/\s+/, ' ').strip
         end
