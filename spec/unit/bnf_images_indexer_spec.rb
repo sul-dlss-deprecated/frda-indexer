@@ -1008,7 +1008,93 @@ describe BnfImagesIndexer do
         # as of 2013-03-04, all roles for BnF Images are of type code
         # it "should work for role code or text"
       end  # :artist_ssim
+
     end # names
+
+    context "names_for_phrase_searching" do
+      before(:all) do
+        @smr = Stanford::Mods::Record.new
+      end
+      it "full personal name top level" do
+        mods = "<mods #{@ns_decl}>
+                 <name type=\"personal\">
+                   <namePart type=\"termsOfAddress\">comte de</namePart>
+                   <namePart>La Motte, Marc Antoine Nicolas</namePart>
+                   <namePart type=\"date\">1750-1831</namePart>
+                 </name>
+                </mods>"
+        @smr.from_str(mods)
+        @indexer.names_for_phrase_searching(@smr).should == ["La Motte, Marc Antoine Nicolas comte de 1750-1831"]
+      end
+      it "full personal name in subject" do
+        mods = "<mods #{@ns_decl}>
+                  <subject authority=\"ram\">
+                     <name type=\"personal\">
+                       <namePart type=\"termsOfAddress\">comte de</namePart>
+                       <namePart>La Motte, Marc Antoine Nicolas</namePart>
+                       <namePart type=\"date\">1750-1831</namePart>
+                     </name>
+                   </subject>
+                </mods>"
+        @smr.from_str(mods)
+        @indexer.names_for_phrase_searching(@smr).should == ["La Motte, Marc Antoine Nicolas comte de 1750-1831"]
+      end
+      it "personal name no termsOfAddress" do
+        mods = "<mods #{@ns_decl}>
+                 <name type=\"personal\">
+                   <namePart>La Motte, Marc Antoine Nicolas</namePart>
+                   <namePart type=\"date\">1750-1831</namePart>
+                 </name>
+                </mods>"
+        @smr.from_str(mods)
+        @indexer.names_for_phrase_searching(@smr).should == ["La Motte, Marc Antoine Nicolas 1750-1831"]
+      end
+      it "personal name no dates" do
+        mods = "<mods #{@ns_decl}>
+                 <name type=\"personal\">
+                   <namePart type=\"termsOfAddress\">comte de</namePart>
+                   <namePart>La Motte, Marc Antoine Nicolas</namePart>
+                 </name>
+                </mods>"
+        @smr.from_str(mods)
+        @indexer.names_for_phrase_searching(@smr).should == ["La Motte, Marc Antoine Nicolas comte de"]
+      end 
+      it "family and given name parts" do
+        mods = "<mods #{@ns_decl}>
+                  <name type=\"personal\" usage=\"primary\">
+                    <namePart type=\"termsOfAddress\">term</namePart>
+                    <namePart type=\"given\">given</namePart>
+                    <namePart type=\"date\">1769-1821</namePart>
+                    <namePart type=\"family\">family</namePart>
+                    <namePart>plain</namePart>
+                    <role><roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm></role>
+                </mods>"
+        @smr.from_str(mods)
+        @indexer.names_for_phrase_searching(@smr).should == ["plain family given term 1769-1821"]
+      end
+      it "should populate :searching_names_tiv in the doc_hash" do
+        mods = "<mods #{@ns_decl}>
+                  <name type=\"personal\" usage=\"primary\">
+                    <namePart type=\"termsOfAddress\">term</namePart>
+                    <namePart type=\"given\">given</namePart>
+                    <namePart type=\"date\">1769-1821</namePart>
+                    <namePart type=\"family\">family</namePart>
+                    <namePart>plain</namePart>
+                    <role><roleTerm authority=\"marcrelator\" type=\"code\">col</roleTerm></role>
+                </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+        @solr_client.should_receive(:add).with(hash_including(:search_names_timv => ["plain family given term 1769-1821"]))
+        @indexer.index(@fake_druid)
+      end
+      it "should not populate :searching_names_tiv in the doc_hash if there are no names" do
+        mods = "<mods #{@ns_decl}>
+                  <note>hi</note>
+                </mods>"
+        @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+        @solr_client.should_receive(:add).with(hash_not_including(:search_names_timv))
+        @indexer.index(@fake_druid)
+      end
+    end # names for phrase searching
 
   end # doc_hash_from_mods
   

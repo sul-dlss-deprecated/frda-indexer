@@ -83,6 +83,9 @@ class BnfImagesIndexer < Harvestdor::Indexer
     
     doc_hash.merge!(subject_field_hash(smods_rec_obj, druid))
     
+    search_names = names_for_phrase_searching(smods_rec_obj)
+    doc_hash[:search_names_timv] = search_names if search_names && !search_names.empty?
+
     all_text = smods_rec_obj.text.strip
     doc_hash[:text_tiv] = all_text.gsub(/\s+/, ' ') unless all_text.empty?
 
@@ -201,6 +204,29 @@ class BnfImagesIndexer < Harvestdor::Indexer
       doc_hash.delete(fld) if doc_hash[fld] && doc_hash[fld].empty?
     }
     doc_hash    
+  end
+  
+  # return an Array of Strings containing all name fields with parts ordered for phrase searching
+  #   (name parts + termsOfAddress + dates)
+  # @param [Stanford::Mods::Record] smods_rec_obj (for a particular druid)
+  # @return [Array::String] containing all names, suitable for searching
+  def names_for_phrase_searching smods_rec_obj
+    name_strings = []
+    # gets all name nodes, including ones under subject
+    smods_rec_obj._plain_name.each { |name_node| 
+      val = ""
+      # plain parts first
+      plain_parts = name_node.namePart.map { |part|  part.text unless part.attributes["type"] }.compact
+      val << plain_parts.join(' ') if !plain_parts.empty?
+
+      val << " " + name_node.family_name.text if !name_node.family_name.empty?
+      val << " " + name_node.given_name.text if !name_node.given_name.empty?
+      val << " " + name_node.termsOfAddress.text if !name_node.termsOfAddress.empty?
+      val << " " + name_node.date.text if !name_node.date.empty?
+
+      name_strings << val if val
+    }
+    name_strings.empty? ? nil : name_strings
   end
   
   # @param [Nokogiri::XML::Node] name_node - a MODS <name> node
