@@ -93,6 +93,17 @@ describe BnfImagesIndexer do
       @smr.from_str(mods)
       @indexer.search_dates(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z', '1793-02-05T00:00:00Z']
     end
+    it "should not have spurious dates" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>Jan.y. thes.et 1798</dateIssued>
+                  <dateIssued encoding=\"marc\">1798</dateIssued>
+                  <dateIssued encoding=\"marc\">1798</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.search_dates(@smr, @fake_druid).should == ['1798-01-01T00:00:00Z']
+    end
     it "should return nil if there are no values" do
       mods = "<mods #{@ns_decl}><note>hi</note></mods>"
       @smr.from_str(mods)

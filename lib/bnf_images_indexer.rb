@@ -71,10 +71,10 @@ class BnfImagesIndexer < Harvestdor::Indexer
       doc_hash[:genre_ssim] = vals.uniq
     end
     
-    pub_date = search_dates(smods_rec_obj, druid)
-    if pub_date
-      doc_hash[:search_date_dtsim] = pub_date
-      doc_hash[:sort_date_dti] = pub_date.sort.first
+    dates = search_dates(smods_rec_obj, druid)
+    if dates && !dates.empty?
+      doc_hash[:search_date_dtsim] = dates
+      doc_hash[:sort_date_dti] = dates.sort.first
     end
     
     doc_hash.merge!(phys_desc_field_hash(smods_rec_obj, druid))
@@ -110,7 +110,8 @@ class BnfImagesIndexer < Harvestdor::Indexer
       raw_val = dn.text
       begin
         d = Date.parse(raw_val) if raw_val
-        result << d.strftime('%FT%TZ') if d
+        # ensure a date that doesn't throw an exception also doesn't become the current year
+        result << d.strftime('%FT%TZ') if d && d.strftime('%Y') != Time.new.year.to_s
       rescue => e
         if raw_val && raw_val.match(/^\[?(?:ca )?(\d{4})\]?$/i)
           year_only << $1
