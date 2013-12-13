@@ -183,6 +183,7 @@
         catalog_heading_etsimv
         subject_timv^3
         subject_ftsimv
+        search_names_timv^3
         speaker_timv^3
         subject_name_timv^3
         subject_name_ftimv
@@ -211,6 +212,7 @@
         catalog_heading_etsimv^15
         subject_timv^20
         subject_ftsimv^15
+        search_names_timv^20
         speaker_timv^20
         subject_name_timv^20
         subject_name_ftimv^15
@@ -229,6 +231,7 @@
         vol_title_ti
         catalog_heading_timv
         subject_timv
+        search_names_timv
         speaker_timv
         subject_name_timv
         spoken_text_timv
@@ -244,6 +247,7 @@
         vol_title_ti^5
         catalog_heading_timv^5
         subject_timv^5
+        search_names_timv^5
         speaker_timv^5
         subject_name_timv^5
         spoken_text_timv^5
@@ -283,11 +287,13 @@
         speaker_ssim
         artist_ssim
         collector_ssim
+        search_names_timv
       </str>
       <str name="pf_name">
         speaker_ssim^5
         artist_ssim^5
         collector_ssim^5
+        search_names_timv^5
       </str>
 
       <bool name="facet">true</bool>
