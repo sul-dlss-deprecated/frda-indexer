@@ -110,6 +110,9 @@
   <copyField source="catalog_heading_ftsimv" dest="catalog_heading_timv" />
   <copyField source="catalog_heading_etsimv" dest="catalog_heading_timv" />
   <copyField source="subject_ftsimv" dest="subject_timv" />
+  <copyField source="speaker_ssim" dest="speaker_timv" />
+  <copyField source="subject_name_ssim" dest="subject_name_ftimv" />
+  <copyField source="subject_name_ssim" dest="subject_name_timv" />
   <copyField source="title_short_ftsi" dest="title_short_ti" />
   <copyField source="title_long_ftsi" dest="title_long_ti" />
   <copyField source="vol_title_ssi" dest="result_group_ssi" />

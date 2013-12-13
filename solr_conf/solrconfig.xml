@@ -183,13 +183,15 @@
         catalog_heading_etsimv
         subject_timv^3
         subject_ftsimv
+        speaker_timv^3
+        subject_name_timv^3
+        subject_name_ftimv
         spoken_text_timv^5
         spoken_text_ftsimv
         unspoken_text_timv^5
         unspoken_text_ftsimv
         session_title_si^5
         session_title_ftsi
-        speaker_ssim
         session_govt_ssi
         doc_type_ssi
         id
@@ -209,6 +211,9 @@
         catalog_heading_etsimv^15
         subject_timv^20
         subject_ftsimv^15
+        speaker_timv^20
+        subject_name_timv^20
+        subject_name_ftimv^15
         spoken_text_timv^20
         spoken_text_ftsimv^15
         unspoken_text_timv^20
@@ -224,10 +229,11 @@
         vol_title_ti
         catalog_heading_timv
         subject_timv
+        speaker_timv
+        subject_name_timv
         spoken_text_timv
         unspoken_text_timv
         session_title_si
-        speaker_ssim
         session_govt_ssi
         doc_type_ssi
         text_tiv^0.1
@@ -238,6 +244,8 @@
         vol_title_ti^5
         catalog_heading_timv^5
         subject_timv^5
+        speaker_timv^5
+        subject_name_timv^5
         spoken_text_timv^5
         unspoken_text_timv^5
         session_title_si^5
