@@ -113,7 +113,14 @@ class BnfImagesIndexer < Harvestdor::Indexer
         # ensure a date that doesn't throw an exception also doesn't become the current year
         result << d.strftime('%FT%TZ') if d && d.strftime('%Y') != Time.new.year.to_s
       rescue => e
-        if raw_val && raw_val.match(/^\[?(?:ca )?(\d{4})\]?$/i)
+        if raw_val && raw_val.match(/^\[?(?:ca )?(\d{4})(?: \?)?\]?$/i)
+          year_only << $1
+        elsif raw_val && raw_val.match(/^\[?(?:entre )?(\d{4})(?: et )(\d{4})\]?$/i)
+          year_only << $1
+        elsif raw_val && raw_val.match(/^\[?(\d{4})(?: ou )(\d{4})\]?$/i)
+          year_only << $1
+          year_only << $2
+        elsif raw_val && raw_val.match(/^\[?(\d{4})-(\d{4})\]?$/i)
           year_only << $1
         else
           logger.warn "#{druid} has unparseable originInfo/dateIssued value: '#{dn.text}'"

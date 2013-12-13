@@ -14,7 +14,7 @@ describe BnfImagesIndexer do
     @ng_mods_xml = Nokogiri::XML(@mods_xml)
     @content_md_start = "<contentMetadata objectId='#{@fake_druid}'>"
     @content_md_end = "</contentMetadata>"
-    @unparseable_date = '[Entre 1789 et 1791]'
+    @unparseable_date = '1.er messidor 2.me année Rép'
     @smr = Stanford::Mods::Record.new
   end
   
@@ -61,16 +61,54 @@ describe BnfImagesIndexer do
       @smr.from_str(mods)
       @indexer.search_dates(@smr, @fake_druid).should == ['1790-01-01T00:00:00Z', '1791-01-01T00:00:00Z']
     end
+    it "should work for ca yyyy] pattern" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>ca 1796]</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.search_dates(@smr, @fake_druid).should == ['1796-01-01T00:00:00Z']
+    end
+    it "should work for [Entre yyyy et yyyy] pattern" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>entre 1745 et 1796]</dateIssued>
+                  <dateIssued>[entre 1785 et 1786]</dateIssued>
+                  <dateIssued>[Entre 1789 et 1791]</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.search_dates(@smr, @fake_druid).should == ['1745-01-01T00:00:00Z', '1785-01-01T00:00:00Z', '1789-01-01T00:00:00Z']
+    end
+    it "should work for [yyyy ou yyyy] pattern" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>[1791 ou 1792]</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.search_dates(@smr, @fake_druid).should == ['1791-01-01T00:00:00Z', '1792-01-01T00:00:00Z']
+    end
+    it "should work for [yyyy ?]' pattern" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>[1792 ?]</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.search_dates(@smr, @fake_druid).should == ['1792-01-01T00:00:00Z']
+    end
+    it "should work for [yyyy-yyyy] pattern" do
+      mods = "<mods #{@ns_decl}>
+                <originInfo>
+                  <dateIssued>[1720-1738]</dateIssued>
+                </originInfo>
+              </mods>"
+      @smr.from_str(mods)
+      @indexer.search_dates(@smr, @fake_druid).should == ['1720-01-01T00:00:00Z']
+    end
     
-    # [Entre 1789 et 1791]   4500
-    # [entre 1500 et 1599]
-    # entre 1745 et 1796]
-    # '[1793 ou 1794]'       1400
-    #'[1795 ?]'              45
-    # '[1720-1738]
-    # 'agosto 1799'
-    # Anno 1803 anno 1803    14
-
     it "should not include duplicate dates" do
       mods = "<mods #{@ns_decl}>
                 <originInfo>
@@ -93,16 +131,48 @@ describe BnfImagesIndexer do
       @smr.from_str(mods)
       @indexer.search_dates(@smr, @fake_druid).should == ['1797-04-01T00:00:00Z', '1793-02-05T00:00:00Z']
     end
-    it "should not have spurious dates" do
-      mods = "<mods #{@ns_decl}>
-                <originInfo>
-                  <dateIssued>Jan.y. thes.et 1798</dateIssued>
-                  <dateIssued encoding=\"marc\">1798</dateIssued>
-                  <dateIssued encoding=\"marc\">1798</dateIssued>
-                </originInfo>
-              </mods>"
-      @smr.from_str(mods)
-      @indexer.search_dates(@smr, @fake_druid).should == ['1798-01-01T00:00:00Z']
+    context "should not have spurious current year dates" do
+      it "from random text and year 1798" do
+        mods = "<mods #{@ns_decl}>
+                  <originInfo>
+                    <dateIssued>Jan.y. thes.et 1798</dateIssued>
+                    <dateIssued encoding=\"marc\">1798</dateIssued>
+                  </originInfo>
+                </mods>"
+        @smr.from_str(mods)
+        @indexer.search_dates(@smr, @fake_druid).should == ['1798-01-01T00:00:00Z']
+      end
+      it "from text and year in brackets [1792]" do
+        mods = "<mods #{@ns_decl}>
+                  <originInfo>
+                    <dateIssued>3 Jannary [1792]</dateIssued>
+                    <dateIssued>January 22th [1800]</dateIssued>
+                    <dateIssued encoding=\"marc\">1792</dateIssued>
+                  </originInfo>
+                </mods>"
+        @smr.from_str(mods)
+        @indexer.search_dates(@smr, @fake_druid).should == ['1792-01-01T00:00:00Z']
+      end
+      it "from month only" do
+        mods = "<mods #{@ns_decl}>
+                  <originInfo>
+                    <dateIssued>Feb</dateIssued>
+                    <dateIssued encoding=\"marc\">1793</dateIssued>
+                  </originInfo>
+                </mods>"
+        @smr.from_str(mods)
+        @indexer.search_dates(@smr, @fake_druid).should == ['1793-01-01T00:00:00Z']
+      end
+      it "from randome text and day and year" do
+        mods = "<mods #{@ns_decl}>
+                  <originInfo>
+                    <dateIssued>mis au jour le 26 juillet 1794</dateIssued>
+                    <dateIssued encoding=\"marc\">1794</dateIssued>
+                  </originInfo>
+                </mods>"
+        @smr.from_str(mods)
+        @indexer.search_dates(@smr, @fake_druid).should == ['1794-01-01T00:00:00Z']
+      end
     end
     it "should return nil if there are no values" do
       mods = "<mods #{@ns_decl}><note>hi</note></mods>"
