@@ -586,7 +586,7 @@ describe BnfImagesIndexer do
         context ":speaker_ssim" do
           it "should be personal name, without dates but with termsOfAddress" do
             @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(@mods_sub_name))
-            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Napoléon term']))
+            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Napoléon, term']))
             @indexer.index(@fake_druid)
           end
           it "should cope with family, given and untyped <namePart>" do
@@ -602,9 +602,113 @@ describe BnfImagesIndexer do
                       </subject>
                     </mods>"
             @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
-            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Family, Given, Plain term']))
+            @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Family, Given, Plain, term']))
             @indexer.index(@fake_druid)
           end
+          context "termsOfAddress" do
+            context "if starts lower case, insert a comma before toa" do
+              it "Angosse, J. P, marquis d'" do
+                mods = "<mods #{@ns_decl}>
+                          <subject>
+                            <name type=\"personal\">
+                              <namePart type=\"termsOfAddress\">marquis d'</namePart>
+                              <namePart>Angosse, J. P</namePart>
+                              <namePart type=\"date\">1732-1</namePart>
+                            </name>
+                          </subject>
+                        </mods>"
+                @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+                @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ["Angosse, J. P, marquis d'"]))
+                @indexer.index(@fake_druid)
+              end
+              it "Sauce, procureur-syndic de Varennes" do
+                mods = "<mods #{@ns_decl}>
+                          <subject>
+                            <name type=\"personal\">
+                              <namePart type=\"termsOfAddress\">procureur-syndic de Varennes</namePart>
+                              <namePart>Sauce</namePart>
+                              <namePart type=\"date\">17..-1</namePart>
+                            </name>
+                          </subject>
+                        </mods>"
+                @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+                @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ['Sauce, procureur-syndic de Varennes']))
+                @indexer.index(@fake_druid)
+              end
+              it "Angoulême, Marie-Thérèse Charlotte de France, duchesse d'" do
+                mods = "<mods #{@ns_decl}>
+                          <subject>
+                            <name type=\"personal\">
+                              <namePart type=\"termsOfAddress\">duchesse d'</namePart>
+                              <namePart>Angoulême, Marie-Thérèse Charlotte de France</namePart>
+                              <namePart type=\"date\">1778-1851</namePart>
+                            </name>
+                          </subject>
+                        </mods>"
+                @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+                @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ["Angoulême, Marie-Thérèse Charlotte de France, duchesse d'"]))
+                @indexer.index(@fake_druid)
+              end
+            end # starts lower case
+            context "if starts upper case, don't insert a comma before toa" do
+              it "Gustave III, roi de Suède" do
+                mods = "<mods #{@ns_decl}>
+                          <subject>
+                            <name type=\"personal\">
+                              <namePart type=\"termsOfAddress\">III, roi de Suède</namePart>
+                              <namePart>Gustave</namePart>
+                              <namePart type=\"date\">1746-1792</namePart>
+                            </name>
+                          </subject>
+                        </mods>"
+                @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+                @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ["Gustave III, roi de Suède"]))
+                @indexer.index(@fake_druid)
+              end
+              it "Pie VI, pape" do
+                mods = "<mods #{@ns_decl}>
+                          <subject>
+                            <name type=\"personal\">
+                              <namePart type=\"termsOfAddress\">VI, pape</namePart>
+                              <namePart>Pie</namePart>
+                              <namePart type=\"date\">1717-1799</namePart>
+                            </name>
+                          </subject>
+                        </mods>"
+                @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+                @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ["Pie VI, pape"]))
+                @indexer.index(@fake_druid)
+              end
+              it "Louis XIV, roi de France" do
+                mods = "<mods #{@ns_decl}>
+                          <subject>
+                            <name type=\"personal\">
+                              <namePart type=\"termsOfAddress\">XIV, roi de France</namePart>
+                              <namePart>Louis</namePart>
+                              <namePart type=\"date\">1638-1715</namePart>
+                            </name>
+                          </subject>
+                        </mods>"
+                @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+                @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ["Louis XIV, roi de France"]))
+                @indexer.index(@fake_druid)
+              end
+            end # starts upper case
+            it "starts with number" do
+              mods = "<mods #{@ns_decl}>
+                        <subject>
+                          <name type=\"personal\">
+                            <namePart type=\"termsOfAddress\">1rst Earl of</namePart>
+                            <namePart>Malmesbury, James Harris</namePart>
+                            <namePart type=\"date\">1746-1820</namePart>
+                          </name>
+                        </subject>
+                      </mods>"
+              @hdor_client.should_receive(:mods).with(@fake_druid).and_return(Nokogiri::XML(mods))
+              @solr_client.should_receive(:add).with(hash_including(:speaker_ssim => ["Malmesbury, James Harris, 1rst Earl of"]))
+              @indexer.index(@fake_druid)
+            end
+          end # context termsOfAddress
           it "there should be none if there is no subject personal name" do
             mods = "<mods #{@ns_decl}>
                       <subject type=\"corporate\">

@@ -261,7 +261,10 @@ class BnfImagesIndexer < Harvestdor::Indexer
             end
           }
           speaker = parts.join(', ').strip unless parts.empty?
-          speaker << " #{toa}" if speaker && !speaker.empty? && toa && !toa.empty?
+          if toa && !toa.empty?
+            toa_delim = begins_w_roman_numeral?(toa) ? ' ' : ', '
+            speaker << "#{toa_delim}#{toa}" if speaker && !speaker.empty?
+          end
           doc_hash[:speaker_ssim] << UnicodeUtils.nfkc(speaker) if speaker && !speaker.empty?
         else
           parts = sub_name_node.namePart.map { |npn| npn.text unless npn.text.empty? }
@@ -274,6 +277,15 @@ class BnfImagesIndexer < Harvestdor::Indexer
       doc_hash.delete(fld) if doc_hash[fld] && doc_hash[fld].empty?
     }
     doc_hash
+  end
+
+  # borrowed from mods display gem as subject names displayed need to match facet value
+  # https://github.com/sul-dlss/mods_display/blob/master/lib/mods_display/fields/name.rb#L99-L104
+  def begins_w_roman_numeral?(toa)
+    first_word = toa.split(/\s|,/).first.strip
+    first_word.chars.all? do |char|
+       ["I", "X", "C", "L", "V"].include? char
+    end
   end
   
   # Retrieve the image file ids from the contentMetadata: xpath  contentMetadata/resource[@type='image']/file/@id
