@@ -336,11 +336,11 @@
       <str name="hl.fl">spoken_text_ftsimv, unspoken_text_ftsimv, title_long_ftsi, title_short_ftsi, session_title_ftsi</str>
       <str name="hl.snippets">500</str>
 <!-- uncomment 2 lines below and remove hl.fragsize for the NEW way with better performance -->
+<!--
       <str name="hl.useFastVectorHighlighter">true</str>
       <str name="hl.fragListBuilder">single</str>
-<!--
-      <str name="hl.fragsize">0</str>
 -->
+      <str name="hl.fragsize">0</str>
     </lst>    
   </requestHandler>
 
@@ -426,11 +426,11 @@
       <str name="hl.fl">spoken_text_ftsimv, unspoken_text_ftsimv, title_long_ftsi, title_short_ftsi, session_title_ftsi</str>
       <str name="hl.snippets">500</str>
 <!-- uncomment 2 lines below and remove hl.fragsize for the NEW way with better performance -->
+<!--
       <str name="hl.useFastVectorHighlighter">true</str>
       <str name="hl.fragListBuilder">single</str>
-<!--
-      <str name="hl.fragsize">0</str>
 -->
+      <str name="hl.fragsize">0</str>
     </lst>
   </requestHandler>
 
