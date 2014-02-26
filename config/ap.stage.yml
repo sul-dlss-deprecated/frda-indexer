@@ -3,7 +3,7 @@
 # log_dir:  directory for log file  (default logs, relative to harvestdor gem path)
 log_dir: logs/ap  
 # log_name: name of log file  (default: harvestdor.log)
-log_name: ap.stage.20130423.fix-session-titles-rethree
+log_name: ap.stage.20131207.phase1deploy.fix
 
 # purl: url for the DOR purl server (used to get ContentMetadata, etc.)
 purl: http://purl.stanford.edu
@@ -20,13 +20,14 @@ stacks: https://stacks.stanford.edu
 #  either give absolute directory, or directory relative to where the command will be executed
 whitelist: config/ap_whitelist.txt
 #whitelist: config/ap-druids.batch2
+#whitelist: config/ap-druids.txt
 
 # ----------- SOLR index (that we're writing INTO) parameters ------------
 solr:
-  url: https://sul-solr.stanford.edu/solr/frda-stage
+  url: http://sul-solr.stanford.edu/solr/frda-stage
   # timeouts are in seconds;  read_timeout -> open/read, open_timeout -> connection open
-  read_timeout: 90
-  open_timeout: 90
+  read_timeout: 180
+  open_timeout: 180
 
 # ---------- OAI harvesting parameters -----------
 

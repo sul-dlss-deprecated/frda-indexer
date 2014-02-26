@@ -58,9 +58,10 @@ class ApIndexer < Harvestdor::Indexer
   def tei druid
     url = "#{config.stacks}/file/druid:#{druid}/#{druid}.xml"
     open(url)
-    #File.open("/home/lyberadmin/frda/ap_tei/#{druid}.xml")    
+#    File.open("/home/lyberadmin/frda/ap_tei/#{druid}.xml")
   rescue Exception => e
     logger.error("error while retrieving tei at #{url} -- #{e.message}")
+#    logger.error("error while retrieving tei #{druid} -- #{e.message}")
     "<TEI.2/>"
   end
   

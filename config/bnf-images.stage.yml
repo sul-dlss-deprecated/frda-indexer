@@ -4,14 +4,14 @@
 log_dir: logs/images
 
 # log_name: name of log file  (default: harvestdor.log)
-log_name: bnf-images.stage.20130423.sortfield-batch2
+log_name: bnf-images.stage.20140122.3druids
 
 # purl: url for the DOR purl server (used to get ContentMetadata, etc.)
 purl: http://purl.stanford.edu
 
 # ----------- SOLR index (that we're writing INTO) parameters ------------
 solr:
-  url: https://sul-solr.stanford.edu/solr/frda-stage
+  url: http://sul-solr.stanford.edu/solr/frda-stage
   # timeouts are in seconds;  read_timeout -> open/read, open_timeout -> connection open
   read_timeout: 180
   open_timeout: 180
@@ -24,8 +24,8 @@ solr:
 
 # name of file containing druids that WILL be profiled (all others will be ignored)
 #  either give absolute directory, or directory relative to where the command will be executed
-#whitelist: config/bnf-white.txt
-whitelist: config/bnf-images-druids.batch2
+whitelist: config/bnf-white.txt
+#whitelist: config/bnf-images-merged-druids.batch2
 
 # ---------- OAI harvesting parameters -----------
 

@@ -1,5 +1,13 @@
 # whitelist containing the specific druids to be processed (all others will be ignored)
 # druids should be in the form aa111bb2222
 
-# Tome 10 : Du 12 novembre au 24 décembre 1789
-tq270ry8164
+dh941mm7815
+fy968nm6633
+gc161fd9389
+qr254wd8880
+sy666bw3655
+vj818xc6811
+vx924bt2426
+wb029sv4796
+xz144dc9157
+zg649xx5697
