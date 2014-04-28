@@ -1,7 +1,7 @@
 # encoding : UTF-8
 # Archives Parlementaires volumes mapping to sort string
 #   from http://ihrf.univ-paris1.fr/spip.php?article61
-# a mixin for use ap_indexer
+# a mixin for use with ap_indexer
 VOL_SORT = {
   '1'   => '0010',
   '2'   => '0020',
@@ -71,7 +71,7 @@ VOL_SORT = {
   '66'  => '0660',
   '67'  => '0670',
   '68'  => '0680',
-  '69'  => '0600',
+  '69'  => '0690',
   '70'  => '0700',
   '71A' => '0710',
   '71B' => '0711',
